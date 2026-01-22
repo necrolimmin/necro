@@ -1,37 +1,111 @@
 {% load static %}
 <!doctype html>
-<html lang="ru">
+<html lang="uz" data-theme="light" data-lang="uz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{% block title %}Bunker{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <title>{% block title %}"O‘ztemiryo‘lkonteyner" AJ{% endblock %}</title>
+
+  <link rel="shortcut icon" href="{% static 'images/UTKlogo.png' %}" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+  
 </head>
+
 <body>
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <div class="brand">BUNKER</div>
-
-      {% if user.is_authenticated %}
-        <div class="nav">
-          {% if user.is_staff or user.is_superuser %}
-            <a href="/admin-panel/table-1/">Отчёт 1</a>
-            <a href="{% url 'admin_table2_reports' %}">Отчёт 2</a>
-            <a href="/admin-panel/stations/">Станции</a>
-            <a href="/admin-panel/settings/">Настройки</a>
-          {% else %}
-            <a href="/station/table-1/">Таблица 1</a>
-            <a href="/station/table-2/">Таблица 2</a>
-            <a href="/station/settings/">Настройки</a>
-          {% endif %}
-          <a class="danger" href="/logout/">Выход</a>
+      {% if user.is_authenticated %} 
+      <!-- 1) Left: logo + name -->
+      <div class="brand">
+        <img class="brand-logo" src="{% static 'images/UTKlogo.png' %}" alt="Logo">
+        <div class="brand-name">
+          <b data-i18n="brand">O‘ztemiryo‘lkonteyner AJ</b>
+          <span data-i18n="subtitle">Konteyner operatsiyalar platformasi</span>
         </div>
-      {% endif %}
+      </div>
+
+      <!-- 2) Center: nav -->
+       
+      <nav class="center-nav" aria-label="Main navigation">
+        {% if user.is_staff or user.is_superuser %} 
+        <a class="nav-link" href="#" data-i18n="dash" style="color: rgb(154, 181, 206);">Dashboard</a>
+        <a class="nav-link" href="/admin-panel/table-1/" data-i18n="r1">Hisobot 1</a>
+        <a class="nav-link" href="{% url 'admin_table2_reports' %}" data-i18n="r2">Hisobot 2</a>
+        <a class="nav-link" href="#" data-i18n="q" style="color: rgb(154, 181, 206);">Kvartalniy</a>
+        <a class="nav-link" href="/admin-panel/stations/" data-i18n="branches">Filiallar</a>
+        {% else %} 
+        <a class="nav-link" href="/station/table-1/">Jadval 1</a> 
+        <a class="nav-link" href="/station/table-2/">Jadval 2</a> 
+        {% endif %} 
+      </nav>
+
+      
+
+      <!-- 3) Right: language + theme + admin dropdown -->
+      <div class="right-tools">
+
+        <!-- Language (UZ/RU) -->
+        <button class="icon-btn" id="langBtn" type="button" title="Til / Язык">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M4 5h10M4 9h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 5s-1 6-6 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M15 19l3-10 3 10" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M16.5 15h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <!-- Theme -->
+        <button class="icon-btn" id="themeBtn" type="button" title="Tungi / Kunduzgi">
+          <span id="themeIconHolder"></span>
+        </button>
+
+        <!-- Admin -->
+        <div class="admin-wrap">
+          <div class="admin-pill" id="adminToggle" role="button" tabindex="0">
+            <div class="admin-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4Z"
+                      stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            {% if user.is_staff or user.is_superuser %} 
+            <div class="admin-text">
+              <b data-i18n="admin">ADMIN</b>
+              <span data-i18n="account">Hisob</span>
+            </div>
+            {% else %}
+            <div class="admin-text">
+              <b data-i18n="user">FILIAL</b>
+              <span data-i18n="account">Hisob</span>
+            </div>
+            {% endif %}
+            
+          </div>
+
+          <div class="admin-menu" id="adminMenu">
+            <a href="/logout/" class="logout">
+              <span>⟵</span>
+              <span data-i18n="logout">Chiqish</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
     </div>
+    {% endif %} 
   </header>
 
-  <main class="wrap page">
+  <!-- PAGE -->
+  <main class="page">
     {% block content %}{% endblock %}
   </main>
+
+  
+
+  <script defer src="{% static 'script/base.js' %}"></script>
 </body>
 </html>
