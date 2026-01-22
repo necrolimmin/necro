@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load report_extras %}
+
+{% block title %}Отчёт 1{% endblock %}
+
+{% block content %}
+<style>
+  .statBox{
+    width:52px;height:52px;border:1px solid #111;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;background:#fff;position:relative;cursor:default;
+    user-select:none;
+  }
+  .statBox .mini{font-size:12px;line-height:1.05;text-align:center}
+  .statBox .mini b{display:block;font-size:14px}
+
+  .popover{
+    position:absolute;top:60px;left:0;
+    min-width:520px;max-width:760px;
+    background:#fff;border:1px solid #111;border-radius:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.18);
+    padding:12px;z-index:50;
+    opacity:0;transform:translateY(-6px);
+    pointer-events:none;transition:.15s ease;
+  }
+  .statBox:hover .popover{opacity:1;transform:translateY(0);pointer-events:auto;}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .col{border:1px solid #cbd5e1;border-radius:12px;padding:10px;max-height:260px;overflow:auto;}
+  .col h4{margin:0 0 8px;font-size:13px;}
+
+  .pill{
+    display:inline-block;padding:2px 8px;border-radius:999px;
+    border:1px solid #111;font-size:12px;font-weight:900;
+  }
+  .ok{background:#ecfdf5;border-color:#16a34a;color:#166534}
+  .no{background:#fef2f2;border-color:#dc2626;color:#991b1b}
+
+  .stLine{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #e5e7eb;}
+  .stLine:last-child{border-bottom:none}
+  .stName{font-weight:800}
+  .stTime{font-size:12px;color:#6b7280;white-space:nowrap}
+
+  .tbl th,.tbl td{vertical-align:middle;}
+</style>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+    <h2 style="margin:0;">Отчёт №1 (свод по Таблице 1)</h2>
+    <a class="btn" href="{% url 'admin_table1_reports' %}">← Назад</a>
+  </div>
+
+  {# ВАЖНО: action на admin_report_1 #}
+  <form method="get" action="{% url 'admin_report_1' %}" class="row3" style="margin:12px 0;">
+    <div class="field">
+      <label>Дата</label>
+      <input type="date" name="date" value="{{ date|date:'Y-m-d' }}">
+    </div>
+
+    <div class="field" style="display:flex;align-items:flex-end;gap:10px;">
+      <button class="btn" type="submit">Показать</button>
+
+      {% if submit_stat %}
+        <div class="statBox" aria-label="Отправили / не отправили">
+          <div class="mini">
+            <b>{{ submit_stat.submitted_count }}/{{ submit_stat.total_count }}</b>
+            Отч.
+          </div>
+
+          <div class="popover">
+            <div class="cols">
+              <div class="col">
+                <h4><span class="pill ok">Отправили ({{ submit_stat.submitted_count }})</span></h4>
+                {% for s in submit_stat.submitted %}
+                  <div class="stLine">
+                    <div class="stName">{{ s.name }}</div>
+                    <div class="stTime">{{ s.submitted_at|date:"d.m.Y H:i" }}</div>
+                  </div>
+                {% empty %}
+                  <div class="stTime">Никто не отправил</div>
+                {% endfor %}
+              </div>
+
+              <div class="col">
+                <h4><span class="pill no">Не отправили ({{ submit_stat.not_submitted_count }})</span></h4>
+                {% for s in submit_stat.not_submitted %}
+                  <div class="stLine">
+                    <div class="stName">{{ s.name }}</div>
+                    <div class="stTime">—</div>
+                  </div>
+                {% empty %}
+                  <div class="stTime">Все отправили</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="muted" style="margin-bottom:10px;">Найдено записей: {{ rows|length }}</div>
+
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Смена</th>
+        <th>Станция</th>
+        {% for key,label in fields %}
+          <th>{{ label }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.get_shift_display }}</td>
+          <td>{{ r.station_user.username }}</td>
+          {% for key,label in fields %}
+            <td>{{ r.data|get_item:key }}</td>
+          {% endfor %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="999">Нет данных</td></tr>
+      {% endfor %}
+
+      <tr class="total">
+        <td colspan="2"><b>ИТОГО</b></td>
+        {% for key,label in fields %}
+          <td><b>{{ totals|get_item:key }}</b></td>
+        {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

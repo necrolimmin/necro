@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Админ — Таблица 2 (Отчёты){% endblock %}
+
+{% block content %}
+<style>
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:12px}
+  .cardx{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;box-shadow:0 8px 18px rgba(0,0,0,.06)}
+  .meta{color:#64748b;font-size:13px;margin-top:6px}
+  .btnx{display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border-radius:12px;border:1px solid #cbd5e1;background:#2563eb;color:#fff;font-weight:800;text-decoration:none}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+  .statBox{
+    width:52px;height:52px;border:1px solid #111;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;background:#fff;position:relative;cursor:default;
+    user-select:none;
+  }
+  .statBox .mini{font-size:12px;line-height:1.05;text-align:center}
+  .statBox .mini b{display:block;font-size:14px}
+
+  .popover{
+    position:absolute;top:60px;right:0;
+    min-width:520px;max-width:760px;
+    background:#fff;border:1px solid #111;border-radius:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.18);
+    padding:12px;z-index:50;
+    opacity:0;transform:translateY(-6px);
+    pointer-events:none;transition:.15s ease;
+  }
+  .statBox:hover .popover{opacity:1;transform:translateY(0);pointer-events:auto;}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .col{border:1px solid #cbd5e1;border-radius:12px;padding:10px;max-height:260px;overflow:auto;}
+  .col h4{margin:0 0 8px;font-size:13px;}
+
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #111;font-size:12px;font-weight:900}
+  .ok{background:#ecfdf5;border-color:#16a34a;color:#166534}
+  .no{background:#fef2f2;border-color:#dc2626;color:#991b1b}
+
+  .stLine{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #e5e7eb;}
+  .stLine:last-child{border-bottom:none}
+  .stName{font-weight:800}
+  .stTime{font-size:12px;color:#6b7280;white-space:nowrap}
+</style>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <h2 style="margin:0;">Таблица №2 — отчёты по датам (админ)</h2>
+  </div>
+
+  <div class="meta">
+    Нажми “Открыть”, чтобы перейти к выбору станции/просмотру по дате.
+    Наведи на квадратик справа, чтобы увидеть кто отправил и кто нет.
+  </div>
+
+  <div class="grid">
+    {% for it in items %}
+      <div class="cardx">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div>
+            <div style="font-size:18px;font-weight:900;">
+              {{ it.date|date:"d.m.Y" }}
+            </div>
+            <div class="meta">
+              Год: <b>{{ it.year }}</b> • Месяц: <b>{{ it.month }}</b>
+            </div>
+
+            <div class="meta" style="margin-top:10px;">
+              Последняя отправка:
+              {% if it.submitted_at %}
+                <b>{{ it.submitted_at|date:"d.m.Y H:i" }}</b>
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="statBox" aria-label="Отправили / не отправили">
+            <div class="mini">
+              <b>{{ it.submitted_count }}/{{ it.total_count }}</b>
+              Отч.
+            </div>
+
+            <div class="popover">
+              <div class="cols">
+                <div class="col">
+                  <h4><span class="pill ok">Отправили ({{ it.submitted_count }})</span></h4>
+                  {% for s in it.submitted %}
+                    <div class="stLine">
+                      <div class="stName">{{ s.name }}</div>
+                      <div class="stTime">{{ s.submitted_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                  {% empty %}
+                    <div class="stTime">Никто не отправил</div>
+                  {% endfor %}
+                </div>
+
+                <div class="col">
+                  <h4><span class="pill no">Не отправили ({{ it.not_submitted_count }})</span></h4>
+                  {% for s in it.not_submitted %}
+                    <div class="stLine">
+                      <div class="stName">{{ s.name }}</div>
+                      <div class="stTime">—</div>
+                    </div>
+                  {% empty %}
+                    <div class="stTime">Все отправили</div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <a class="btnx" href="{% url 'admin_table2_station_pick' it.date|date:'Y-m-d' %}">Открыть</a>
+          
+          <a class="btnx" href="{% url 'admin_table2_graph' it.date|date:'Y-m-d' %}">Граф</a>
+          <a class="btnx" href="{% url 'admin_table2_layout' it.date|date:'Y-m-d' %}">Макет</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="cardx">
+        Пока нет отчётов Таблицы 2.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

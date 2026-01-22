@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load report_extras %}
+
+{% block title %}Админ — Таблица 1 за {{ date|date:"d.m.Y" }}{% endblock %}
+
+{% block content %}
+<style>
+  .topbarx{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:12px; flex-wrap:wrap; margin-bottom:12px;
+  }
+
+  .xwrap{ background:#fff; border:1px solid #000; border-radius:10px; overflow:auto }
+  .xhdr{
+    font-weight:700; text-align:center; padding:10px 12px;
+    border-bottom:1px solid #000; min-width:1400px;
+  }
+
+  .xtable{ border-collapse:collapse; min-width:2200px; width:100% }
+  .xtable th,.xtable td{
+    border:1px solid #000;
+    padding:4px 6px;
+    font-size:12px;
+    text-align:center;
+    vertical-align:middle;
+  }
+
+  .xtable .vtxt{
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    white-space:nowrap;
+    font-weight:800;
+  }
+
+  .g-total{ background:#fff4cc }
+  .lcname{ min-width:190px; font-weight:900; text-align:left }
+  .shift{ font-weight:900; background:#f8fafc; width:70px }
+
+  .muted{ color:#64748b }
+  .btnx{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 12px; border-radius:12px;
+    border:1px solid #cbd5e1; background:#2563eb; color:#fff;
+    font-weight:900; text-decoration:none;
+  }
+  .btnx.secondary{ background:#f1f5f9; color:#0f172a }
+</style>
+
+<div class="card">
+  <div class="topbarx">
+    <div>
+      <h2 style="margin:0;">Таблица №1 — {{ date|date:"d.m.Y" }}</h2>
+      <div class="muted" style="margin-top:6px;">
+        <a class="btnx secondary" href="{% url 'admin_table1_reports' %}">← Назад к списку</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="xwrap">
+    <div class="xhdr">
+      Оперативная информация о работе логистических центров АО "Узтемирйулконтейнер" в сутки —
+      {{ date|date:"d.m.Y" }} — к 18:00 час
+    </div>
+
+    <table class="xtable">
+      <thead>
+        <tr>
+          <th rowspan="2" class="lcname">Наименование ЛЦ</th>
+          <th rowspan="2">Смена</th>
+
+          {# колонки берутся из TABLE1_FIELDS #}
+          {% for key,label in fields %}
+            <th rowspan="2">
+              <div class="vtxt">{{ label }}</div>
+            </th>
+          {% endfor %}
+        </tr>
+        <tr></tr>
+      </thead>
+
+      <tbody>
+        {% for st in stations %}
+
+          <!-- DAY -->
+          <tr>
+            <td rowspan="3" class="lcname">{{ st.name }}</td>
+            <td class="shift">день</td>
+
+            {% for key,label in fields %}
+              <td>{{ st.day_data|get_item:key|default_if_none:"0" }}</td>
+            {% endfor %}
+          </tr>
+
+          <!-- NIGHT -->
+          <tr>
+            <td class="shift">ночь</td>
+
+            {% for key,label in fields %}
+              <td>{{ st.night_data|get_item:key|default_if_none:"0" }}</td>
+            {% endfor %}
+          </tr>
+
+          <!-- TOTAL -->
+          <tr class="g-total">
+            <td class="shift">итог</td>
+
+            {% for key,label in fields %}
+              <td><b>{{ st.total_data|get_item:key|default_if_none:"0" }}</b></td>
+            {% endfor %}
+          </tr>
+
+        {% empty %}
+          <tr><td colspan="999">Нет данных по этой дате</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="muted" style="margin-top:10px;">
+    Примечание: в админке поля <b>итого</b> считаются как <b>фт+кр+пв+прочее</b>, а <b>итого кон</b> зеркалит <b>конт.</b>
+    (для блоков: Выгрузка / Под выгрузкой / Погрузка / Под погрузкой).
+  </div>
+</div>
+{% endblock %}

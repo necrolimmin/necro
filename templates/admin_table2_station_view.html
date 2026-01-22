@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load report_extras %}
+{% block title %}Таблица 2 — {{ obj.station_user.username }} — {{ date|date:"d.m.Y" }}{% endblock %}
+
+{% block content %}
+<style>
+  .wrap2{ background:#fff;border:1px solid #111;border-radius:10px;overflow:auto;padding:10px;margin-bottom:20px;}
+  .t2{ border-collapse:collapse;width:100%;min-width:980px;table-layout:fixed;}
+  .t2 th,.t2 td{ border:1px solid #111;padding:4px 6px;font-size:12px;vertical-align:middle;}
+  .center{text-align:center}
+  .bold{font-weight:900}
+  .headDate{ text-align:center;font-weight:900;font-size:13px;padding:6px 8px;}
+  .t2 input{ width:100%;height:28px;padding:4px 6px;border:1px solid #94a3b8;border-radius:8px;text-align:center;font-weight:800;background:#f3f4f6;box-sizing:border-box;}
+  .secTitle{ font-weight:900;text-align:center;padding:6px 8px;background:#f8fafc;}
+  .danger{color:#b91c1c;font-weight:900}
+</style>
+
+<h2 style="margin-bottom:12px;">
+  Таблица №2 — Просмотр — {{ obj.station_user.username }} ({{ date|date:"d.m.Y" }})
+</h2>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+  <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btn">← К выбору станции</a>
+  <a href="{% url 'admin_table2_reports' %}" class="btn">← К датам</a>
+</div>
+
+<div class="wrap2">
+  <div class="bold" style="margin-bottom:6px;">
+    ЛЦ: {{ obj.station_user.username }} | Дата: {{ date|date:"d.m.Y" }}
+  </div>
+
+  <table class="t2">
+    <colgroup>
+      <col style="width:60px;">
+      <col>
+      <col style="width:140px;">
+      <col style="width:80px;">
+      <col style="width:110px;">
+      <col style="width:110px;">
+    </colgroup>
+
+    <thead>
+      <tr><th colspan="6" class="headDate">{{ date|date:"d.m.Y" }}</th></tr>
+      <tr>
+        <th class="center bold" rowspan="2">№ п/п</th>
+        <th class="center bold" colspan="2" rowspan="2">Наименование показателя</th>
+        <th class="center bold">Код</th>
+        <th class="center bold">всего</th>
+        <th class="center bold">ктк</th>
+      </tr>
+      <tr>
+        <th class="center bold" style="font-size:11px;">пок-ля</th>
+        <th class="center bold" style="font-size:11px;">72000</th>
+        <th class="center bold" style="font-size:11px;"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for n,label,code,k_total,k_ktk in rows_def %}
+        {% if n == 8 %}
+          <tr>
+            <td class="center bold" rowspan="2">8</td>
+            <td colspan="2">{{ label }}</td>
+            <td class="center">{{ code }}</td>
+            <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+            <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+          </tr>
+          {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
+            {% if n2 == 9 %}
+              <tr>
+                <td colspan="2">{{ label2 }}</td>
+                <td class="center">{{ code2 }}</td>
+                <td class="center"><input value="{{ obj|data_val:k_total2 }}" disabled></td>
+                <td class="center"><input value="{{ obj|data_val:k_ktk2 }}" disabled></td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% elif n == 9 %}
+          {# skip #}
+
+        {% elif n == 22 %}
+          <tr>
+            <td class="center bold" rowspan="2">{{ n }}</td>
+            <td class="bold" rowspan="2">Загружено</td>
+            <td class="bold">Гружёные</td>
+            <td class="center">З/г</td>
+            <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+            <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+          </tr>
+          <tr>
+            <td class="bold">Порожние</td>
+            <td class="center">З/п</td>
+            <td class="center"><input value="{{ obj|data_val:'r22p_total' }}" disabled></td>
+            <td class="center"><input value="{{ obj|data_val:'r22p_ktk' }}" disabled></td>
+          </tr>
+
+        {% else %}
+          <tr>
+            <td class="center bold">{{ n }}</td>
+            <td colspan="2">{{ label }}</td>
+            <td class="center">{{ code }}</td>
+            <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+            <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- НИЖНИЕ БЛОКИ оставляю как у тебя -->
+  <table class="t2" style="margin-top:10px;">
+    <colgroup>
+      <col>
+      <col style="width:140px;">
+      <col style="width:140px;">
+    </colgroup>
+    <tbody>
+      <tr>
+        <td class="bold">Выгружено ваг.</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.vygr_wag_ktk }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.vygr_tonn }}" disabled></td>
+      </tr>
+      <tr>
+        <td class="bold">Погружено ваг.</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.pogr_wag_ktk }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.pogr_tonn }}" disabled></td>
+      </tr>
+      <tr>
+        <td class="danger">Груз на своих осях (ваг)</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.os_wag_ktk }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.os_tonn }}" disabled></td>
+      </tr>
+      <tr>
+        <td rowspan="2" class="bold">ПОГРУЖЕНО (наименование груза)</td>
+        <td rowspan="2" class="center bold">Объём</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.cargo_name }}" disabled></td>
+      </tr>
+      <tr>
+        <td class="center"><input value="{{ obj|data_val:bottom.cargo_volume }}" disabled></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="t2" style="margin-top:10px;">
+    <colgroup>
+      <col style="width:140px;">
+      <col>
+      <col>
+      <col>
+    </colgroup>
+    <thead>
+      <tr><th colspan="4" class="secTitle">Наличие на КП по сектору</th></tr>
+      <tr>
+        <th></th>
+        <th class="center bold">Вместимость</th>
+        <th class="center bold">Факт</th>
+        <th class="center bold">Свободно</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center bold">ФП</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_capacity }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_fact }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_free }}" disabled></td>
+      </tr>
+      <tr>
+        <td class="center bold">УУС</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_capacity }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_fact }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_free }}" disabled></td>
+      </tr>
+      <tr>
+        <td>Готовые контейнера к отправке</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_capacity }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_fact }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_free }}" disabled></td>
+      </tr>
+      <tr>
+        <td>Готовые контейнера к вывозу</td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_capacity }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_fact }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_free }}" disabled></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Графа — Таблица 2 — {{ date|date:"d.m.Y" }}{% endblock %}
+{% block content %}
+<style>
+  .xwrap{background:#fff;border:1px solid #111;border-radius:10px;overflow:auto}
+  .xtable{border-collapse:collapse;min-width:1500px;width:100%;table-layout:fixed}
+  .xtable th,.xtable td{border:1px solid #111;padding:4px 6px;font-size:11px;text-align:center;vertical-align:middle}
+  .vtxt{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-weight:900}
+  .head{font-weight:900;text-align:center;padding:8px;border-bottom:1px solid #111}
+  .left{text-align:left;font-weight:900}
+  .road{background:#f3f4f6;font-weight:900}
+</style>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+    <h2 style="margin:0;">Графа — {{ date|date:"d.m.Y" }}</h2>
+    <a class="btn" style="text-decoration:none;background:#e5e7eb;color:#111;border:1px solid #cbd5e1;"
+       href="{% url 'admin_table2_reports' %}">← Назад</a>
+  </div>
+
+  <div class="xwrap" style="margin-top:10px;">
+    <div class="head">Суточный отчёт о движении контейнеров — {{ date|date:"d.m.Y" }}</div>
+
+    <table class="xtable">
+      <colgroup>
+        <col style="width:60px">
+        <col style="width:280px">
+        <col style="width:70px">
+        {% for st in stations %}
+          <col style="width:70px">
+          <col style="width:70px">
+        {% endfor %}
+      </colgroup>
+
+      <thead>
+        <tr>
+          <th rowspan="2">№</th>
+          <th rowspan="2">Наименование показателя</th>
+          <th rowspan="2">Код</th>
+
+          {% for st in stations %}
+            {% if st.name == "Дорога" %}
+              <th colspan="2" class="road">{{ st.name }}</th>
+            {% else %}
+              <th colspan="2">{{ st.name }}</th>
+            {% endif %}
+          {% endfor %}
+        </tr>
+        <tr>
+          {% for st in stations %}
+            {% if st.name == "Дорога" %}
+              <th class="road"><div class="vtxt">всего</div></th>
+              <th class="road"><div class="vtxt">ктк</div></th>
+            {% else %}
+              <th><div class="vtxt">всего</div></th>
+              <th><div class="vtxt">ктк</div></th>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in grid %}
+        <tr>
+          <td><b>{{ r.n }}</b></td>
+          <td class="left">{{ r.label }}</td>
+          <td><b>{{ r.code }}</b></td>
+
+          {% for c in r.cells %}
+            {% if forloop.last %}
+              <td class="road">{{ c.total }}</td>
+              <td class="road">{{ c.ktk }}</td>
+            {% else %}
+              <td>{{ c.total }}</td>
+              <td>{{ c.ktk }}</td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

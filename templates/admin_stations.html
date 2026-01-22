@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Станции{% endblock %}
+{% block content %}
+<div class="grid2">
+  <div class="card">
+    <h2>Добавить станцию</h2>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="field">
+        <label>Название станции</label>
+        <input name="station_name" required>
+      </div>
+      <div class="field">
+        <label>Username (логин)</label>
+        <input name="username" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input name="password" type="password" required>
+      </div>
+      <button class="btn" type="submit">Создать</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Список станций</h2>
+    <table class="tbl">
+      <thead><tr><th>Станция</th><th>Username</th></tr></thead>
+      <tbody>
+        {% for s in stations %}
+          <tr>
+            <td>{{ s.station_name }}</td>
+            <td>{{ s.user.username }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2">Пока нет станций</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

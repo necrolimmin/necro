@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Отчёт 2{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Отчёт №2 (свод KPI)</h2>
+
+  <form method="get" class="row3" style="margin:12px 0;">
+    <div class="field">
+      <label>Дата</label>
+      <input type="date" name="date" value="{{ date|date:'Y-m-d' }}">
+    </div>
+    <div class="field" style="display:flex;align-items:flex-end;">
+      <button class="btn" type="submit">Показать</button>
+    </div>
+  </form>
+
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Код</th>
+        <th>Наименование</th>
+        <th>Сумма (всего)</th>
+        <th>Сумма (ктк)</th>
+        <th>Сумма (доход)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in agg %}
+      <tr>
+        <td><b>{{ r.kpi__code }}</b></td>
+        <td>{{ r.kpi__name }}</td>
+        <td>{{ r.sum_total }}</td>
+        <td>{{ r.sum_ktk }}</td>
+        <td>{{ r.sum_income|default_if_none:"" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">Нет данных</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Админ — Таблица 2 — {{ date|date:"d.m.Y" }}{% endblock %}
+
+{% block content %}
+<style>
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    border-radius:999px;padding:6px 10px;font-weight:900;font-size:12px;
+    background:#dcfce7;color:#166534;border:1px solid #86efac;
+  }
+  .muted{color:#64748b}
+  .cardx{
+    border:1px solid #e2e8f0;border-radius:14px;padding:14px;
+    background:#fff;box-shadow:0 10px 25px rgba(15,23,42,.06);
+  }
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+</style>
+
+<div class="card">
+  <div class="cardx">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <h2 style="margin:0;">Отчёт Таблица №2 — {{ date|date:"d.m.Y" }}</h2>
+        <div class="muted" style="margin-top:6px;">
+          Год: <b>{{ date|date:"Y" }}</b> · Месяц: <b>{{ date|date:"m" }}</b> · День: <b>{{ date|date:"d" }}</b>
+        </div>
+      </div>
+
+      <div class="badge">
+        Отчётов: {{ cnt }}
+        {% if last %} · Последняя отправка: {{ last|date:"d.m.Y H:i" }} {% endif %}
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <a class="btn" style="text-decoration:none;" href="{% url 'admin_table2_view' date|date:'Y-m-d' %}">Просмотр</a>
+      <a class="btn" style="text-decoration:none;" href="{% url 'admin_table2_graph' date|date:'Y-m-d' %}">Графа</a>
+      <a class="btn" style="text-decoration:none;" href="{% url 'admin_table2_layout' date|date:'Y-m-d' %}">Макет</a>
+
+      <a class="btn" style="text-decoration:none;background:#e5e7eb;color:#111;border:1px solid #cbd5e1;"
+         href="{% url 'admin_table2_reports' %}">← Назад</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

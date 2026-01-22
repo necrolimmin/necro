@@ -1,0 +1,37 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Bunker{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">BUNKER</div>
+
+      {% if user.is_authenticated %}
+        <div class="nav">
+          {% if user.is_staff or user.is_superuser %}
+            <a href="/admin-panel/table-1/">Отчёт 1</a>
+            <a href="{% url 'admin_table2_reports' %}">Отчёт 2</a>
+            <a href="/admin-panel/stations/">Станции</a>
+            <a href="/admin-panel/settings/">Настройки</a>
+          {% else %}
+            <a href="/station/table-1/">Таблица 1</a>
+            <a href="/station/table-2/">Таблица 2</a>
+            <a href="/station/settings/">Настройки</a>
+          {% endif %}
+          <a class="danger" href="/logout/">Выход</a>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="wrap page">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

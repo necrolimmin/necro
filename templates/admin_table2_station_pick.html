@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Таблица 2 — Выбор станции — {{ date|date:"d.m.Y" }}{% endblock %}
+
+{% block content %}
+<style>
+  .card2{background:#fff;border:1px solid #111;border-radius:12px;padding:12px}
+  .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .item{display:flex;justify-content:space-between;align-items:center;border:1px solid #cbd5e1;border-radius:10px;padding:10px}
+  .name{font-weight:900}
+  .muted{color:#6b7280;font-size:12px}
+  .btn2{display:inline-block;padding:8px 12px;border:1px solid #111;border-radius:10px;text-decoration:none}
+</style>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+    <h2 style="margin:0;">Таблица №2 — выбор станции ({{ date|date:"d.m.Y" }})</h2>
+    <a class="btn" href="{% url 'admin_table2_reports' %}">← Назад</a>
+  </div>
+
+  <div class="card2" style="margin-top:10px;">
+    {% if stations %}
+      <div class="muted">Нажмите на станцию, чтобы открыть её отчёт.</div>
+
+      <div class="list">
+        {% for s in stations %}
+          <div class="item">
+            <div>
+              <div class="name">{{ s.name }}</div>
+              <div class="muted">Отправлено: {{ s.submitted_at|date:"d.m.Y H:i" }}</div>
+            </div>
+
+            <a class="btn2" href="{% url 'admin_table2_station_view' date_str=date|date:'Y-m-d' user_id=s.user_id %}">
+              Открыть →
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="muted">За эту дату никто не отправил отчёт.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

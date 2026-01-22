@@ -1,0 +1,61 @@
+:root{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#0b1220;
+  --muted:#5b647a;
+  --border:#e2e8f0;
+  --primary:#4f63ff;
+  --danger:#ff4d6d;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+
+.wrap{width:min(1280px,96vw);margin:0 auto}
+.topbar{background:#fff;border-bottom:1px solid var(--border)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.brand{font-weight:900;letter-spacing:.8px}
+.nav{display:flex;gap:12px;flex-wrap:wrap}
+.nav a{color:var(--text);text-decoration:none;padding:8px 10px;border-radius:10px;border:1px solid transparent}
+.nav a:hover{border-color:var(--border);background:#f8fafc}
+.nav a.danger{color:var(--danger);font-weight:700}
+
+.page{padding:16px 0 30px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 10px 28px rgba(15,23,42,.06)}
+.muted{color:var(--muted)}
+.alert{background:#fff3f5;border:1px solid #ffd1da;color:#b4233c;padding:10px;border-radius:12px;margin:10px 0}
+
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+label{font-size:13px;color:var(--muted)}
+input,select{padding:10px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:#fff}
+.btn{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn:hover{filter:brightness(.95)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+
+.tbl{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px;border:1px solid var(--border)}
+.tbl th,.tbl td{border-bottom:1px solid var(--border);padding:10px;font-size:13px;vertical-align:top}
+.tbl thead th{background:#f8fafc;text-align:left}
+.tbl tr.total td{background:#fbfcff}
+
+
+.btn{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  background:#e5e7eb;
+  color:#111;
+  text-decoration:none;
+  font-weight:800;
+}
+.btn:hover{ filter:brightness(0.97); }
+.btn:active{ transform:translateY(1px); }
+
+.btn.primary{
+  background:#2563eb;
+  border-color:#1d4ed8;
+  color:#fff;
+}
+
