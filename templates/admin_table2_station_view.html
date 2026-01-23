@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load report_extras %}
-{% block title %}Таблица 2 — {{ obj.station_user.username }} — {{ date|date:"d.m.Y" }}{% endblock %}
+{% block title %} Umumiy jadval — {{ date|date:"d.m.Y" }}{% endblock %}
 
 {% block content %}
 <style>
-  .wrap2{ background:#fff;border:1px solid #111;border-radius:10px;overflow:auto;padding:10px;margin-bottom:20px;}
+  .wrap2{ background:#fff; width: 80%; border:1px solid #111;border-radius:10px;overflow:auto;padding:10px;margin-bottom:20px;}
   .t2{ border-collapse:collapse;width:100%;min-width:980px;table-layout:fixed;}
   .t2 th,.t2 td{ border:1px solid #111;padding:4px 6px;font-size:12px;vertical-align:middle;}
   .center{text-align:center}
@@ -16,12 +16,12 @@
 </style>
 
 <h2 style="margin-bottom:12px;">
-  Таблица №2 — Просмотр — {{ obj.station_user.username }} ({{ date|date:"d.m.Y" }})
+  Umumiy Jadval  ({{ date|date:"d.m.Y" }})
 </h2>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-  <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btn">← К выбору станции</a>
-  <a href="{% url 'admin_table2_reports' %}" class="btn">← К датам</a>
+  <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btn">← Ortga</a>
+  
 </div>
 
 <div class="wrap2">

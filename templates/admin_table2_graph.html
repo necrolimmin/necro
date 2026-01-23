@@ -1,31 +1,173 @@
 {% extends "base.html" %}
 {% block title %}Графа — Таблица 2 — {{ date|date:"d.m.Y" }}{% endblock %}
+
 {% block content %}
 <style>
-  .xwrap{background:#fff;border:1px solid #111;border-radius:10px;overflow:auto}
-  .xtable{border-collapse:collapse;min-width:1500px;width:100%;table-layout:fixed}
-  .xtable th,.xtable td{border:1px solid #111;padding:4px 6px;font-size:11px;text-align:center;vertical-align:middle}
-  .vtxt{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-weight:900}
-  .head{font-weight:900;text-align:center;padding:8px;border-bottom:1px solid #111}
-  .left{text-align:left;font-weight:900}
-  .road{background:#f3f4f6;font-weight:900}
+  /* Page shell */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+    backdrop-filter: blur(14px);
+  }
+
+  .hdr{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .hdr h2{
+    margin:0;
+    font-size:18px;
+    font-weight:950;
+    color:var(--text);
+    letter-spacing:.2px;
+  }
+  .hdr .sub{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.4;
+  }
+
+  .btnBack{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 14px;border-radius:14px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.55);
+    color:var(--text);
+    text-decoration:none;
+    font-weight:950;
+    white-space:nowrap;
+    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  html[data-theme="dark"] .btnBack{ background:rgba(255,255,255,.06); }
+  .btnBack:hover{ transform:translateY(-1px); box-shadow:0 16px 44px rgba(15,23,42,.10); filter:brightness(1.02); }
+
+  /* Table container */
+  .xwrap{
+    margin-top:12px;
+    border:1px solid var(--stroke);
+    
+    overflow:auto;
+    background:rgba(255,255,255,.20);
+  }
+  html[data-theme="dark"] .xwrap{ background:rgba(255,255,255,.04); }
+
+  .xhead{
+    padding:12px 14px;
+    border-bottom:1px solid var(--stroke);
+    font-weight:950;
+    color:var(--text);
+    background:rgba(255,255,255,.35);
+  }
+  html[data-theme="dark"] .xhead{ background:rgba(255,255,255,.06); }
+
+  /* Table */
+  table{
+    border-collapse:separate;
+    border-spacing:0;
+    width:max-content;      /* ortiqcha bo‘sh joyni yo‘q qiladi */
+    min-width:1100px;       /* juda kichrayib ketmasin */
+    table-layout:fixed;
+  }
+
+  th, td{
+    border-right:1px solid rgba(15,23,42,.10);
+    border-bottom:1px solid rgba(15,23,42,.10);
+    padding:6px 8px;        /* bo‘sh joy kamroq */
+    font-size:12px;
+    text-align:center;
+    vertical-align:middle;
+    color:var(--text);
+    background:transparent;
+    line-height:1.15;
+  }
+  html[data-theme="dark"] th, html[data-theme="dark"] td{
+    border-right:1px solid rgba(255,255,255,.12);
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+
+  /* Top header sticky */
+  thead th{
+    
+    background:var(--surface);
+    font-weight:950;
+  }
+
+  
+
+  
+
+  /* Column widths: ixcham */
+  .colN{ width:20px; }
+  .colLabel{ width:44px; text-align:left; font-weight:900; }
+  .colCode{ width:20px; font-weight:900; }
+
+  
+
+  /* Vertical text */
+  .vtxt{
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    white-space:nowrap;
+    font-weight:950;
+    font-size:11px;
+    opacity:.95;
+  }
+
+  /* Road style */
+  .road{
+    background:rgba(15,23,42,.04);
+    font-weight:950;
+  }
+  html[data-theme="dark"] .road{ background:rgba(255,255,255,.06); }
+
+  tbody tr:hover td{ background: rgba(79,70,229,.06); }
+  html[data-theme="dark"] tbody tr:hover td{ background: rgba(99,102,241,.10); }
+
+  /* reduce double borders for first row/col */
+  table tr > *:first-child{ border-left:1px solid rgba(15,23,42,.10); }
+  html[data-theme="dark"] table tr > *:first-child{ border-left:1px solid rgba(255,255,255,.12); }
+  thead tr:first-child th{ border-top:1px solid rgba(15,23,42,.10); }
+  html[data-theme="dark"] thead tr:first-child th{ border-top:1px solid rgba(255,255,255,.12); }
+
+  /* Mobile tweaks */
+  @media (max-width: 640px){
+    .hdr h2{ font-size:16px; }
+    th, td{ padding:6px 7px; font-size:11.5px; }
+    .colLabel{ width:280px; }
+    .sticky2{ left:56px; }
+    .sticky3{ left:336px; }
+  }
 </style>
 
-<div class="card">
-  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
-    <h2 style="margin:0;">Графа — {{ date|date:"d.m.Y" }}</h2>
-    <a class="btn" style="text-decoration:none;background:#e5e7eb;color:#111;border:1px solid #cbd5e1;"
-       href="{% url 'admin_table2_reports' %}">← Назад</a>
+<div class="panel">
+  <div class="hdr">
+    <div>
+      <h2>
+        <span data-i18n="t2_grapha_title">Графа</span> — {{ date|date:"d.m.Y" }}
+      </h2>
+      <div class="sub">
+        <span data-i18n="t2_grapha_sub">Суточный отчёт о движении контейнеров</span> — {{ date|date:"d.m.Y" }}
+      </div>
+    </div>
+
+    <a class="btnBack" href="{% url 'admin_table2_reports' %}">
+      <span aria-hidden="true">←</span> <span data-i18n="back">Назад</span>
+    </a>
   </div>
 
-  <div class="xwrap" style="margin-top:10px;">
-    <div class="head">Суточный отчёт о движении контейнеров — {{ date|date:"d.m.Y" }}</div>
+  <div class="xwrap">
+    <div class="xhead">
+      <span data-i18n="t2_grapha_header">Суточный отчёт о движении контейнеров</span> — {{ date|date:"d.m.Y" }}
+    </div>
 
-    <table class="xtable">
+    <table>
       <colgroup>
-        <col style="width:60px">
-        <col style="width:280px">
-        <col style="width:70px">
+        <col class="colN">
+        <col class="colLabel">
+        <col class="colCode">
         {% for st in stations %}
           <col style="width:70px">
           <col style="width:70px">
@@ -34,9 +176,9 @@
 
       <thead>
         <tr>
-          <th rowspan="2">№</th>
-          <th rowspan="2">Наименование показателя</th>
-          <th rowspan="2">Код</th>
+          <th rowspan="2" class="colN sticky1">№</th>
+          <th rowspan="2" class="colLabel sticky2" data-i18n="col_metric">Наименование показателя</th>
+          <th rowspan="2" class="colCode sticky3" data-i18n="col_code">Код</th>
 
           {% for st in stations %}
             {% if st.name == "Дорога" %}
@@ -46,14 +188,15 @@
             {% endif %}
           {% endfor %}
         </tr>
+
         <tr>
           {% for st in stations %}
             {% if st.name == "Дорога" %}
-              <th class="road"><div class="vtxt">всего</div></th>
-              <th class="road"><div class="vtxt">ктк</div></th>
+              <th class="road"><div class="vtxt" data-i18n="col_total">всего</div></th>
+              <th class="road"><div class="vtxt" data-i18n="col_ktk">ктк</div></th>
             {% else %}
-              <th><div class="vtxt">всего</div></th>
-              <th><div class="vtxt">ктк</div></th>
+              <th><div class="vtxt" data-i18n="col_total">всего</div></th>
+              <th><div class="vtxt" data-i18n="col_ktk">ктк</div></th>
             {% endif %}
           {% endfor %}
         </tr>
@@ -61,21 +204,21 @@
 
       <tbody>
         {% for r in grid %}
-        <tr>
-          <td><b>{{ r.n }}</b></td>
-          <td class="left">{{ r.label }}</td>
-          <td><b>{{ r.code }}</b></td>
+          <tr>
+            <td class="sticky1"><b>{{ r.n }}</b></td>
+            <td class="colLabel sticky2">{{ r.label }}</td>
+            <td class="sticky3"><b>{{ r.code }}</b></td>
 
-          {% for c in r.cells %}
-            {% if forloop.last %}
-              <td class="road">{{ c.total }}</td>
-              <td class="road">{{ c.ktk }}</td>
-            {% else %}
-              <td>{{ c.total }}</td>
-              <td>{{ c.ktk }}</td>
-            {% endif %}
-          {% endfor %}
-        </tr>
+            {% for c in r.cells %}
+              {% if forloop.last %}
+                <td class="road">{{ c.total }}</td>
+                <td class="road">{{ c.ktk }}</td>
+              {% else %}
+                <td>{{ c.total }}</td>
+                <td>{{ c.ktk }}</td>
+              {% endif %}
+            {% endfor %}
+          </tr>
         {% endfor %}
       </tbody>
     </table>

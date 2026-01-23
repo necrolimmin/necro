@@ -86,7 +86,7 @@
           logout: "Chiqish",
           user: "FILIAL",
 
-          t1_title: "Jadval №1 — sanalar bo‘yicha hisobotlar",
+          t1_title: "Hisobot №1 — sanalar bo‘yicha hisobotlar",
           t1_help: "“Jo‘natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.",
           col_no: "№",
           col_date: "Sana / Oy / Yil",
@@ -107,7 +107,7 @@
           total: "Jami",
           prev: "Oldingi",
           next: "Keyingi",
-          
+
         }
       };
 
