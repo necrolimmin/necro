@@ -10,44 +10,58 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
-  
+  <!-- ✅ минимальные стили только для текста станции -->
+  <style>
+    .admin-text b.station-name{
+      max-width:140px;
+      display:block;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:13px;
+      font-weight:900;
+    }
+    .admin-text span.station-sub{
+      font-size:11px;
+      opacity:.7;
+      font-weight:700;
+    }
+  </style>
 </head>
 
 <body>
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="wrap topbar-inner">
-      {% if user.is_authenticated %} 
-      <!-- 1) Left: logo + name -->
+      {% if user.is_authenticated %}
+
+      <!-- LEFT: logo -->
       <div class="brand">
         <img class="brand-logo" src="{% static 'images/UTKlogo.png' %}" alt="Logo">
         <div class="brand-name">
-          <b data-i18n="brand">O‘ztemiryo‘lkonteyner AJ</b>
-          <span data-i18n="subtitle">Konteyner operatsiyalar platformasi</span>
+          <b>O‘ztemiryo‘lkonteyner AJ</b>
+          <span>Konteyner operatsiyalar platformasi</span>
         </div>
       </div>
 
-      <!-- 2) Center: nav -->
-       
+      <!-- CENTER: navigation -->
       <nav class="center-nav" aria-label="Main navigation">
-        {% if user.is_staff or user.is_superuser %} 
-        <a class="nav-link" href="#" data-i18n="dash" style="color: rgb(154, 181, 206);">Dashboard</a>
-        <a class="nav-link" href="/admin-panel/table-1/" data-i18n="r1">Hisobot 1</a>
-        <a class="nav-link" href="{% url 'admin_table2_reports' %}" data-i18n="r2">Hisobot 2</a>
-        <a class="nav-link" href="#" data-i18n="q" style="color: rgb(154, 181, 206);">Kvartalniy</a>
-        <a class="nav-link" href="/admin-panel/stations/" data-i18n="branches">Filiallar</a>
-        {% else %} 
-        <a class="nav-link" href="/station/table-1/">Jadval 1</a> 
-        <a class="nav-link" href="/station/table-2/">Jadval 2</a> 
-        {% endif %} 
+        {% if user.is_staff or user.is_superuser %}
+          <a class="nav-link" href="#" style="color: rgb(154, 181, 206);">Dashboard</a>
+          <a class="nav-link" href="/admin-panel/table-1/">Hisobot 1</a>
+          <a class="nav-link" href="{% url 'admin_table2_reports' %}">Hisobot 2</a>
+          <a class="nav-link" href="#" style="color: rgb(154, 181, 206);">Kvartalniy</a>
+          <a class="nav-link" href="/admin-panel/stations/">Filiallar</a>
+        {% else %}
+          <a class="nav-link" href="/station/table-1/">Jadval 1</a>
+          <a class="nav-link" href="/station/table-2/">Jadval 2</a>
+        {% endif %}
       </nav>
 
-      
-
-      <!-- 3) Right: language + theme + admin dropdown -->
+      <!-- RIGHT: tools + account -->
       <div class="right-tools">
 
-        <!-- Language (UZ/RU) -->
+        <!-- Language -->
         <button class="icon-btn" id="langBtn" type="button" title="Til / Язык">
           <svg class="icon" viewBox="0 0 24 24" fill="none">
             <path d="M4 5h10M4 9h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -62,49 +76,50 @@
           <span id="themeIconHolder"></span>
         </button>
 
-        <!-- Admin -->
+        <!-- ACCOUNT -->
         <div class="admin-wrap">
           <div class="admin-pill" id="adminToggle" role="button" tabindex="0">
             <div class="admin-badge" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4Z"
                       stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M9 12l2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M9 12l2 2 4-5"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </div>
-            {% if user.is_staff or user.is_superuser %} 
-            <div class="admin-text">
-              <b data-i18n="admin">ADMIN</b>
-              <span data-i18n="account">Hisob</span>
-            </div>
+
+            {% if user.is_staff or user.is_superuser %}
+              <!-- ADMIN -->
+              <div class="admin-text">
+                <b>ADMIN</b>
+                <span>Hisob</span>
+              </div>
             {% else %}
-            <div class="admin-text">
-              <b data-i18n="user">FILIAL</b>
-              <span data-i18n="account">Hisob</span>
-            </div>
+              <!-- FILIAL = STATION NAME -->
+              <div class="admin-text">
+                <b class="station-name">{{ user.username }}</b>
+                <span class="station-sub">Filial</span>
+              </div>
             {% endif %}
-            
           </div>
 
           <div class="admin-menu" id="adminMenu">
             <a href="/logout/" class="logout">
               <span>⟵</span>
-              <span data-i18n="logout">Chiqish</span>
+              <span>Chiqish</span>
             </a>
           </div>
         </div>
 
       </div>
+      {% endif %}
     </div>
-    {% endif %} 
   </header>
 
   <!-- PAGE -->
   <main class="page">
     {% block content %}{% endblock %}
   </main>
-
-  
 
   <script defer src="{% static 'script/base.js' %}"></script>
 </body>

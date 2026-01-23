@@ -21,7 +21,6 @@
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
   <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btn">← Ortga</a>
-  
 </div>
 
 <div class="wrap2">
@@ -57,6 +56,8 @@
 
     <tbody>
       {% for n,label,code,k_total,k_ktk in rows_def %}
+
+        {# --- ГРУППА №8: Принято на баланс + Изъято из резерва --- #}
         {% if n == 8 %}
           <tr>
             <td class="center bold" rowspan="2">8</td>
@@ -75,12 +76,16 @@
               </tr>
             {% endif %}
           {% endfor %}
+
+        {# --- Строку 9 отдельно НЕ рисуем --- #}
         {% elif n == 9 %}
           {# skip #}
 
+        {# --- ГРУППА "Загружено": Гружёные/Порожние --- #}
         {% elif n == 22 %}
           <tr>
-            <td class="center bold" rowspan="2">{{ n }}</td>
+            {# после склейки 8/9 все номера сдвигаются на -1, значит 22 показываем как 21 #}
+            <td class="center bold" rowspan="2">21</td>
             <td class="bold" rowspan="2">Загружено</td>
             <td class="bold">Гружёные</td>
             <td class="center">З/г</td>
@@ -94,15 +99,19 @@
             <td class="center"><input value="{{ obj|data_val:'r22p_ktk' }}" disabled></td>
           </tr>
 
+        {# --- Все остальные строки --- #}
         {% else %}
           <tr>
-            <td class="center bold">{{ n }}</td>
+            <td class="center bold">
+              {% if n >= 10 %}{{ n|add:"-1" }}{% else %}{{ n }}{% endif %}
+            </td>
             <td colspan="2">{{ label }}</td>
             <td class="center">{{ code }}</td>
             <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
             <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
           </tr>
         {% endif %}
+
       {% endfor %}
     </tbody>
   </table>

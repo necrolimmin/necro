@@ -117,8 +117,8 @@
         </thead>
 
         <tbody>
-          {# ====== Обычные строки 1..7 (как были) ====== #}
           {% for n,label,code,k_total,k_ktk in rows_def %}
+
             {# --- ГРУППА №8: Принято на баланс + Изъято из резерва --- #}
             {% if n == 8 %}
               <tr>
@@ -155,9 +155,9 @@
 
             {# --- ГРУППА "Загружено": Гружёные/Порожние --- #}
             {% elif n == 22 %}
-              {# Первая подстрока: Гружёные (З/г) #}
               <tr>
-                <td class="center bold" rowspan="2">{{ n }}</td>
+                {# после склейки 8/9 все номера сдвигаются на -1, значит 22 показываем как 21 #}
+                <td class="center bold" rowspan="2">21</td>
                 <td class="bold" rowspan="2">Загружено</td>
                 <td class="bold">Гружёные</td>
                 <td class="center">З/г</td>
@@ -169,7 +169,6 @@
                 </td>
               </tr>
 
-              {# Вторая подстрока: Порожние (З/п) — ключи берём из context: z_p_total / z_p_ktk #}
               <tr>
                 <td class="bold">Порожние</td>
                 <td class="center">З/п</td>
@@ -184,7 +183,10 @@
             {# --- Все остальные строки обычные: Наименование colspan=2 --- #}
             {% else %}
               <tr>
-                <td class="center bold">{{ n }}</td>
+                {# если n >= 10 — показываем номер n-1, чтобы не было пропуска #}
+                <td class="center bold">
+                  {% if n >= 10 %}{{ n|add:"-1" }}{% else %}{{ n }}{% endif %}
+                </td>
                 <td colspan="2">{{ label }}</td>
                 <td class="center">{{ code }}</td>
                 <td class="center">
@@ -195,6 +197,7 @@
                 </td>
               </tr>
             {% endif %}
+
           {% endfor %}
         </tbody>
       </table>
