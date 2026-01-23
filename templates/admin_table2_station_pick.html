@@ -1,43 +1,220 @@
 {% extends "base.html" %}
-{% block title %}Таблица 2 — Выбор станции — {{ date|date:"d.m.Y" }}{% endblock %}
+{% block title %} Hisobot 2 — Filiallar kesimida — {{ date|date:"d.m.Y" }}{% endblock %}
 
 {% block content %}
 <style>
-  .card2{background:#fff;border:1px solid #111;border-radius:12px;padding:12px}
-  .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-  .item{display:flex;justify-content:space-between;align-items:center;border:1px solid #cbd5e1;border-radius:10px;padding:10px}
-  .name{font-weight:900}
-  .muted{color:#6b7280;font-size:12px}
-  .btn2{display:inline-block;padding:8px 12px;border:1px solid #111;border-radius:10px;text-decoration:none}
+  /* Page wrapper */
+  .t2p{
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+    backdrop-filter: blur(14px);
+  }
+
+  .t2p-head{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .t2p-title{
+    margin:0;
+    font-size:18px;
+    font-weight:950;
+    color:var(--text);
+    letter-spacing:.2px;
+  }
+  .t2p-sub{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.4;
+  }
+
+  /* Back button */
+  .t2p-back{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 14px;border-radius:14px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.55);
+    color:var(--text);
+    text-decoration:none;
+    font-weight:950;
+    white-space:nowrap;
+    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  html[data-theme="dark"] .t2p-back{ background:rgba(255,255,255,.06); }
+  .t2p-back:hover{ transform:translateY(-1px); box-shadow:0 16px 44px rgba(15,23,42,.10); filter:brightness(1.02); }
+
+  /* Content box */
+  .t2p-box{
+    margin-top:14px;
+    border:1px solid var(--stroke);
+    border-radius:18px;
+    background:rgba(255,255,255,.22);
+    padding:14px;
+  }
+  html[data-theme="dark"] .t2p-box{ background:rgba(255,255,255,.04); }
+
+  .t2p-note{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    color:var(--muted);
+    font-size:12.5px;
+    margin-bottom:12px;
+  }
+
+  /* Cards grid */
+  .t2p-grid{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:12px;
+  }
+  @media (max-width: 920px){
+    .t2p-grid{ grid-template-columns: 1fr; }
+  }
+
+  .t2card{
+    border:1px solid var(--stroke);
+    border-radius:18px;
+    background:rgba(255,255,255,.40);
+    overflow:hidden;
+    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    position:relative;
+  }
+  html[data-theme="dark"] .t2card{ background:rgba(255,255,255,.06); }
+  .t2card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 18px 54px rgba(15,23,42,.12);
+    filter:brightness(1.01);
+  }
+
+  /* Card header stripe */
+  .t2card::before{
+    content:"";
+    position:absolute;inset:-40% -30%;
+    background:
+      radial-gradient(900px 360px at 10% 15%, rgba(99,102,241,.25), transparent 55%),
+      radial-gradient(760px 320px at 90% 10%, rgba(34,197,94,.18), transparent 60%),
+      radial-gradient(760px 320px at 40% 100%, rgba(6,182,212,.18), transparent 60%);
+    pointer-events:none;
+  }
+
+  .t2card-inner{
+    position:relative;
+    padding:14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .t2card-left{min-width:0;}
+  .t2name{
+    font-size:16px;
+    font-weight:950;
+    color:var(--text);
+    line-height:1.2;
+    word-break:break-word;
+  }
+  .t2meta{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:12.5px;
+  }
+
+  /* Open button (fixed visibility) */
+  .t2open{
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:11px 14px;
+    border-radius:14px;
+    border:0 !important;
+    outline:0;
+    color:var(--muted);
+    font-weight:950;
+    text-decoration:none;
+    white-space:nowrap;
+    background:linear-gradient(135deg, var(--g1), var(--g2), var(--g3)) !important;
+    box-shadow:0 16px 46px rgba(79,70,229,.22);
+    min-width:140px;
+    transition:transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  }
+  .t2open:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.04);
+    box-shadow:0 18px 52px rgba(79,70,229,.28);
+  }
+
+  /* Mobile: button full width under text */
+  @media (max-width: 560px){
+    .t2card-inner{ flex-direction:column; align-items:stretch; }
+    .t2open{ width:100%; min-width:0; }
+  }
+
+  .t2empty{
+    color:var(--muted);
+    font-size:13px;
+    padding:10px 0;
+  }
 </style>
 
-<div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-    <h2 style="margin:0;">Таблица №2 — выбор станции ({{ date|date:"d.m.Y" }})</h2>
-    <a class="btn" href="{% url 'admin_table2_reports' %}">← Назад</a>
+<div class="t2p">
+  <div class="t2p-head">
+    <div>
+      <h2 class="t2p-title">
+        <span data-i18n="t2_pick_title">Hisobot 2 — Filiallar kesimida</span>
+        ({{ date|date:"d.m.Y" }})
+      </h2>
+      <div class="t2p-sub" data-i18n="t2_pick_sub">
+        Filialni tanlang va shu sana bo‘yicha hisobotni oching.
+      </div>
+    </div>
+
+    <a class="t2p-back" href="{% url 'admin_table2_reports' %}">
+      <span aria-hidden="true">←</span>
+      <span data-i18n="back">Ortga</span>
+    </a>
   </div>
 
-  <div class="card2" style="margin-top:10px;">
+  <div class="t2p-box">
     {% if stations %}
-      <div class="muted">Нажмите на станцию, чтобы открыть её отчёт.</div>
+      <div class="t2p-note">
+        <span data-i18n="t2_pick_note">Filiallar kartasidan “Ochish” ni bosing.</span>
+      </div>
 
-      <div class="list">
+      <div class="t2p-grid">
         {% for s in stations %}
-          <div class="item">
-            <div>
-              <div class="name">{{ s.name }}</div>
-              <div class="muted">Отправлено: {{ s.submitted_at|date:"d.m.Y H:i" }}</div>
-            </div>
+          <div class="t2card">
+            <div class="t2card-inner">
+              <div class="t2card-left">
+                <div class="t2name">{{ s.name }}</div>
+                <div class="t2meta">
+                  <span data-i18n="submitted_at">Jo'natilgan</span>:
+                  {% if s.submitted_at %}
+                    {{ s.submitted_at|date:"d.m.Y H:i" }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+              </div>
 
-            <a class="btn2" href="{% url 'admin_table2_station_view' date_str=date|date:'Y-m-d' user_id=s.user_id %}">
-              Открыть →
-            </a>
+              <a class="t2open"
+                 href="{% url 'admin_table2_station_view' date_str=date|date:'Y-m-d' user_id=s.user_id %}">
+                <span data-i18n="open">Ochish</span> →
+              </a>
+            </div>
           </div>
         {% endfor %}
       </div>
+
     {% else %}
-      <div class="muted">За эту дату никто не отправил отчёт.</div>
+      <div class="t2empty" data-i18n="t2_pick_empty">
+        Bu sana uchun hech qandey ma'lumot yo'q
+      </div>
     {% endif %}
   </div>
 </div>
+
 {% endblock %}

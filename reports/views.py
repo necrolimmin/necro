@@ -939,3 +939,7 @@ def _get_all_stations():
 
     # Фолбек: если никак не можем отличить станции — берём всех не-админов
     return list(qs.values_list("id", "username").order_by("username"))
+
+
+
+

@@ -4,30 +4,151 @@
 
 {% block content %}
 <style>
-  .xwrap{background:#fff;border:1px solid #111;border-radius:10px;overflow:auto}
-  .xtable{border-collapse:collapse;min-width:900px;width:100%;table-layout:fixed}
-  .xtable th,.xtable td{border:1px solid #111;padding:6px 6px;font-size:12px;text-align:center;vertical-align:middle}
-  .head{font-weight:900;text-align:center;padding:10px;border-bottom:1px solid #111}
-  .left{text-align:left;font-weight:900}
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+    backdrop-filter: blur(14px);
+  }
+
+  .hdr{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .hdr h2{
+    margin:0;
+    font-size:18px;
+    font-weight:950;
+    color:var(--text);
+  }
+  .hdr .sub{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.4;
+  }
+
+  .btnBack{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 14px;border-radius:14px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.55);
+    color:var(--text);
+    text-decoration:none;
+    font-weight:950;
+    white-space:nowrap;
+    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  html[data-theme="dark"] .btnBack{ background:rgba(255,255,255,.06); }
+  .btnBack:hover{ transform:translateY(-1px); box-shadow:0 16px 44px rgba(15,23,42,.10); filter:brightness(1.02); }
+
+  .xwrap{
+    margin-top:12px;
+    border:1px solid var(--stroke);
+    border-radius:18px;
+    overflow:auto;
+    background:rgba(255,255,255,.20);
+  }
+  html[data-theme="dark"] .xwrap{ background:rgba(255,255,255,.04); }
+
+  .xhead{
+    padding:12px 14px;
+    border-bottom:1px solid var(--stroke);
+    background:rgba(255,255,255,.35);
+    color:var(--text);
+  }
+  html[data-theme="dark"] .xhead{ background:rgba(255,255,255,.06); }
+  .xhead .title{ font-weight:950; }
+  .xhead .date{ color:var(--muted); font-size:12.5px; margin-top:4px; }
+
+  /* table */
+  table{
+    border-collapse:separate;
+    border-spacing:0;
+    width:max-content;      /* bo‘sh joy qolmaydi */
+    min-width:980px;
+    table-layout:fixed;
+  }
+  th, td{
+    border-right:1px solid rgba(18, 21, 29, 0.1);
+    border-bottom:1px solid rgba(15,23,42,.10);
+    padding:7px 8px;
+    font-size:12px;
+    line-height:1.15;
+    text-align:center;
+    vertical-align:middle;
+    color:var(--text);
+    background:transparent;
+    
+  }
+  html[data-theme="dark"] th, html[data-theme="dark"] td{
+    border-right:1px solid rgba(255,255,255,.12);
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+
+  thead th{
+    position:sticky; top:0; z-index:10;
+    background: var(--surface);
+    font-weight:950;
+  }
+
+  /* sticky first two cols */
+  .stickyA{ position:sticky; left:0; z-index:12; background:var(--surface); }
+  .stickyB{ position:sticky; left:280px; z-index:12; background:var(--surface); }
+
+  /* col widths */
+  .colMetric{ width:280px; text-align:left; font-weight:950; }
+  .colSub{ width:90px; text-align:left; font-weight:950; color:var(--muted); }
+
+  /* rows */
+  tbody tr:hover td{ background: rgba(79,70,229,.06); }
+  html[data-theme="dark"] tbody tr:hover td{ background: rgba(99,102,241,.10); }
+
+  /* group labels */
+  .group{
+    background:rgba(15,23,42,.03);
+    font-weight:950;
+  }
+  html[data-theme="dark"] .group{ background:rgba(255,255,255,.06); }
+
+  /* small screen */
+  @media (max-width: 640px){
+    .hdr h2{ font-size:16px; }
+    th, td{ font-size:11.5px; padding:7px 7px; }
+    .colMetric{ width:240px; }
+    .stickyB{ left:240px; }
+  }
 </style>
 
-<div class="card">
-  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
-    <h2 style="margin:0;">Макет — {{ date|date:"d.m.Y" }}</h2>
-    <a class="btn" style="text-decoration:none;background:#e5e7eb;color:#111;border:1px solid #cbd5e1;"
-       href="{% url 'admin_table2_reports' %}">← Назад</a>
-  </div>
-
-  <div class="xwrap" style="margin-top:10px;">
-    <div class="head">
-      Работа с контейнерами (по оперативным данным)<br>
-      Дата {{ date|date:"d.m.Y" }}
+<div class="panel">
+  <div class="hdr">
+    <div>
+      <h2>
+        <span data-i18n="t2_layout_title">Макет</span> — {{ date|date:"d.m.Y" }}
+      </h2>
+      <div class="sub">
+        <span data-i18n="t2_layout_sub">Работа с контейнерами (по оперативным данным)</span>
+      </div>
     </div>
 
-    <table class="xtable">
+    <a class="btnBack" href="{% url 'admin_table2_reports' %}">
+      <span aria-hidden="true">←</span> <span data-i18n="back">Назад</span>
+    </a>
+  </div>
+
+  <div class="xwrap">
+    <div class="xhead">
+      <div class="title" data-i18n="t2_layout_header">Работа с контейнерами (по оперативным данным)</div>
+      <div class="date">
+        <span data-i18n="date">Дата</span> {{ date|date:"d.m.Y" }}
+      </div>
+    </div>
+
+    <table>
       <colgroup>
-        <col style="width:280px">
-        <col style="width:90px">
+        <col class="colMetric">
+        <col class="colSub">
         {% for c in cols %}
           <col style="width:120px">
         {% endfor %}
@@ -35,8 +156,8 @@
 
       <thead>
         <tr>
-          <th>Показатели</th>
-          <th></th>
+          <th class="colMetric stickyA" data-i18n="col_metrics">Показатели</th>
+          <th class="colSub stickyB"></th>
           {% for c in cols %}
             <th>{{ c.title }}</th>
           {% endfor %}
@@ -44,89 +165,89 @@
       </thead>
 
       <tbody>
-        <tr>
-          <td rowspan="2" class="left">Рабочий парк</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Рабочий парк</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"work_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"work_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">Погрузка контейнеров</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Погрузка контейнеров</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"pogr_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"pogr_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">Выгрузка контейнеров</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Выгрузка контейнеров</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"vygr_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"vygr_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td class="left">Выгрузка ТУК</td>
-          <td></td>
+        <tr class="group">
+          <td class="colMetric stickyA">Выгрузка ТУК</td>
+          <td class="colSub stickyB"></td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"vygr_tuk" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">Парк на площадке</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Парк на площадке</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"site_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"site_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">К вывозу</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">К вывозу</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"to_export_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"to_export_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">Готовые к отправлению</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Готовые к отправлению</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"ready_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"ready_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">Порожние</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Порожние</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"empty_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"empty_kr" }}</b></td>{% endfor %}
         </tr>
 
-        <tr>
-          <td rowspan="2" class="left">Под сортировку</td>
-          <td class="left">Конт</td>
+        <tr class="group">
+          <td rowspan="2" class="colMetric stickyA">Под сортировку</td>
+          <td class="colSub stickyB">Конт</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"sort_cont" }}</b></td>{% endfor %}
         </tr>
         <tr>
-          <td class="left">КР</td>
+          <td class="colSub stickyB">КР</td>
           {% for c in cols %}<td><b>{{ buckets|get_item:c.key|get_item:"sort_kr" }}</b></td>{% endfor %}
         </tr>
       </tbody>
