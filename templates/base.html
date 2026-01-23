@@ -46,16 +46,18 @@
 
       <!-- CENTER: navigation -->
       <nav class="center-nav" aria-label="Main navigation">
-        {% if user.is_staff or user.is_superuser %}
-          <a class="nav-link" href="#" style="color: rgb(154, 181, 206);">Dashboard</a>
-          <a class="nav-link" href="/admin-panel/table-1/">Hisobot 1</a>
-          <a class="nav-link" href="{% url 'admin_table2_reports' %}">Hisobot 2</a>
-          <a class="nav-link" href="#" style="color: rgb(154, 181, 206);">Kvartalniy</a>
-          <a class="nav-link" href="/admin-panel/stations/">Filiallar</a>
-        {% else %}
-          <a class="nav-link" href="/station/table-1/">Jadval 1</a>
-          <a class="nav-link" href="/station/table-2/">Jadval 2</a>
-        {% endif %}
+
+        {% if user.is_staff or user.is_superuser %} 
+        <a class="nav-link" href="#" data-i18n="dash" style="color: rgb(154, 181, 206);">Dashboard</a>
+        <a class="nav-link" href="/admin-panel/table-1/" data-i18n="r1">Hisobot 1</a>
+        <a class="nav-link" href="{% url 'admin_table2_reports' %}" data-i18n="r2">Hisobot 2</a>
+        <a class="nav-link" href="#" data-i18n="q" style="color: rgb(154, 181, 206);">Kvartalniy</a>
+        <a class="nav-link" href="/admin-panel/stations/" data-i18n="branches">Filiallar</a>
+        {% else %} 
+        <a class="nav-link" href="/station/table-1/" data-i18n="r1">Hisobot 1</a> 
+        <a class="nav-link" href="/station/table-2/"  data-i18n="r2">Hisobot 2</a> 
+        {% endif %} 
+
       </nav>
 
       <!-- RIGHT: tools + account -->
