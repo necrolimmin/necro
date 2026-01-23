@@ -4,16 +4,16 @@
 
 {% block content %}
 <style>
-  /* ===== Page layout ===== */
+  /* ===== Page header ===== */
   .page-head{
     display:flex;align-items:flex-end;justify-content:space-between;
     gap:12px;flex-wrap:wrap;margin-bottom:14px;
   }
-  .page-title{margin:0;font-size:22px;font-weight:950;letter-spacing:-.02em}
+  .page-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}
   .page-sub{margin:6px 0 0;color:#64748b;font-size:13px}
 
   .grid2{
-    display:grid;grid-template-columns:420px 1fr;gap:16px;align-items:start;
+    display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start;
   }
   @media (max-width: 980px){
     .grid2{grid-template-columns:1fr}
@@ -28,7 +28,7 @@
     box-shadow:0 14px 40px rgba(15,23,42,.08);
     backdrop-filter: blur(10px);
   }
-  .cardx h2{margin:0 0 10px;font-size:16px;font-weight:950}
+  .cardx h2{margin:0 0 10px;font-size:16px;font-weight:750}
   .muted{color:#64748b;font-size:12.5px;line-height:1.45}
   .alert{
     background:rgba(239,68,68,.10);
@@ -36,7 +36,7 @@
     color:#991b1b;
     padding:10px 12px;
     border-radius:14px;
-    font-weight:800;
+    font-weight:700;
     margin:10px 0 12px;
   }
 
@@ -44,14 +44,15 @@
   .field{margin:10px 0}
   .field label{display:block;font-weight:600;margin-bottom:6px}
   .inp{
-    width:93%;
+    width:100%;
     height:44px;
     border-radius:14px;
     border:1px solid rgba(15,23,42,.16);
-    padding:0 10px;
+    padding:0 12px;
     outline:none;
     background:rgba(248,250,252,.9);
     transition:.15s ease;
+    box-sizing:border-box;
   }
   .inp:focus{
     border-color:rgba(37,99,235,.55);
@@ -62,14 +63,14 @@
   .pw-wrap{position:relative}
   .pw-toggle{
     position:absolute;top:50%;right:10px;transform:translateY(-50%);
-    width:40px;height:34px;border-radius:12px;
+    width:42px;height:36px;border-radius:12px;
     border:1px solid rgba(15,23,42,.16);
     background:rgba(255,255,255,.9);
     display:flex;align-items:center;justify-content:center;
     cursor:pointer;
     transition:.15s ease;
   }
-  .pw-toggle:hover{transform:translateY(-50%) scale(1.02)}
+  .pw-toggle:hover{filter:brightness(.98)}
   .pw-toggle svg{width:18px;height:18px}
 
   .btnx{
@@ -78,12 +79,12 @@
     border-radius:14px;
     border:1px solid rgba(15,23,42,.14);
     background:linear-gradient(135deg, rgba(37,99,235,.95), rgba(16,185,129,.92));
-    color:#fff;font-weight:950;text-decoration:none;
+    color:#fff;font-weight:800;text-decoration:none;
     cursor:pointer;
     transition:.15s ease;
     box-shadow:0 12px 24px rgba(37,99,235,.18);
   }
-  .btnx:hover{transform:translateY(-1px);filter:saturate(1.05)}
+  .btnx:hover{transform:translateY(-1px)}
   .btnx:active{transform:translateY(0)}
 
   .btn-danger{
@@ -93,20 +94,21 @@
     border:1px solid rgba(239,68,68,.35);
     background:rgba(239,68,68,.10);
     color:#b91c1c;
-    font-weight:950;
+    font-weight:800;
     cursor:pointer;
     transition:.15s ease;
   }
   .btn-danger:hover{background:rgba(239,68,68,.16);transform:translateY(-1px)}
   .btn-danger:active{transform:translateY(0)}
 
-  /* ===== Table ===== */
+  /* ===== Table (desktop) ===== */
   .table-wrap{
     border:1px solid rgba(15,23,42,.12);
     border-radius:16px;
     overflow:hidden;
     background:rgba(255,255,255,.92);
   }
+  .scroll-x{overflow:auto}
   .tbl{
     width:100%;
     border-collapse:separate;
@@ -118,52 +120,58 @@
     border-bottom:1px solid rgba(15,23,42,.10);
     text-align:left;
     font-size:13px;
+    vertical-align:middle;
   }
   .tbl th{
     background:linear-gradient(180deg, rgba(248,250,252,.98), rgba(241,245,249,.85));
-    font-weight:950;
+    font-weight:750;
     position:sticky;top:0;z-index:1;
   }
   .tbl tr:hover td{background:rgba(2,132,199,.04)}
   .tbl td:last-child{text-align:right}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
+  .actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 
   .pill{
     display:inline-flex;align-items:center;gap:6px;
     padding:6px 10px;border-radius:999px;
     border:1px solid rgba(15,23,42,.12);
     background:rgba(248,250,252,.9);
-    font-weight:900;font-size:12px;
+    font-weight:700;font-size:12px;
   }
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
 
-  .actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+  /* ===== Mobile cards ===== */
+  .mobile-list{display:none; gap:12px; flex-direction:column; margin-top:12px;}
+  .mcard{
+    border:1px solid rgba(15,23,42,.12);
+    background:rgba(255,255,255,.92);
+    border-radius:16px;
+    padding:12px;
+  }
+  .mhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .mname{font-weight:800}
+  .mkv{margin-top:10px; display:grid; gap:8px;}
+  .mrow{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:#475569}
+  .mrow b{color:#0f172a;font-weight:800}
+  .mact{margin-top:12px; display:flex; justify-content:flex-start}
 
-  /* Responsive table: horizontal scroll */
-  .scroll-x{overflow:auto}
-  .scroll-x::-webkit-scrollbar{height:10px}
-  .scroll-x::-webkit-scrollbar-thumb{background:rgba(15,23,42,.18);border-radius:999px}
-  @media (min-width: 981px){
-  .grid2{grid-template-columns:380px 1fr;} /* 420 -> 380 */
-}
-
-  /* ===== Local i18n ===== */
-  [data-i18n]{transition:.15s ease}
+  /* ✅ Mobilga o‘tganda jadvalni yashiramiz, cardni chiqaramiz */
+  @media (max-width: 680px){
+    .table-wrap{display:none;}
+    .mobile-list{display:flex;}
+  }
 </style>
 
 <div class="page-head">
   <div>
     <h1 class="page-title" data-i18n="stations_title">Filiallar</h1>
-    <div class="page-sub" data-i18n="stations_sub">
-      Filial foydalanuvchilarini yaratish va boshqarish.
-    </div>
+    <div class="page-sub" data-i18n="stations_sub">Filial foydalanuvchilarini yaratish va boshqarish.</div>
   </div>
-
-  
 </div>
 
 <div class="grid2">
 
-  <!-- LEFT: CREATE -->
+  <!-- LEFT -->
   <div class="cardx">
     <h2 data-i18n="create_title">Filial qo‘shish</h2>
 
@@ -189,7 +197,6 @@
         <div class="pw-wrap">
           <input class="inp mono" id="pw" name="password" type="password" required placeholder="********">
           <button class="pw-toggle" type="button" id="pwBtn" aria-label="Show password">
-            <!-- eye icon -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
               <circle cx="12" cy="12" r="3"></circle>
@@ -207,7 +214,7 @@
     </form>
   </div>
 
-  <!-- RIGHT: LIST -->
+  <!-- RIGHT -->
   <div class="cardx">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;">
       <div>
@@ -221,6 +228,7 @@
       </div>
     </div>
 
+    <!-- Desktop table -->
     <div class="table-wrap" style="margin-top:12px;">
       <div class="scroll-x">
         <table class="tbl">
@@ -232,7 +240,6 @@
               <th style="width:160px;text-align:right;" data-i18n="col_actions">Amallar</th>
             </tr>
           </thead>
-
           <tbody>
             {% for s in stations %}
               <tr>
@@ -251,35 +258,61 @@
                 </td>
               </tr>
             {% empty %}
-              <tr>
-                <td colspan="4" class="muted" data-i18n="empty">Hozircha filial yo‘q</td>
-              </tr>
+              <tr><td colspan="4" class="muted" data-i18n="empty">Hozircha filial yo‘q</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- Mobile cards (✅ endi faqat mobilga ko‘rinadi) -->
+    <div class="mobile-list">
+      {% for s in stations %}
+        <div class="mcard">
+          <div class="mhead">
+            <div class="mname">{{ s.station_name }}</div>
+            <div class="pill"><span data-i18n="col_login">Login</span>: <b class="mono">{{ s.user.username }}</b></div>
+          </div>
+
+          <div class="mkv">
+            <div class="mrow"><span data-i18n="col_name">Nomi</span><b>{{ s.station_name }}</b></div>
+            <div class="mrow"><span data-i18n="col_login">Login</span><b class="mono">{{ s.user.username }}</b></div>
+            <div class="mrow"><span data-i18n="col_password">Parol</span><b class="mono">{{ s.plain_password|default:"—" }}</b></div>
+          </div>
+
+          <div class="mact">
+            <form method="post"
+                  action="{% url 'admin_station_delete' s.id %}"
+                  onsubmit="return confirm('Удалить станцию {{ s.station_name }} ({{ s.user.username }})?');">
+              {% csrf_token %}
+              <button class="btn-danger" type="submit" data-i18n="btn_delete">O‘chirish</button>
+            </form>
+          </div>
+        </div>
+      {% empty %}
+        <div class="muted" data-i18n="empty">Hozircha filial yo‘q</div>
+      {% endfor %}
+    </div>
+
     <div class="muted" style="margin-top:10px" data-i18n="note2">
-      Izoh: 
+      Izoh: “Parol” ustuni “—” bo‘lishi mumkin, chunki Django parolni ochiq ko‘rinishda qaytarmaydi.
     </div>
   </div>
 
 </div>
 
 <script>
-  // ===== Password toggle =====
+  // Password toggle
   (function(){
     const pw = document.getElementById('pw');
     const btn = document.getElementById('pwBtn');
     if(!pw || !btn) return;
-
     btn.addEventListener('click', () => {
       pw.type = (pw.type === 'password') ? 'text' : 'password';
     });
   })();
 
-  // ===== Local i18n (UZ/RU) =====
+  // Page i18n (base'ga tegmasdan real-time ishlashi uchun)
   (function(){
     const dict = {
       uz: {
@@ -289,7 +322,7 @@
         label_station: "Filial nomi",
         label_username: "Username (login)",
         label_password: "Password",
-        pw_note: "Eslatma: Filial qo'shishda bir xil nomli login va paroldan foydalanmang!",
+        pw_note: "Eslatma: Django parolni ochiq ko‘rinishda saqlamaydi. Ro‘yxatda parolni ko‘rsatish uchun uni alohida saqlash kerak (xavfsiz emas).",
         btn_create: "Yaratish",
         list_title: "Filiallar ro‘yxati",
         list_sub: "O‘chirishda ehtiyot bo‘ling — foydalanuvchi ham o‘chadi.",
@@ -300,7 +333,7 @@
         col_actions: "Amallar",
         btn_delete: "O‘chirish",
         empty: "Hozircha filial yo‘q",
-        note2: "Izoh:  "
+        note2: "Izoh: “Parol” ustuni “—” bo‘lishi mumkin, chunki Django parolni ochiq ko‘rinishda qaytarmaydi."
       },
       ru: {
         stations_title: "Филиалы",
@@ -309,7 +342,7 @@
         label_station: "Название филиала",
         label_username: "Логин (username)",
         label_password: "Пароль",
-        pw_note: "Важно:  ",
+        pw_note: "Важно: Django не хранит пароль в открытом виде. Чтобы показывать пароль — нужно хранить отдельно (это небезопасно).",
         btn_create: "Создать",
         list_title: "Список филиалов",
         list_sub: "Будьте осторожны при удалении — пользователь тоже будет удалён.",
@@ -320,22 +353,35 @@
         col_actions: "Действия",
         btn_delete: "Удалить",
         empty: "Пока нет филиалов",
-        note2: "Примечание: колонка “Пароль” будет “—”, так как Django не может вернуть пароль в открытом виде."
+        note2: "Примечание: колонка “Пароль” может быть “—”, так как Django не возвращает пароль в открытом виде."
       }
     };
 
-    // Agar base.html global tilni localStorage’da saqlayotgan bo‘lsa, shu nomlarni ham tekshiramiz
-    const saved = localStorage.getItem('lang') || localStorage.getItem('ui_lang') || 'uz';
-    const lang = (saved === 'ru') ? 'ru' : 'uz';
+    function getLang(){
+      const saved = localStorage.getItem('lang') || 'uz';
+      return saved === 'ru' ? 'ru' : 'uz';
+    }
 
-    const badge = document.getElementById('langBadge');
-    if (badge) badge.textContent = lang.toUpperCase();
+    function applyLang(lang){
+      const t = dict[lang] || dict.uz;
+      document.querySelectorAll('[data-i18n]').forEach(el=>{
+        const k = el.getAttribute('data-i18n');
+        if(t[k] != null) el.textContent = t[k];
+      });
+    }
 
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (dict[lang] && dict[lang][key]) el.textContent = dict[lang][key];
-    });
+    // initial
+    let last = getLang();
+    applyLang(last);
+
+    // ✅ base tugmasi bosilganda localStorage o‘zgaradi — biz kuzatib turamiz
+    setInterval(()=>{
+      const cur = getLang();
+      if(cur !== last){
+        last = cur;
+        applyLang(cur);
+      }
+    }, 250);
   })();
 </script>
-
 {% endblock %}
