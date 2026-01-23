@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Таблица 2 — Отчёты{% endblock %}
+{% block title %}Hisobot №2{% endblock %}
 
 {% block content %}
 <style>
@@ -181,20 +181,68 @@
   }
 </style>
 
+<style>
+  .btn-primary-cta{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 15px;
+    border-radius:999px;
+    font-weight:700;
+    text-decoration:none;
+    color:#fff;
+    background:linear-gradient(135deg,#4f46e5,#22c55e);
+    box-shadow:0 14px 30px rgba(79,70,229,.35);
+    transition:.25s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .btn-primary-cta::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:translateX(-120%);
+    transition:.6s ease;
+  }
+  .btn-primary-cta:hover{
+    transform:translateY(-2px);
+    box-shadow:0 22px 40px rgba(79,70,229,.45);
+  }
+  .btn-primary-cta:hover::after{
+    transform:translateX(120%);
+  }
+
+  .btn-primary-cta svg{
+    width:18px;
+    height:18px;
+  }
+
+  /* Dark mode moslashuvi */
+  html[data-theme="dark"] .btn-primary-cta{
+    box-shadow:0 18px 38px rgba(34,197,94,.35);
+  }
+</style>
+
+
 <div class="card">
   <div class="pagehead">
     <div>
-      <h2 data-i18n="t2_reports_title">Таблица №2 — отчёты</h2>
+      <h2 data-i18n="t2_reports_title">Hisobot №2</h2>
       <div class="subtext" data-i18n="t2_reports_sub">
         Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.
       </div>
     </div>
 
-    <a class="btn"
-       href="/station/table-2/edit/{{ today }}/"
-       style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
-      <span data-i18n="create_report">Создать отчёт</span>
-    </a>
+    <a href="/station/table-2/edit/{{ today }}/"
+   class="btn-primary-cta"
+   data-i18n="create_report">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 5v14M5 12h14"/>
+  </svg>
+  hisobot yaratish
+</a>
+
   </div>
 
   <div class="controls">
@@ -307,9 +355,9 @@
   // Agar base.html/base.js’da til/tungi tizimi bo'lsa, bu faqat fallback.
   const dict = {
     uz: {
-      t2_reports_title: "Jadval №2 — hisobotlar",
+      t2_reports_title: "Hisobot №2 ",
       t2_reports_sub: "Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.",
-      create_report: "Hisobot yaratish",
+      create_report: "+ Hisobot yaratish",
       search_placeholder: "Sana / yil / vaqt bo‘yicha qidirish…",
       shown: "Ko‘rsatilmoqda",
       total: "Jami",
@@ -324,21 +372,21 @@
       confirm_delete: "Hisobotni o‘chirasizmi?"
     },
     ru: {
-      t2_reports_title: "Таблица №2 — отчёты",
-      t2_reports_sub: "Список отчётов по датам. Можно быстро найти через поиск.",
-      create_report: "Создать отчёт",
-      search_placeholder: "Поиск по дате / году / времени…",
-      shown: "Показано",
-      total: "Всего",
-      col_date: "Дата",
-      col_year: "Год",
-      col_sent: "Отправлено",
-      col_actions: "Действия",
-      view: "Просмотр",
-      edit: "Редактировать",
-      delete: "Удалить",
-      empty: "Пока нет отчётов. Нажми “Создать отчёт”.",
-      confirm_delete: "Удалить отчёт?"
+      t2_reports_title: "Hisobot №2 ",
+      t2_reports_sub: "Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.",
+      create_report: "+ Hisobot yaratish",
+      search_placeholder: "Sana / yil / vaqt bo‘yicha qidirish…",
+      shown: "Ko‘rsatilmoqda",
+      total: "Jami",
+      col_date: "Sana",
+      col_year: "Yil",
+      col_sent: "Yuborilgan",
+      col_actions: "Amallar",
+      view: "Ko‘rish",
+      edit: "Tahrirlash",
+      delete: "O‘chirish",
+      empty: "Hozircha hisobot yo‘q. “Hisobot yaratish” tugmasini bosing.",
+      confirm_delete: "Hisobotni o‘chirasizmi?"
     }
   };
 
