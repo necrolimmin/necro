@@ -324,3 +324,10 @@
   </form>
 </div>
 {% endblock %}
+
+    {% if error %}
+      <div style="background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:10px 12px;border-radius:12px;font-weight:800;margin:10px 0;">
+    {{ error }}
+    </div>
+{% endif %}
+

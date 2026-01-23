@@ -99,26 +99,35 @@ def admin_report_2(request):
 
 @login_required
 def station_table_1_list(request):
+    # админы сюда не ходят
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
 
+    # берём ТОЛЬКО total-отчёты текущей станции
     qs = (
         StationDailyTable1.objects
-        .filter(station_user=request.user, shift="total")
+        .filter(
+            station_user=request.user,
+            shift="total"
+        )
         .order_by("-date")
     )
 
+    # данные для таблицы
     rows = [{
-        "date": r.date,
-        "year": r.date.year,
-        "submitted_at": getattr(r, "submitted_at", None),
-    } for r in qs]
+        "date": obj.date,
+        "year": obj.date.year,
+        "submitted_at": getattr(obj, "submitted_at", None),
+    } for obj in qs]
+
+    # ✅ КЛЮЧЕВОЕ: даты, за которые отчёт УЖЕ существует
+    existing_dates = set(qs.values_list("date", flat=True))
 
     return render(request, "station_table_1.html", {
         "rows": rows,
         "today": dt_date.today().strftime("%Y-%m-%d"),
+        "existing_dates": existing_dates,  # 👈 используется в JS
     })
-
 
 @login_required
 def station_table_1_view(request, date_str):
@@ -156,15 +165,54 @@ def station_table_1_edit(request, date_str):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
 
-    d = _parse_date(date_str)
+    d_url = _parse_date(date_str)
 
-    day_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d, shift="day").first()
-    night_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d, shift="night").first()
-    total_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d, shift="total").first()
+    force_new = (request.GET.get("new") == "1")
+    error = None
 
-    is_new = (total_obj is None)
+    if force_new:
+        day_obj = None
+        night_obj = None
+        total_obj = None
+        is_new = True
+        common_k = ""
+    else:
+        day_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d_url, shift="day").first()
+        night_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d_url, shift="night").first()
+        total_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d_url, shift="total").first()
+        is_new = (total_obj is None)
+
+        common_k = ""
+        if total_obj and total_obj.data:
+            common_k = total_obj.data.get("k_podache_so_st", "") or ""
 
     if request.method == "POST":
+        posted_date_str = (request.POST.get("date") or "").strip()
+        d_form = _parse_date(posted_date_str) if posted_date_str else d_url
+
+        # ✅ если это "создание" — сохраняем в выбранную дату
+        d_save = d_form if is_new else d_url
+
+        # ✅ ЖЁСТКАЯ защита: если отчёт существует — НЕ создаём и НЕ редиректим
+        if is_new and StationDailyTable1.objects.filter(
+            station_user=request.user, date=d_save, shift="total"
+        ).exists():
+            error = f"Отчёт за {d_save.strftime('%d.%m.%Y')} уже существует. Выберите другую дату."
+            # остаёмся на этой же странице как пустая форма "создания"
+            return render(request, "station_table_1_create.html", {
+                "date": d_save,  # ✅ показать выбранную дату
+                "day_obj": None,
+                "night_obj": None,
+                "total_obj": None,
+                "common_k": _read_int(request.POST.get("common__k_podache_so_st")) or "",
+                "station_name": request.user.username,
+                "mode": "edit",
+                "TABLE1_FIELDS": TABLE1_FIELDS,
+                "is_new": True,
+                "error": error,
+            })
+
+        # ===== обычное сохранение (как у тебя) =====
         day_data = {}
         night_data = {}
         total_data = {}
@@ -209,26 +257,23 @@ def station_table_1_edit(request, date_str):
         total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
 
         StationDailyTable1.objects.update_or_create(
-            station_user=request.user, date=d, shift="day",
+            station_user=request.user, date=d_save, shift="day",
             defaults={"data": day_data}
         )
         StationDailyTable1.objects.update_or_create(
-            station_user=request.user, date=d, shift="night",
+            station_user=request.user, date=d_save, shift="night",
             defaults={"data": night_data}
         )
         StationDailyTable1.objects.update_or_create(
-            station_user=request.user, date=d, shift="total",
+            station_user=request.user, date=d_save, shift="total",
             defaults={"data": total_data}
         )
 
         return redirect("station_table_1_list")
 
-    common_k = ""
-    if total_obj and total_obj.data:
-        common_k = total_obj.data.get("k_podache_so_st", "") or ""
-
+    # GET render
     return render(request, "station_table_1_create.html", {
-        "date": d,
+        "date": d_url,
         "day_obj": day_obj,
         "night_obj": night_obj,
         "total_obj": total_obj,
@@ -237,6 +282,7 @@ def station_table_1_edit(request, date_str):
         "mode": "edit",
         "TABLE1_FIELDS": TABLE1_FIELDS,
         "is_new": is_new,
+        "error": error,
     })
 
 
