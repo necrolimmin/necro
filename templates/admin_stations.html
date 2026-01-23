@@ -1,43 +1,104 @@
 {% extends "base.html" %}
+
 {% block title %}Станции{% endblock %}
+
 {% block content %}
+<style>
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  .alert{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:10px 12px;border-radius:12px;font-weight:700;margin:10px 0}
+  .muted{color:#64748b;font-size:13px;margin-top:6px}
+
+  .btn-danger{
+    background:#ef4444;color:#fff;border:1px solid #ef4444;
+    padding:8px 12px;border-radius:12px;font-weight:800;cursor:pointer;
+  }
+  .btn-danger:hover{filter:brightness(.95)}
+  .actions{display:flex;gap:8px;justify-content:flex-end}
+
+  @media (max-width: 920px){
+    .grid2{grid-template-columns:1fr}
+  }
+</style>
+
 <div class="grid2">
+  <!-- LEFT: CREATE -->
   <div class="card">
     <h2>Добавить станцию</h2>
-    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+
+    {% if error %}
+      <div class="alert">{{ error }}</div>
+    {% endif %}
+
     <form method="post">
       {% csrf_token %}
       <div class="field">
         <label>Название станции</label>
         <input name="station_name" required>
       </div>
+
       <div class="field">
         <label>Username (логин)</label>
         <input name="username" required>
       </div>
+
       <div class="field">
         <label>Password</label>
         <input name="password" type="password" required>
+        <div class="muted">
+          Важно: Django не хранит пароль в открытом виде. Если хочешь показывать пароль в списке —
+          нужно сохранять его отдельно (это небезопасно).
+        </div>
       </div>
+
       <button class="btn" type="submit">Создать</button>
     </form>
   </div>
 
+  <!-- RIGHT: LIST -->
   <div class="card">
     <h2>Список станций</h2>
+
     <table class="tbl">
-      <thead><tr><th>Станция</th><th>Username</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Станция</th>
+          <th>Username</th>
+          <th>Password</th>
+          <th style="width:140px;text-align:right;">Действия</th>
+        </tr>
+      </thead>
+
       <tbody>
         {% for s in stations %}
           <tr>
             <td>{{ s.station_name }}</td>
             <td>{{ s.user.username }}</td>
+
+            {# Покажется только если в модели реально есть поле/plain_password передано в контекст #}
+            <td>{{ s.plain_password|default:"—" }}</td>
+
+            <td>
+              <div class="actions">
+                <form method="post"
+                      action="{% url 'admin_station_delete' s.id %}"
+                      onsubmit="return confirm('Удалить станцию {{ s.station_name }} ({{ s.user.username }})?');">
+                  {% csrf_token %}
+                  <button class="btn-danger" type="submit">Удалить</button>
+                </form>
+              </div>
+            </td>
           </tr>
         {% empty %}
-          <tr><td colspan="2">Пока нет станций</td></tr>
+          <tr>
+            <td colspan="4">Пока нет станций</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
+
+    <div class="muted" style="margin-top:10px;">
+      Примечание: поле Password в таблице будет “—”, пока ты не реализуешь хранение пароля отдельно.
+    </div>
   </div>
 </div>
 {% endblock %}

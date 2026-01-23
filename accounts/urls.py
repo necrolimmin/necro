@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AppLoginView, AppLogoutView, router, admin_stations, admin_settings, station_settings
+from .views import AppLoginView, AppLogoutView, router, admin_stations, admin_settings, station_settings,admin_station_delete
 from .views import logout_get
 
 urlpatterns = [
@@ -9,6 +9,8 @@ urlpatterns = [
     # admin panel
     path('admin-panel/stations/', admin_stations, name='admin_stations'),
     path('admin-panel/settings/', admin_settings, name='admin_settings'),
+    path("admin/stations/<int:station_id>/delete/", admin_station_delete, name="admin_station_delete"),
+
 
     # station panel
     path('station/settings/', station_settings, name='station_settings'),
