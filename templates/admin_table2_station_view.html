@@ -4,194 +4,375 @@
 
 {% block content %}
 <style>
-  .wrap2{ background:#fff; width: 80%; border:1px solid #111;border-radius:10px;overflow:auto;padding:10px;margin-bottom:20px;}
-  .t2{ border-collapse:collapse;width:100%;min-width:980px;table-layout:fixed;}
-  .t2 th,.t2 td{ border:1px solid #111;padding:4px 6px;font-size:12px;vertical-align:middle;}
+  /* ===== Page header ===== */
+  .page-hdr{
+    max-width: 1050px;
+    margin: 0 auto 12px;
+    padding: 0 8px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .page-hdr h2{
+    margin:0;
+    font-size:18px;
+    font-weight:800;
+    color:var(--text,#0f172a);
+  }
+
+  /* ===== Back button wrapper ===== */
+  .page-actions{
+    max-width: 1050px;
+    margin: 0 auto 10px;
+    padding: 0 8px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  /* ===== MAIN WRAP (centered) ===== */
+  .wrap2{
+    width: min(1050px, 100%);
+    margin: 0 auto 20px;          /* ✅ center */
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px solid var(--stroke, rgba(15,23,42,.12));
+    background: var(--surface, rgba(255,255,255,.78));
+    box-shadow: var(--shadow, 0 18px 60px rgba(15,23,42,.12));
+    backdrop-filter: blur(12px);
+  }
+
+  /* Title inside wrap */
+  .wrap-title{
+    font-weight:800;
+    margin-bottom:10px;
+    color:var(--text,#0f172a);
+    font-size:13px;
+  }
+
+  /* ===== TABLE CONTAINER (scroll, but structure stays) ===== */
+  .t2box{
+    width:100%;
+    overflow:auto;                 /* ✅ responsive: horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+    border: 1px solid rgba(15,23,42,.10);
+    background: rgba(255,255,255,.30);
+  }
+  html[data-theme="dark"] .t2box{
+    border-color: rgba(255,255,255,.14);
+    background: rgba(255,255,255,.04);
+  }
+
+  /* ===== Table itself (structure unchanged) ===== */
+  .t2{
+    border-collapse:collapse;
+    width:100%;
+    min-width:980px;               /* ✅ keeps structure */
+    table-layout:fixed;
+  }
+  .t2 th,.t2 td{
+    border:1px solid rgba(15,23,42,.20);
+    padding:6px 8px;
+    font-size:12px;
+    vertical-align:middle;
+    color:var(--text,#0f172a);
+    background:transparent;
+  }
+  html[data-theme="dark"] .t2 th,
+  html[data-theme="dark"] .t2 td{
+    border-color: rgba(255,255,255,.16);
+  }
+
   .center{text-align:center}
-  .bold{font-weight:900}
-  .headDate{ text-align:center;font-weight:900;font-size:13px;padding:6px 8px;}
-  .t2 input{ width:100%;height:28px;padding:4px 6px;border:1px solid #94a3b8;border-radius:8px;text-align:center;font-weight:800;background:#f3f4f6;box-sizing:border-box;}
-  .secTitle{ font-weight:900;text-align:center;padding:6px 8px;background:#f8fafc;}
-  .danger{color:#b91c1c;font-weight:900}
+  .bold{font-weight:800}
+  .headDate{
+    text-align:center;
+    font-weight:800;
+    font-size:13px;
+    padding:8px 8px;
+    background: rgba(248,250,252,.85);
+  }
+  html[data-theme="dark"] .headDate{
+    background: rgba(255,255,255,.06);
+  }
+
+  .secTitle{
+    font-weight:800;
+    text-align:center;
+    padding:8px 8px;
+    background: rgba(248,250,252,.85);
+  }
+  html[data-theme="dark"] .secTitle{
+    background: rgba(255,255,255,.06);
+  }
+
+  .danger{color:#b91c1c;font-weight:800}
+  html[data-theme="dark"] .danger{ color:#fb7185; }
+
+  /* inputs (disabled) */
+  .t2 input{
+    width:100%;
+    height:30px;
+    padding:4px 6px;
+    border:1px solid rgba(148,163,184,.60);
+    border-radius:10px;
+    text-align:center;
+    font-weight:750;
+    background: rgba(243,244,246,.92);
+    box-sizing:border-box;
+    color:var(--text,#0f172a);
+  }
+  html[data-theme="dark"] .t2 input{
+    border-color: rgba(148,163,184,.25);
+    background: rgba(15,23,42,.55);
+    color: rgba(226,232,240,.95);
+  }
+  .t2 input:disabled{ opacity:1; } /* ✅ disable bo‘lsa ham o‘qiladi */
+
+  /* spacing between bottom blocks */
+  .mt10{ margin-top:10px; }
+.boshi{display: flex;}
+  /* ===== Back button (page-level) ===== */
+.btnBack{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  height:42px;
+  padding:0 14px;
+  border-radius:14px;
+  border:1px solid var(--stroke, rgba(15,23,42,.12));
+  background: rgba(255,255,255,.55);
+  color: var(--text,#0f172a);
+  text-decoration:none;
+  font-weight:850;
+  box-shadow: 0 10px 26px rgba(15,23,42,.10);
+  transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+  backdrop-filter: blur(10px);
+}
+.btnBack:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(15,23,42,.14);
+  filter: brightness(1.02);
+}
+.btnBack:active{ transform: translateY(0); }
+
+.btnBack .ico{
+  width:18px;height:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  border:1px solid var(--stroke, rgba(15,23,42,.12));
+  background: rgba(255,255,255,.70);
+}
+
+/* Dark mode */
+html[data-theme="dark"] .btnBack{
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 14px 44px rgba(0,0,0,.45);
+}
+html[data-theme="dark"] .btnBack .ico{
+  background: rgba(255,255,255,.08);
+}
+
+
+  /* Mobile tweaks (structure NOT changed, only spacing/typography) */
+  @media (max-width: 520px){
+    .wrap2{ padding:10px; border-radius:16px; }
+    .page-hdr h2{ font-size:16px; }
+    .t2 th,.t2 td{ font-size:11.5px; padding:6px 6px; }
+    .t2 input{ height:28px; border-radius:9px; }
+  }
 </style>
+ 
+<div class="boshi">
+  <div class="page-actions">
+    <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btnBack">
+      <span class="ico">←</span>
+      <span>Ortga</span>
+    </a>
+  </div>
 
-<h2 style="margin-bottom:12px;">
-  Umumiy Jadval  ({{ date|date:"d.m.Y" }})
-</h2>
+  <div class="page-hdr">
+    <h2>Umumiy Jadval ({{ date|date:"d.m.Y" }})</h2>
+  </div>
 
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-  <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btn">← Ortga</a>
 </div>
 
 <div class="wrap2">
-  <div class="bold" style="margin-bottom:6px;">
+  <div class="wrap-title">
     ЛЦ: {{ obj.station_user.username }} | Дата: {{ date|date:"d.m.Y" }}
   </div>
 
-  <table class="t2">
-    <colgroup>
-      <col style="width:60px;">
-      <col>
-      <col style="width:140px;">
-      <col style="width:80px;">
-      <col style="width:110px;">
-      <col style="width:110px;">
-    </colgroup>
+  <!-- MAIN TABLE (scroll container) -->
+  <div class="t2box">
+    <table class="t2">
+      <colgroup>
+        <col style="width:60px;">
+        <col>
+        <col style="width:140px;">
+        <col style="width:80px;">
+        <col style="width:110px;">
+        <col style="width:110px;">
+      </colgroup>
 
-    <thead>
-      <tr><th colspan="6" class="headDate">{{ date|date:"d.m.Y" }}</th></tr>
-      <tr>
-        <th class="center bold" rowspan="2">№ п/п</th>
-        <th class="center bold" colspan="2" rowspan="2">Наименование показателя</th>
-        <th class="center bold">Код</th>
-        <th class="center bold">всего</th>
-        <th class="center bold">ктк</th>
-      </tr>
-      <tr>
-        <th class="center bold" style="font-size:11px;">пок-ля</th>
-        <th class="center bold" style="font-size:11px;">72000</th>
-        <th class="center bold" style="font-size:11px;"></th>
-      </tr>
-    </thead>
+      <thead>
+        <tr><th colspan="6" class="headDate">{{ date|date:"d.m.Y" }}</th></tr>
+        <tr>
+          <th class="center bold" rowspan="2">№ п/п</th>
+          <th class="center bold" colspan="2" rowspan="2">Наименование показателя</th>
+          <th class="center bold">Код</th>
+          <th class="center bold">всего</th>
+          <th class="center bold">ктк</th>
+        </tr>
+        <tr>
+          <th class="center bold" style="font-size:11px;">пок-ля</th>
+          <th class="center bold" style="font-size:11px;">72000</th>
+          <th class="center bold" style="font-size:11px;"></th>
+        </tr>
+      </thead>
 
-    <tbody>
-      {% for n,label,code,k_total,k_ktk in rows_def %}
+      <tbody>
+        {% for n,label,code,k_total,k_ktk in rows_def %}
 
-        {# --- ГРУППА №8: Принято на баланс + Изъято из резерва --- #}
-        {% if n == 8 %}
-          <tr>
-            <td class="center bold" rowspan="2">8</td>
-            <td colspan="2">{{ label }}</td>
-            <td class="center">{{ code }}</td>
-            <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
-            <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
-          </tr>
-          {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
-            {% if n2 == 9 %}
-              <tr>
-                <td colspan="2">{{ label2 }}</td>
-                <td class="center">{{ code2 }}</td>
-                <td class="center"><input value="{{ obj|data_val:k_total2 }}" disabled></td>
-                <td class="center"><input value="{{ obj|data_val:k_ktk2 }}" disabled></td>
-              </tr>
-            {% endif %}
-          {% endfor %}
+          {% if n == 8 %}
+            <tr>
+              <td class="center bold" rowspan="2">8</td>
+              <td colspan="2">{{ label }}</td>
+              <td class="center">{{ code }}</td>
+              <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+              <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+            </tr>
+            {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
+              {% if n2 == 9 %}
+                <tr>
+                  <td colspan="2">{{ label2 }}</td>
+                  <td class="center">{{ code2 }}</td>
+                  <td class="center"><input value="{{ obj|data_val:k_total2 }}" disabled></td>
+                  <td class="center"><input value="{{ obj|data_val:k_ktk2 }}" disabled></td>
+                </tr>
+              {% endif %}
+            {% endfor %}
 
-        {# --- Строку 9 отдельно НЕ рисуем --- #}
-        {% elif n == 9 %}
-          {# skip #}
+          {% elif n == 9 %}
+            {# skip #}
 
-        {# --- ГРУППА "Загружено": Гружёные/Порожние --- #}
-        {% elif n == 22 %}
-          <tr>
-            {# после склейки 8/9 все номера сдвигаются на -1, значит 22 показываем как 21 #}
-            <td class="center bold" rowspan="2">21</td>
-            <td class="bold" rowspan="2">Загружено</td>
-            <td class="bold">Гружёные</td>
-            <td class="center">З/г</td>
-            <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
-            <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
-          </tr>
-          <tr>
-            <td class="bold">Порожние</td>
-            <td class="center">З/п</td>
-            <td class="center"><input value="{{ obj|data_val:'r22p_total' }}" disabled></td>
-            <td class="center"><input value="{{ obj|data_val:'r22p_ktk' }}" disabled></td>
-          </tr>
+          {% elif n == 22 %}
+            <tr>
+              <td class="center bold" rowspan="2">21</td>
+              <td class="bold" rowspan="2">Загружено</td>
+              <td class="bold">Гружёные</td>
+              <td class="center">З/г</td>
+              <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+              <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+            </tr>
+            <tr>
+              <td class="bold">Порожние</td>
+              <td class="center">З/п</td>
+              <td class="center"><input value="{{ obj|data_val:'r22p_total' }}" disabled></td>
+              <td class="center"><input value="{{ obj|data_val:'r22p_ktk' }}" disabled></td>
+            </tr>
 
-        {# --- Все остальные строки --- #}
-        {% else %}
-          <tr>
-            <td class="center bold">
-              {% if n >= 10 %}{{ n|add:"-1" }}{% else %}{{ n }}{% endif %}
-            </td>
-            <td colspan="2">{{ label }}</td>
-            <td class="center">{{ code }}</td>
-            <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
-            <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
-          </tr>
-        {% endif %}
+          {% else %}
+            <tr>
+              <td class="center bold">
+                {% if n >= 10 %}{{ n|add:"-1" }}{% else %}{{ n }}{% endif %}
+              </td>
+              <td colspan="2">{{ label }}</td>
+              <td class="center">{{ code }}</td>
+              <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+              <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+            </tr>
+          {% endif %}
 
-      {% endfor %}
-    </tbody>
-  </table>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-  <!-- НИЖНИЕ БЛОКИ оставляю как у тебя -->
-  <table class="t2" style="margin-top:10px;">
-    <colgroup>
-      <col>
-      <col style="width:140px;">
-      <col style="width:140px;">
-    </colgroup>
-    <tbody>
-      <tr>
-        <td class="bold">Выгружено ваг.</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.vygr_wag_ktk }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.vygr_tonn }}" disabled></td>
-      </tr>
-      <tr>
-        <td class="bold">Погружено ваг.</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.pogr_wag_ktk }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.pogr_tonn }}" disabled></td>
-      </tr>
-      <tr>
-        <td class="danger">Груз на своих осях (ваг)</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.os_wag_ktk }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.os_tonn }}" disabled></td>
-      </tr>
-      <tr>
-        <td rowspan="2" class="bold">ПОГРУЖЕНО (наименование груза)</td>
-        <td rowspan="2" class="center bold">Объём</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.cargo_name }}" disabled></td>
-      </tr>
-      <tr>
-        <td class="center"><input value="{{ obj|data_val:bottom.cargo_volume }}" disabled></td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Bottom blocks (also keep structure, with same scroll behavior) -->
+  <div class="t2box mt10">
+    <table class="t2">
+      <colgroup>
+        <col>
+        <col style="width:140px;">
+        <col style="width:140px;">
+      </colgroup>
+      <tbody>
+        <tr>
+          <td class="bold">Выгружено ваг.</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.vygr_wag_ktk }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.vygr_tonn }}" disabled></td>
+        </tr>
+        <tr>
+          <td class="bold">Погружено ваг.</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.pogr_wag_ktk }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.pogr_tonn }}" disabled></td>
+        </tr>
+        <tr>
+          <td class="danger">Груз на своих осях (ваг)</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.os_wag_ktk }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.os_tonn }}" disabled></td>
+        </tr>
+        <tr>
+          <td rowspan="2" class="bold">ПОГРУЖЕНО (наименование груза)</td>
+          <td rowspan="2" class="center bold">Объём</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.cargo_name }}" disabled></td>
+        </tr>
+        <tr>
+          <td class="center"><input value="{{ obj|data_val:bottom.cargo_volume }}" disabled></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-  <table class="t2" style="margin-top:10px;">
-    <colgroup>
-      <col style="width:140px;">
-      <col>
-      <col>
-      <col>
-    </colgroup>
-    <thead>
-      <tr><th colspan="4" class="secTitle">Наличие на КП по сектору</th></tr>
-      <tr>
-        <th></th>
-        <th class="center bold">Вместимость</th>
-        <th class="center bold">Факт</th>
-        <th class="center bold">Свободно</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="center bold">ФП</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_capacity }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_fact }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_free }}" disabled></td>
-      </tr>
-      <tr>
-        <td class="center bold">УУС</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_capacity }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_fact }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_free }}" disabled></td>
-      </tr>
-      <tr>
-        <td>Готовые контейнера к отправке</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_capacity }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_fact }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_free }}" disabled></td>
-      </tr>
-      <tr>
-        <td>Готовые контейнера к вывозу</td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_capacity }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_fact }}" disabled></td>
-        <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_free }}" disabled></td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="t2box mt10">
+    <table class="t2">
+      <colgroup>
+        <col style="width:140px;">
+        <col>
+        <col>
+        <col>
+      </colgroup>
+      <thead>
+        <tr><th colspan="4" class="secTitle">Наличие на КП по сектору</th></tr>
+        <tr>
+          <th></th>
+          <th class="center bold">Вместимость</th>
+          <th class="center bold">Факт</th>
+          <th class="center bold">Свободно</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center bold">ФП</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_capacity }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_fact }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_fp_free }}" disabled></td>
+        </tr>
+        <tr>
+          <td class="center bold">УУС</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_capacity }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_fact }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_uus_free }}" disabled></td>
+        </tr>
+        <tr>
+          <td>Готовые контейнера к отправке</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_capacity }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_fact }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_send_free }}" disabled></td>
+        </tr>
+        <tr>
+          <td>Готовые контейнера к вывозу</td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_capacity }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_fact }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.kp_ready_autocar_free }}" disabled></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

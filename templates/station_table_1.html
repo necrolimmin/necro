@@ -5,7 +5,7 @@
 <style>
   /* ===== Header ===== */
   .pagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
-  .pagehead h2{margin:0;font-size:26px;line-height:1.15;font-weight:950;letter-spacing:-.02em}
+  .pagehead h2{margin:0;font-size:20px;line-height:1.15;letter-spacing:-.02em}
   .subtext{margin:6px 0 0;color:var(--muted,#64748b);font-size:14px}
 
 
@@ -180,14 +180,16 @@
 <div class="card">
   <div class="pagehead">
     <div>
-      <h3 data-i18n="t1_reports_title">Hisobot №1 </h3>
+      <h2 data-i18n="t1_reports_title">Hisobot №1 </h2>
       <div class="subtext" data-i18n="t1_reports_sub">
         Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.
       </div>
     </div>
 
+
     {# Create -> VIEW (sizning logika bo'yicha) #}
     <a class="btn-cta" href="{% url 'station_table_1_edit' today %}?new=1" data-i18n="create_report">
+
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
         <path d="M12 5v14M5 12h14"/>
       </svg>

@@ -1,11 +1,20 @@
 {% load static %}
+<!doctype html>
+<html lang="uz" data-theme="light" data-lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{% block title %}"O‘ztemiryo‘lkonteyner" AJ{% endblock %}</title>
 
+  <link rel="shortcut icon" href="{% static 'images/UTKlogo.png' %}" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
 
 <style>
   html, body { margin:0 !important; padding:0 !important; height:100%; }
 
   :root{
-    /* Light (default) */
     --bg1:#f6f8ff;
     --bg2:#eefcff;
     --bg3:#fff4ee;
@@ -49,7 +58,9 @@
     justify-content:center;
     position:relative;
     overflow:hidden;
-    padding:24px;
+
+    /* mobile safe area */
+    padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
 
     background:
       radial-gradient(900px 420px at 12% 18%, rgba(79,70,229,.18), transparent 60%),
@@ -58,7 +69,6 @@
       linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
   }
 
-  /* grain */
   .auth-page::before{
     content:"";
     position:absolute; inset:0;
@@ -68,7 +78,6 @@
     mix-blend-mode:overlay;
   }
 
-  /* background images */
   .bg-img{
     position:absolute;
     pointer-events:none;
@@ -89,11 +98,11 @@
     pointer-events:none;
   }
 
-  /* top floating toolbar (language + theme) */
+  /* top floating toolbar */
   .top-tools{
     position: fixed;
-    top: 18px;
-    right: 18px;
+    top: calc(14px + env(safe-area-inset-top));
+    right: 14px;
     z-index: 50;
     display:flex;
     gap: 10px;
@@ -126,16 +135,14 @@
     transition: transform .12s ease, filter .12s ease;
     user-select:none;
   }
-  .theme-dark .tool-btn{
-    background: rgba(255,255,255,.06);
-  }
+  .theme-dark .tool-btn{ background: rgba(255,255,255,.06); }
   .tool-btn:hover{ transform: translateY(-1px); filter: brightness(1.02); }
   .tool-btn:active{ transform: translateY(0); }
 
   .tool-select{
     border:1px solid var(--stroke);
     background: rgba(255,255,255,.55);
-    color: var(--text);
+    color:var(--text);
     padding: 4px 10px;
     border-radius: 999px;
     font-weight: 800;
@@ -143,9 +150,7 @@
     outline:none;
     cursor:pointer;
   }
-  .theme-dark .tool-select{
-    background: rgba(255,255,255,.06);
-  }
+  .theme-dark .tool-select{ background: rgba(255,255,255,.06); }
 
   .ic{ width:15px; height:15px; display:inline-block; }
   .ic svg{ width:18px; height:18px; display:block; }
@@ -169,11 +174,7 @@
   }
 
   /* left */
-  .brand{
-    display:flex;
-    gap:12px;
-    align-items:center;
-  }
+  .brand{ display:flex; gap:12px; align-items:center; }
   .brand img{
     width:46px; height:46px;
     border-radius:14px;
@@ -188,11 +189,7 @@
     color:var(--text);
     letter-spacing:.2px;
   }
-  .brand p{
-    margin:2px 0 0;
-    font-size:12.5px;
-    color:var(--muted);
-  }
+  .brand p{ margin:2px 0 0; font-size:12.5px; color:var(--muted); }
 
   .headline{
     margin:14px 0 6px;
@@ -229,18 +226,8 @@
   }
 
   /* right */
-  .right h2{
-    margin: 2px 0 0;
-    font-size:18px;
-    font-weight:950;
-    color:var(--text);
-  }
-  .right p{
-    margin: 0;
-    color:var(--muted);
-    font-size:12.8px;
-    line-height:1.4;
-  }
+  .right h2{ margin: 2px 0 0; font-size:18px; font-weight:950; color:var(--text); }
+  .right p{ margin: 0; color:var(--muted); font-size:12.8px; line-height:1.4; }
 
   .alert{
     margin-top: 10px;
@@ -259,12 +246,8 @@
     flex-direction:column;
     gap:6px;
   }
-  label{
-    font-size:12.5px;
-    color:var(--muted);
-  }
+  label{ font-size:12.5px; color:var(--muted); }
 
-  /* style default Django inputs */
   input{
     width:100%;
     box-sizing:border-box;
@@ -286,8 +269,8 @@
     transform: translateY(-1px);
   }
 
-  /* password field with eye button */
   .pass-wrap{ position:relative; }
+
   .eye{
     position:absolute;
     right:8px;
@@ -305,10 +288,10 @@
     color: var(--text);
     font-weight: 900;
     font-size: 12px;
+    z-index:3;
   }
   .theme-dark .eye{ background: rgba(255,255,255,.06); }
 
-  /* button + loading */
   .btn{
     margin-top:16px;
     width:100%;
@@ -344,37 +327,114 @@
   .btn.loading .btn-text{ opacity:.95; }
   @keyframes spin{ to{ transform: rotate(360deg);} }
 
-  .footer{
-    margin-top:8px;
-    font-size:12px;
-    color:var(--muted);
-    text-align:center;
-  }
+  .footer{ margin-top:8px; font-size:12px; color:var(--muted); text-align:center; }
 
+  /* =========================
+     RESPONSIVE (Mobile-first fixes)
+     ========================= */
+
+  /* tablet and below */
   @media(max-width: 900px){
-    .auth-card{ grid-template-columns: 1fr; }
-    .bg-train,.bg-truck{ display:none; }
-    .bg-operator{
-      position:static;
-      margin: 0 auto 18px;
-      display:block;
-      max-width:220px;
+    .auth-card{
+      grid-template-columns: 1fr;
+      gap: 14px;
+      width: min(560px, 100%);
     }
+
+    .panel{
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    /* move toolbar to center to avoid covering content */
     .top-tools{
       left: 50%;
       right: auto;
       transform: translateX(-50%);
+      top: calc(12px + env(safe-area-inset-top));
     }
+
+    /* background images: reduce clutter */
+    .bg-train,.bg-truck{ display:none; }
+
+    .bg-operator{
+      position:absolute;
+      right: -30px;
+      bottom: -10px;
+      max-width: 220px;
+      opacity:.35;
+      filter: blur(0px) drop-shadow(0 22px 44px rgba(0,0,0,.18));
+    }
+
+    .headline{ font-size: 20px; }
+    .subline{ font-size: 13.2px; }
+
+    input{
+      padding: 13px 12px;
+      border-radius: 14px;
+      font-size: 16px; /* iOS zoom fix */
+    }
+
+    .btn{
+      padding: 13px 14px;
+      border-radius: 16px;
+      font-size: 15px;
+    }
+
+    /* eye button: align better on mobile */
+    .eye{
+      top: 64%;
+      height: 38px;
+      padding: 0 10px;
+      border-radius: 12px;
+    }
+  }
+
+  /* small phones */
+  @media(max-width: 420px){
+    .auth-page{ padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
+
+    .tool{
+      padding: 8px 10px;
+      gap: 8px;
+    }
+    .tool-btn{ padding: 7px 9px; font-size: 12px; }
+    .tool-select{ padding: 4px 8px; font-size: 12px; }
+
+    .panel{ padding: 16px; border-radius: 18px; }
+
+    .brand img{ width:42px; height:42px; border-radius: 12px; }
+    .brand h1{ font-size: 14px; }
+    .brand p{ font-size: 12.2px; }
+
+    .headline{ font-size: 19px; }
+    .chip{ padding: 9px 10px; border-radius: 14px; }
+
+    /* keep text readable, avoid cramped layout */
+    .right h2{ font-size: 17px; }
+    .right p{ font-size: 12.6px; }
+
+    .eye{
+      right: 6px;
+      height: 38px;
+      font-size: 11.5px;
+    }
+  }
+
+  /* very small devices */
+  @media(max-width: 360px){
+    .panel{ padding: 14px; }
+    .headline{ font-size: 18px; }
+    .chip{ font-size: 12px; }
+    .eye span:last-child{ display:none; } /* only icon remains */
   }
 </style>
 
 <div class="auth-page" id="authRoot">
 
-  <!-- Floating toolbar -->
   <div class="top-tools">
     <div class="tool">
       <span class="ic" aria-hidden="true">
-        <!-- Language icon -->
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M4 5h10M4 9h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           <path d="M12 5s-1 6-6 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -391,21 +451,17 @@
 
     <div class="tool">
       <button type="button" id="themeBtn" class="tool-btn" aria-label="Theme">
-        <span class="ic" id="themeIcon" aria-hidden="true">
-          <!-- Sun/Moon icon injected by JS -->
-        </span>
+        <span class="ic" id="themeIcon" aria-hidden="true"></span>
         <span id="themeText">Light</span>
       </button>
     </div>
   </div>
 
-  <!-- Background images -->
   <img src="{% static 'images/train2.png' %}" class="bg-img bg-train" alt="">
   <img src="{% static 'images/truck3.png' %}" class="bg-img bg-truck" alt="">
   <img src="{% static 'images/gi1.png' %}" class="bg-operator" alt="">
 
   <div class="auth-card">
-    <!-- LEFT -->
     <div class="panel">
       <div class="brand">
         <img src="{% static 'images/UTKlogo.png' %}" alt="Logo">
@@ -429,7 +485,6 @@
       </div>
     </div>
 
-    <!-- RIGHT -->
     <div class="panel right">
       <h2 data-i18n="login_title">Kirish</h2>
       <p data-i18n="login_sub">Iltimos, tizimga kirish uchun login va parolni kiriting.</p>
@@ -452,7 +507,6 @@
 
           <button type="button" class="eye" id="togglePass" aria-label="Show password">
             <span class="ic" aria-hidden="true">
-              <!-- Eye icon -->
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                 <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
@@ -488,7 +542,6 @@
   const form = document.getElementById("loginForm");
   const submitBtn = document.getElementById("submitBtn");
 
-  // --- SVG icons (custom) ---
   const ICON_SUN = `
     <svg viewBox="0 0 24 24" fill="none">
       <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/>
@@ -501,7 +554,6 @@
             stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
     </svg>`;
 
-  // --- Theme (localStorage) ---
   const THEME_KEY = "uk_theme";
   function applyTheme(theme){
     const isDark = theme === "dark";
@@ -515,7 +567,6 @@
     applyTheme(root.classList.contains("theme-dark") ? "light" : "dark");
   });
 
-  // --- Language (front-only i18n) ---
   const LANG_KEY = "uk_lang";
   const dict = {
     uz: {
@@ -523,7 +574,7 @@
       brand_sub:"Ortish–tushirish monitoring platformasi",
       hero_title:"Kundalik ish hajmini bir oynada ko‘ring",
       hero_sub:"O‘sish/kamayish dinamikasi, umumiy salohiyat, reja/fakt va operatsion ko‘rsatkichlar — barchasi bitta platformada.",
-      chip1:"Trendlar", chip2:"Salohiyat", chip3:"Hisobot",
+      chip1:"Dashboard", chip2:"Ortish/Tushirish", chip3:"Hisobot",
       login_title:"Kirish",
       login_sub:"Iltimos, tizimga kirish uchun login va parolni kiriting.",
       user_label:"Login",
@@ -539,7 +590,7 @@
       brand_sub:"Платформа мониторинга погрузки/выгрузки",
       hero_title:"Контролируйте объём работ в одном окне",
       hero_sub:"Динамика роста/снижения, потенциал, план/факт и операционные показатели — на одной платформе.",
-      chip1:"Тренды", chip2:"Потенциал", chip3:"Отчёт",
+      chip1:"Дашбоард", chip2:"Погрузка/Выгрузка", chip3:"Отчёт",
       login_title:"Вход",
       login_sub:"Пожалуйста, введите логин и пароль для входа.",
       user_label:"Логин",
@@ -550,22 +601,7 @@
       show:"Показать", hide:"Скрыть",
       loading:"Вход..."
     },
-    en: {
-      brand:"Uztemiryo‘l Container JSC",
-      brand_sub:"Loading/unloading monitoring platform",
-      hero_title:"See daily workload in a single view",
-      hero_sub:"Growth/decline dynamics, capacity, plan vs actual, and operational KPIs — all in one platform.",
-      chip1:"Trends", chip2:"Capacity", chip3:"Reports",
-      login_title:"Sign in",
-      login_sub:"Please enter your username and password.",
-      user_label:"Username",
-      pass_label:"Password",
-      btn:"Sign in",
-      footer:"For security, sign-ins are audited.",
-      err:"Invalid username or password.",
-      show:"Show", hide:"Hide",
-      loading:"Signing in..."
-    }
+    
   };
 
   function applyLang(lang){
@@ -574,13 +610,11 @@
       const key = el.getAttribute("data-i18n");
       if (t[key] !== undefined) el.textContent = t[key];
     });
-    // placeholders (no backend changes)
     const u = document.getElementById("id_username");
     const p = document.getElementById("id_password");
     if (u) u.placeholder = (lang === "ru") ? "логин" : (lang === "en" ? "username" : "login");
     if (p) p.placeholder = (lang === "ru") ? "пароль" : (lang === "en" ? "password" : "parol");
 
-    // show/hide text sync
     if (passInput){
       passBtnText.textContent = passInput.type === "password" ? t.show : t.hide;
     }
@@ -592,7 +626,6 @@
   applyLang(savedLang);
   langSel.addEventListener("change", (e) => applyLang(e.target.value));
 
-  // --- Show/Hide password ---
   if (togglePass && passInput){
     togglePass.addEventListener("click", () => {
       passInput.type = (passInput.type === "password") ? "text" : "password";
@@ -601,7 +634,6 @@
     });
   }
 
-  // --- Loading animation on submit ---
   form.addEventListener("submit", () => {
     submitBtn.classList.add("loading");
     submitBtn.setAttribute("disabled", "disabled");
@@ -609,8 +641,8 @@
     const txt = submitBtn.querySelector(".btn-text");
     if (txt) txt.textContent = t.loading;
   });
-
 })();
 </script>
 
-
+</body>
+</html>

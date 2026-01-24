@@ -1,2 +1,6 @@
+staticfiles/
 venv/
 db.sqlite3
+accounts/__pycache__/
+bunker/__pycache__/
+report/__pycache__/
