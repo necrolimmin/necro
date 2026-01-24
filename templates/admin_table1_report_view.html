@@ -165,19 +165,22 @@
   .stickyA{
     position:sticky;
     left:0;
-    z-index:30;
+    z-index:300;
     background: var(--surface);
     box-shadow: 10px 0 16px -14px var(--sticky-shadow);
   }
   .stickyB{
     position:sticky;
     left:var(--col-lc);
-    z-index:29;
+    z-index:290;
     background: var(--surface);
+    
     box-shadow: 10px 0 16px -14px var(--sticky-shadow);
   }
-  .xtable thead .stickyA{ z-index:60; }
-  .xtable thead .stickyB{ z-index:59; }
+  .xtable thead .stickyA{ z-index:600; background: white; }
+  .xtable thead .stickyB{ z-index:590; background: white; }
+  .xtable tbody .stickyA{ z-index:600; background: white; }
+  .xtable tbody .stickyB{ z-index:590; background: white; }
 
   /* total row */
   .g-total td{
