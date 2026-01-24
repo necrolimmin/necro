@@ -57,8 +57,8 @@
       r2: "Отчёт 2",
       q: "Квартальный",
       branches: "Филиалы",
-      admin: "ADMIN",
-      user: "FILIAL",
+      admin: "Админ",
+      user: "Фылиыл",
       account: "Аккаунт",
       logout: "Выйти"
     },
@@ -72,7 +72,7 @@
       q: "Kvartalniy",
       branches: "Filiallar",
       admin: "ADMIN",
-      user: "FILIAL",
+      user: "filiali",
       account: "Hisob",
       logout: "Chiqish"
     }
