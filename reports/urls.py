@@ -32,4 +32,6 @@ urlpatterns = [
 
     # path('admin-panel/report-1/', admin_report_1, name='admin_report_1'),
     path('admin-panel/report-2/', admin_report_2, name='admin_report_2'),
+
+    path('admin-panel/station/promote/<int:pk>/' , promote_station , name="promote_station"),
 ]

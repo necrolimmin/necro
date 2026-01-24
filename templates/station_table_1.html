@@ -187,7 +187,7 @@
     </div>
 
     {# Create -> VIEW (sizning logika bo'yicha) #}
-    <a class="btn-cta" href="/station/table-1/view/{{ today }}/" data-i18n="create_report">
+    <a class="btn-cta" href="{% url 'station_table_1_edit' today %}?new=1" data-i18n="create_report">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
         <path d="M12 5v14M5 12h14"/>
       </svg>

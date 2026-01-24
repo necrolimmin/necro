@@ -227,7 +227,7 @@
 
             <td class="g-gray dash">—</td>
           </tr>
-
+          {% if status %}
           <!-- NIGHT -->
           <tr data-row="night">
             <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="night__podano_lc" value="{{ night_obj|data_val:'podano_lc' }}" data-key="podano_lc"></td>
@@ -281,6 +281,7 @@
                      data-total-key="podano_lc"
                      placeholder="">
             </td>
+            {% endif %}
             {# колонка "к подаче со ст" уже занята rowspan=3 — тут td НЕ ДОЛЖНО быть #}
 
             <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_ft" value="{{ total_obj|data_val:'vygr_ft' }}" data-total-key="vygr_ft" placeholder=""></td>

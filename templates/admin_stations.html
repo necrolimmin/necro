@@ -229,6 +229,7 @@
               <th data-i18n="col_name">Nomi</th>
               <th data-i18n="col_login">Login</th>
               <th data-i18n="col_password">Parol</th>
+              <th>status</th>
               <th style="width:160px;text-align:right;" data-i18n="col_actions">Amallar</th>
             </tr>
           </thead>
@@ -239,7 +240,10 @@
                 <td><b>{{ s.station_name }}</b></td>
                 <td class="mono">{{ s.user.username }}</td>
                 <td class="mono">{{ s.plain_password|default:"—" }}</td>
+                <td>{{s.status}}</td>
                 <td>
+                  <a href="{%url 'promote_station' s.id %}">ggg</a>
+
                   <div class="actions">
                     <form method="post"
                           action="{% url 'admin_station_delete' s.id %}"

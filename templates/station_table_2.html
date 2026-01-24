@@ -234,7 +234,7 @@
       </div>
     </div>
 
-    <a href="/station/table-2/edit/{{ today }}/"
+    <a href="{% url 'station_table_2_edit'  date_str=today %}?new=1"
    class="btn-primary-cta"
    data-i18n="create_report">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

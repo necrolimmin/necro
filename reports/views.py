@@ -5,6 +5,8 @@ from django.db.models import Sum, Max, Count
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import render, redirect
 
+from accounts.models import StationProfile
+
 from .models import StationDailyTable1, StationDailyTable2, KPIValue
 from .forms import TABLE1_FIELDS
 from django.shortcuts import get_object_or_404
@@ -164,7 +166,7 @@ def station_table_1_view(request, date_str):
 def station_table_1_edit(request, date_str):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
-
+    status = request.user.station_profile.status
     d_url = _parse_date(date_str)
 
     force_new = (request.GET.get("new") == "1")
@@ -210,6 +212,7 @@ def station_table_1_edit(request, date_str):
                 "TABLE1_FIELDS": TABLE1_FIELDS,
                 "is_new": True,
                 "error": error,
+                "status":status
             })
 
         # ===== обычное сохранение (как у тебя) =====
@@ -283,6 +286,7 @@ def station_table_1_edit(request, date_str):
         "TABLE1_FIELDS": TABLE1_FIELDS,
         "is_new": is_new,
         "error": error,
+        "status":status
     })
 
 
@@ -406,9 +410,12 @@ def station_table_2_list(request):
         "submitted_at": getattr(r, "submitted_at", None),
     } for r in qs]
 
+    existing_dates = set(qs.values_list("date", flat=True))
+
     return render(request, "station_table_2.html", {
         "rows": rows,
         "today": dt_date.today().strftime("%Y-%m-%d"),
+        "existing_dates": existing_dates,
     })
 
 
@@ -440,18 +447,49 @@ def station_table_2_edit(request, date_str):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table2_reports")
 
-    d = _parse_date(date_str)
-    obj = StationDailyTable2.objects.filter(station_user=request.user, date=d).first()
+    d_url = _parse_date(date_str)
+
+    force_new = (request.GET.get("new") == "1")
+
+    if force_new:
+        obj = None
+        is_new = True
+    else:
+        obj = StationDailyTable2.objects.filter(station_user=request.user, date=d_url).first()
+        is_new = (obj is None)
+
+    error = None
 
     if request.method == "POST":
+        posted_date_str = (request.POST.get("date") or "").strip()
+        d_form = _parse_date(posted_date_str) if posted_date_str else d_url
+
+        # если создаём — сохраняем по выбранной дате, если редактируем — по URL-дате
+        d_save = d_form if is_new else d_url
+
+        # защита от дубля
+        if is_new and StationDailyTable2.objects.filter(station_user=request.user, date=d_save).exists():
+            error = f"Отчёт за {d_save.strftime('%d.%m.%Y')} уже существует. Выберите другую дату."
+
+            return render(request, "station_table_2_create.html", {
+                "date": d_save,
+                "obj": None,
+                "station_name": request.user.username,
+                "rows_def": TABLE2_ROWS,
+                "mode": "edit",
+                "bottom": TABLE2_BOTTOM_FIELDS,
+                "is_new": True,
+                "error": error,
+            })
+
         data = {}
 
-        # 1..34 (в т.ч. строка 22 = только гружёные r22g_*)
+        # main rows
         for _n, _label, _code, k_total, k_ktk in TABLE2_ROWS:
             data[k_total] = _read_int_post(request, k_total)
             data[k_ktk] = _read_int_post(request, k_ktk)
 
-        # ✅ ВАЖНО: сохраняем "порожние" для строки 22 (НЕ как отдельная строка)
+        # row22 porozhnie
         data[R22_P_TOTAL] = _read_int_post(request, R22_P_TOTAL)
         data[R22_P_KTK]   = _read_int_post(request, R22_P_KTK)
 
@@ -483,25 +521,22 @@ def station_table_2_edit(request, date_str):
 
         StationDailyTable2.objects.update_or_create(
             station_user=request.user,
-            date=d,
+            date=d_save,
             defaults={"data": data}
         )
 
         return redirect("station_table_2_list")
 
     return render(request, "station_table_2_create.html", {
-        "date": d,
+        "date": d_url,
         "obj": obj,
         "station_name": request.user.username,
         "rows_def": TABLE2_ROWS,
         "mode": "edit",
         "bottom": TABLE2_BOTTOM_FIELDS,
-        "r22_keys": {
-            "g_total": R22_G_TOTAL, "g_ktk": R22_G_KTK,
-            "p_total": R22_P_TOTAL, "p_ktk": R22_P_KTK,
-        }
+        "is_new": is_new,
+        "error": error,
     })
-
 
 @login_required
 def station_table_2_delete(request, date_str):
@@ -514,6 +549,15 @@ def station_table_2_delete(request, date_str):
     d = _parse_date(date_str)
     StationDailyTable2.objects.filter(station_user=request.user, date=d).delete()
     return redirect("station_table_2_list")
+
+
+
+def promote_station(request, pk):
+    station= get_object_or_404(StationProfile,id=pk)
+    station.status= not (station.status)
+    station.save()
+    return redirect("admin_stations")
+
 
 
 # =========================
