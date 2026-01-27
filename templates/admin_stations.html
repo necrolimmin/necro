@@ -161,6 +161,43 @@
     .mobile-list{display:flex;}
   }
 </style>
+<style>
+  .switch{
+    position:relative;
+    width:46px;
+    height:26px;
+    display:inline-block;
+  }
+  .switch input{
+    opacity:0;width:0;height:0;
+  }
+  .slider{
+    position:absolute; inset:0;
+    background:#e2e8f0;                 /* OFF */
+    border:1px solid rgba(15,23,42,.16);
+    border-radius:999px;
+    transition:.18s ease;
+  }
+  .slider:before{
+    content:"";
+    position:absolute;
+    width:20px;height:20px;
+    left:3px; top:50%;
+    transform:translateY(-50%);
+    background:#fff;
+    border-radius:999px;
+    box-shadow:0 6px 12px rgba(15,23,42,.14);
+    transition:.18s ease;
+  }
+  .switch input:checked + .slider{
+    background:rgba(34,197,94,.35);     /* ON */
+    border-color:rgba(34,197,94,.45);
+  }
+  .switch input:checked + .slider:before{
+    transform:translateY(-50%) translateX(20px);
+  }
+</style>
+
 
 <div class="page-head">
   <div>
@@ -249,16 +286,35 @@
                 <td class="mono">{{ s.plain_password|default:"—" }}</td>
                 <td>{{s.status}}</td>
                 <td>
-                  <a href="{%url 'promote_station' s.id %}">ggg</a>
+
+                  
 
                   <div class="actions">
+
+                    <!-- ✅ Toggle: bosilganda status=true -->
+                    <form method="post" action="{% url 'promote_station' s.id %}" class="js-toggle-form" style="display:inline-block;">
+                      {% csrf_token %}
+                      <input type="hidden" name="status" value="{% if s.status %}true{% else %}false{% endif %}" class="js-status-val">
+
+                      <label class="switch" title="Status toggle">
+                        <input type="checkbox"
+                              class="js-toggle-switch"
+                              {% if s.status %}checked{% endif %}>
+                        <span class="slider"></span>
+                      </label>
+                    </form>
+
+
+                    <!-- Delete -->
                     <form method="post"
                           action="{% url 'admin_station_delete' s.id %}"
                           onsubmit="return confirm('Удалить станцию {{ s.station_name }} ({{ s.user.username }})?');">
                       {% csrf_token %}
                       <button class="btn-danger" type="submit" data-i18n="btn_delete">O‘chirish</button>
                     </form>
+
                   </div>
+
                 </td>
               </tr>
             {% empty %}
@@ -388,4 +444,25 @@
     }, 250);
   })();
 </script>
+
+<script>
+(function(){
+  document.querySelectorAll('.js-toggle-form').forEach(form=>{
+    const sw = form.querySelector('.js-toggle-switch');
+    const hidden = form.querySelector('.js-status-val');
+    if(!sw || !hidden) return;
+
+    sw.addEventListener('change', ()=>{
+      // checkbox holatiga qarab hidden input qiymatini yangilaymiz
+      hidden.value = sw.checked ? 'true' : 'false';
+
+      // formni yuboramiz (POST)
+      form.submit();
+    });
+  });
+})();
+</script>
+
+
+
 {% endblock %}

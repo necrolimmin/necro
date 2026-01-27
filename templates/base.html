@@ -55,7 +55,7 @@
 
         <nav class="center-nav" id="centerNav" aria-label="Main navigation">
           {% if user.is_staff or user.is_superuser %}
-            <a class="nav-link" href="#" data-i18n="dash" style="color: rgb(154, 181, 206);">Dashboard</a>
+            <a class="nav-link" href="/admin-panel/settings/" data-i18n="dash" style="color: rgb(154, 181, 206);">Dashboard</a>
             <a class="nav-link" href="/admin-panel/table-1/" data-i18n="r1">Hisobot 1</a>
             <a class="nav-link" href="{% url 'admin_table2_reports' %}" data-i18n="r2">Hisobot 2</a>
             <a class="nav-link" href="#" data-i18n="q" style="color: rgb(154, 181, 206);">Kvartalniy</a>
