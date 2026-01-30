@@ -169,8 +169,8 @@
     <div>
       <h2>Admin hisobot №2</h2>
       <div class="muted">
-        “Отправили X/Y” tugmasini bosing — kim jo‘natgan/kim jo‘natmagan ko‘rasiz.
-        Pastdagi Oldingi/Keyingi tugmalar bilan 10 tadan sahifalanadi (frontend).
+        “Jo'natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
+        Pastdagi Oldingi/Keyingi tugmalar bilan 10 tadan sahifalanadi.
       </div>
     </div>
   </div>
@@ -217,7 +217,7 @@
                     <div class="cols">
                       <div class="col">
                         <div style="margin-bottom:10px;">
-                          <span class="pill ok">Отправили ({{ it.submitted_count }})</span>
+                          <span class="pill ok">Jo'natganlar ({{ it.submitted_count }})</span>
                         </div>
                         {% for s in it.submitted %}
                           <div class="stLine">
@@ -231,7 +231,7 @@
 
                       <div class="col">
                         <div style="margin-bottom:10px;">
-                          <span class="pill no">Не отправили ({{ it.not_submitted_count }})</span>
+                          <span class="pill no">Jo'natmaganlar ({{ it.not_submitted_count }})</span>
                         </div>
                         {% for s in it.not_submitted %}
                           <div class="stLine">
