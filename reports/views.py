@@ -12,6 +12,7 @@ from .forms import TABLE1_FIELDS
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldError
+from django.core.paginator import Paginator
 
 # =========================
 # helpers
@@ -105,30 +106,38 @@ def station_table_1_list(request):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
 
-    # берём ТОЛЬКО total-отчёты текущей станции
     qs = (
         StationDailyTable1.objects
-        .filter(
-            station_user=request.user,
-            shift="total"
-        )
+        .filter(station_user=request.user, shift="total")
         .order_by("-date")
     )
 
-    # данные для таблицы
+    # ✅ серверный pager
+    per_page = _read_int(request.GET.get("per_page")) or 10
+    if per_page not in (5, 10, 20, 50):
+        per_page = 10
+
+    paginator = Paginator(qs, per_page)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+
     rows = [{
         "date": obj.date,
         "year": obj.date.year,
         "submitted_at": getattr(obj, "submitted_at", None),
-    } for obj in qs]
+    } for obj in page_obj.object_list]
 
-    # ✅ КЛЮЧЕВОЕ: даты, за которые отчёт УЖЕ существует
     existing_dates = set(qs.values_list("date", flat=True))
 
     return render(request, "station_table_1.html", {
         "rows": rows,
         "today": dt_date.today().strftime("%Y-%m-%d"),
-        "existing_dates": existing_dates,  # 👈 используется в JS
+        "existing_dates": existing_dates,
+
+        # ✅ для пагинации в шаблоне
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "per_page": per_page,
     })
 
 @login_required
@@ -405,19 +414,28 @@ def station_table_2_list(request):
         .order_by("-date")
     )
 
+    # ✅ Django pagination
+    page_number = request.GET.get("page", 1)
+    paginator = Paginator(qs, 10)  # 10 ta qator
+
+    page_obj = paginator.get_page(page_number)
+
     rows = [{
-        "date": r.date,
-        "year": r.date.year,
-        "submitted_at": getattr(r, "submitted_at", None),
-    } for r in qs]
+        "date": obj.date,
+        "year": obj.date.year,
+        "submitted_at": getattr(obj, "submitted_at", None),
+    } for obj in page_obj.object_list]
 
     existing_dates = set(qs.values_list("date", flat=True))
 
     return render(request, "station_table_2.html", {
-        "rows": rows,
+        "rows": rows,                 # shu sahifadagi 10 ta qator
+        "page_obj": page_obj,         # ✅ pager uchun
+        "paginator": paginator,       # ✅ pager uchun
         "today": dt_date.today().strftime("%Y-%m-%d"),
         "existing_dates": existing_dates,
     })
+
 
 
 @login_required
@@ -649,12 +667,14 @@ def admin_table1_report_view(request, date_str):
         day_data = _apply_itogo_rules((day_obj.data if day_obj else {}) or {})
         night_data = _apply_itogo_rules((night_obj.data if night_obj else {}) or {})
         total_data = _apply_itogo_rules((total_obj.data if total_obj else {}) or {})
-
+        status = get_object_or_404(StationProfile, user__username=uname)
+        
         station_list.append({
             "name": uname,
             "day_data": day_data,
             "night_data": night_data,
             "total_data": total_data,
+            "status" : status.status,
         })
 
     station_list.sort(key=lambda x: x["name"].lower())
