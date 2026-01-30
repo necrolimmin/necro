@@ -8,7 +8,6 @@
   .pagehead h2{margin:0;font-size:20px;line-height:1.15;letter-spacing:-.02em}
   .subtext{margin:6px 0 0;color:var(--muted,#64748b);font-size:14px}
 
-
   /* ===== CTA button ===== */
   .btn-cta{
     display:inline-flex;align-items:center;gap:10px;
@@ -54,7 +53,6 @@
     white-space:nowrap;
   }
 
-  /* ===== Table Wrap (glass) ===== */
   .tblwrap{
     margin-top:14px;
     border:1px solid rgba(15,23,42,.12);
@@ -105,7 +103,7 @@
   }
   .btn-danger:hover{filter:brightness(.98);transform:translateY(-1px)}
 
-  /* ===== Pagination ===== */
+  /* ===== Server Pager ===== */
   .pager{
     display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
     padding:12px;
@@ -113,26 +111,31 @@
     background:rgba(248,250,252,.75);
   }
   .pager .info{color:var(--muted,#64748b);font-size:13px}
-  .pager .pbtn{
+  .pager a, .pager button{
     height:36px;padding:0 12px;border-radius:12px;
     border:1px solid rgba(15,23,42,.12);
     background:rgba(255,255,255,.9);
     font-weight:900;cursor:pointer;
+    text-decoration:none;color:inherit;
+    display:inline-flex;align-items:center;justify-content:center;
   }
-  .pager .pbtn:disabled{opacity:.5;cursor:not-allowed}
+  .pager .disabled{opacity:.5;pointer-events:none}
   .pager .pnums{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
-  .pager .pnum{
-    height:34px;min-width:34px;padding:0 10px;border-radius:12px;
-    border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.9);
-    font-weight:900;cursor:pointer;
-  }
   .pager .pnum.active{
     border-color: rgba(99,102,241,.45);
     box-shadow: 0 10px 18px rgba(99,102,241,.18);
   }
+  .pager .pp{
+    display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .pager select{
+    height:36px;border-radius:12px;
+    border:1px solid rgba(15,23,42,.12);
+    background:rgba(255,255,255,.9);
+    padding:0 10px;font-weight:800;
+  }
 
-  /* ===== Mobile: table -> cards ===== */
+  /* ===== Mobile ===== */
   @media (max-width: 820px){
     .tbl2 thead{display:none}
     .tbl2, .tbl2 tbody, .tbl2 tr, .tbl2 td{display:block;width:100%}
@@ -150,7 +153,7 @@
     .actions{justify-content:flex-start;margin-top:8px}
   }
 
-  /* ===== Dark mode (base html[data-theme="dark"]) ===== */
+  /* ===== Dark mode ===== */
   html[data-theme="dark"] .search,
   html[data-theme="dark"] .chip,
   html[data-theme="dark"] .tblwrap{
@@ -165,8 +168,8 @@
   html[data-theme="dark"] .tbl2 tbody td{border-bottom-color: rgba(148,163,184,.14)}
   html[data-theme="dark"] .tbl2 tbody tr:hover{background:rgba(99,102,241,.10)}
   html[data-theme="dark"] .btn-soft,
-  html[data-theme="dark"] .pager .pbtn,
-  html[data-theme="dark"] .pager .pnum{
+  html[data-theme="dark"] .pager a,
+  html[data-theme="dark"] .pager select{
     background:rgba(15,23,42,.75);
     border-color: rgba(148,163,184,.18);
     color: rgba(226,232,240,.92);
@@ -180,16 +183,13 @@
 <div class="card">
   <div class="pagehead">
     <div>
-      <h2 data-i18n="t1_reports_title">Hisobot №1 </h2>
+      <h2 data-i18n="t1_reports_title">Hisobot №1</h2>
       <div class="subtext" data-i18n="t1_reports_sub">
         Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.
       </div>
     </div>
 
-
-    {# Create -> VIEW (sizning logika bo'yicha) #}
     <a class="btn-cta" href="{% url 'station_table_1_edit' today %}?new=1" data-i18n="create_report">
-
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
         <path d="M12 5v14M5 12h14"/>
       </svg>
@@ -207,12 +207,12 @@
 
     <div class="chip">
       <span data-i18n="shown">Ko‘rsatilmoqda</span>:
-      <b id="shownCount">0</b>
+      <b id="shownCount">{{ rows|length }}</b>
     </div>
 
     <div class="chip">
       <span data-i18n="total">Jami</span>:
-      <b id="totalCount">0</b>
+      <b id="totalCount">{{ paginator.count }}</b>
     </div>
   </div>
 
@@ -250,7 +250,6 @@
               </form>
             </div>
 
-            <!-- Mobile -->
             <div class="rowgrid" style="display:none">
               <div class="kv"><span data-i18n="col_date">Дата</span><b>{{ r.date|date:"d.m.Y" }}</b></div>
               <div class="kv"><span data-i18n="col_year">Год</span><b>{{ r.year }}</b></div>
@@ -281,20 +280,53 @@
       </tbody>
     </table>
 
-    <div class="pager" id="pager" style="display:none;">
-      <div class="info" id="pagerInfo">—</div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="pbtn" id="prevBtn" type="button">‹</button>
-        <div class="pnums" id="pnums"></div>
-        <button class="pbtn" id="nextBtn" type="button">›</button>
+    {% if paginator.num_pages > 1 %}
+    <div class="pager">
+      <div class="info">
+        {{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ paginator.count }}
+      </div>
+
+      <div class="pp">
+        {# per_page selector keeps page=1 #}
+        <form method="get" style="display:inline-flex;gap:8px;align-items:center">
+          <input type="hidden" name="page" value="1">
+          <select name="per_page" onchange="this.form.submit()">
+            <option value="5"  {% if per_page == 5 %}selected{% endif %}>5</option>
+            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+            <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+          </select>
+        </form>
+
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">‹</a>
+        {% else %}
+          <a class="disabled">‹</a>
+        {% endif %}
+
+        <div class="pnums">
+          {% for n in page_obj.paginator.page_range %}
+            {% if n >= page_obj.number|add:-3 and n <= page_obj.number|add:3 %}
+              <a class="pnum {% if n == page_obj.number %}active{% endif %}"
+                 href="?page={{ n }}&per_page={{ per_page }}">{{ n }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">›</a>
+        {% else %}
+          <a class="disabled">›</a>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
   </div>
 </div>
 
 <script>
 (function(){
-  // ===== Responsive: show mobile card blocks =====
+  // mobile card switch
   function syncMobileRows(){
     const isMobile = window.matchMedia("(max-width: 820px)").matches;
     document.querySelectorAll(".t1row").forEach(tr=>{
@@ -305,70 +337,23 @@
   window.addEventListener("resize", syncMobileRows);
   syncMobileRows();
 
-  // ===== Frontend filter + pager =====
-  const PAGE_SIZE = 10;
+  // quick filter (filters current page only)
   const q = document.getElementById("q");
   const rows = Array.from(document.querySelectorAll(".t1row"));
-  const pager = document.getElementById("pager");
-  const pnums = document.getElementById("pnums");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const pagerInfo = document.getElementById("pagerInfo");
   const shownCount = document.getElementById("shownCount");
-  const totalCount = document.getElementById("totalCount");
-
-  let filtered = rows.slice();
-  let page = 1;
-
-  function paginate(){
-    const total = filtered.length;
-    totalCount.textContent = String(rows.length);
-
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    page = Math.min(page, pages);
-
-    const start = (page - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-
-    rows.forEach(r => r.style.display = "none");
-    filtered.slice(start, end).forEach(r => r.style.display = "");
-
-    shownCount.textContent = String(filtered.slice(start, end).length);
-
-    pager.style.display = (rows.length > 0 && total > PAGE_SIZE) ? "" : "none";
-    prevBtn.disabled = page <= 1;
-    nextBtn.disabled = page >= pages;
-
-    pagerInfo.textContent = `${start + 1}–${Math.min(end, total)} / ${total}`;
-
-    pnums.innerHTML = "";
-    const maxBtns = 7;
-    let from = Math.max(1, page - 3);
-    let to = Math.min(pages, from + (maxBtns - 1));
-    from = Math.max(1, to - (maxBtns - 1));
-
-    for(let i=from;i<=to;i++){
-      const b = document.createElement("button");
-      b.type="button";
-      b.className = "pnum" + (i===page ? " active" : "");
-      b.textContent = i;
-      b.addEventListener("click", ()=>{page=i; paginate();});
-      pnums.appendChild(b);
-    }
-  }
 
   function applyFilter(){
     const term = (q.value || "").trim().toLowerCase();
-    filtered = !term ? rows.slice() : rows.filter(r => (r.dataset.search || "").toLowerCase().includes(term));
-    page = 1;
-    paginate();
+    let shown = 0;
+    rows.forEach(r=>{
+      const ok = !term || (r.dataset.search || "").toLowerCase().includes(term);
+      r.style.display = ok ? "" : "none";
+      if(ok) shown++;
+    });
+    shownCount.textContent = String(shown);
   }
 
   q && q.addEventListener("input", applyFilter);
-  prevBtn && prevBtn.addEventListener("click", ()=>{page=Math.max(1, page-1); paginate();});
-  nextBtn && nextBtn.addEventListener("click", ()=>{page=page+1; paginate();});
-
-  paginate();
 })();
 </script>
 {% endblock %}

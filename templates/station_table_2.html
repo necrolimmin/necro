@@ -11,9 +11,7 @@
   .subtext{margin:6px 0 0;color:var(--muted,#64748b);font-size:13px}
 
   /* ===== Controls ===== */
-  .controls{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px
-  }
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
   .search{
     flex:1;min-width:220px;
     display:flex;align-items:center;gap:8px;
@@ -33,6 +31,7 @@
     background:rgba(255,255,255,.72);
     backdrop-filter: blur(10px);
     font-size:13px;color:var(--muted,#64748b);
+    white-space:nowrap;
   }
 
   /* ===== Table ===== */
@@ -44,11 +43,7 @@
     background:rgba(255,255,255,.78);
     backdrop-filter: blur(10px);
   }
-  table.tbl2{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-  }
+  table.tbl2{width:100%;border-collapse:separate;border-spacing:0}
   .tbl2 thead th{
     text-align:left;
     font-size:12px;
@@ -59,21 +54,18 @@
     border-bottom:1px solid rgba(15,23,42,.10);
     position:sticky;top:0;z-index:2;
   }
+  .tbl2 thead th:last-child{text-align:right}
   .tbl2 tbody td{
     padding:12px 12px;
     border-bottom:1px solid rgba(15,23,42,.08);
     vertical-align:middle;
     font-size:14px;
   }
-  .tbl2 tbody tr:hover{
-    background:rgba(99,102,241,.06);
-  }
+  .tbl2 tbody tr:hover{background:rgba(99,102,241,.06)}
   .dateCell b{font-size:14px}
   .mutedCell{color:var(--muted,#64748b);font-size:13px}
 
-  .actions{
-    display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;
-  }
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
   .btn-soft{
     display:inline-flex;align-items:center;justify-content:center;
     height:38px;padding:0 12px;border-radius:12px;
@@ -94,7 +86,27 @@
   }
   .btn-danger:hover{filter:brightness(.98);transform:translateY(-1px)}
 
-  /* ===== Pagination ===== */
+  /* ===== CTA ===== */
+  .btn-primary-cta{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:6px 15px;border-radius:999px;
+    font-weight:700;text-decoration:none;color:#fff;
+    background:linear-gradient(135deg,#4f46e5,#22c55e);
+    box-shadow:0 14px 30px rgba(79,70,229,.35);
+    transition:.25s ease;
+    position:relative;overflow:hidden;
+    white-space:nowrap;
+  }
+  .btn-primary-cta::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:translateX(-120%);transition:.6s ease;
+  }
+  .btn-primary-cta:hover{transform:translateY(-2px);box-shadow:0 22px 40px rgba(79,70,229,.45)}
+  .btn-primary-cta:hover::after{transform:translateX(120%)}
+  .btn-primary-cta svg{width:18px;height:18px}
+
+  /* ===== Pagination (server-side) ===== */
   .pager{
     display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
     padding:12px;
@@ -102,22 +114,18 @@
     background:rgba(248,250,252,.75);
   }
   .pager .info{color:var(--muted,#64748b);font-size:13px}
-  .pager .pbtn{
-    height:36px;padding:0 12px;border-radius:12px;
+  .pager .pbtn, .pager .pnum{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:36px;min-width:36px;padding:0 12px;border-radius:12px;
     border:1px solid rgba(15,23,42,.12);
     background:rgba(255,255,255,.9);
     font-weight:900;cursor:pointer;
+    text-decoration:none;color:inherit;
   }
-  .pager .pbtn:disabled{opacity:.5;cursor:not-allowed}
-  .pager .pnums{
-    display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;
+  .pager .pbtn[aria-disabled="true"]{
+    opacity:.5;pointer-events:none;
   }
-  .pager .pnum{
-    height:34px;min-width:34px;padding:0 10px;border-radius:12px;
-    border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.9);
-    font-weight:900;cursor:pointer;
-  }
+  .pager .pnums{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
   .pager .pnum.active{
     border-color: rgba(99,102,241,.45);
     box-shadow: 0 10px 18px rgba(99,102,241,.18);
@@ -125,16 +133,10 @@
 
   /* ===== Mobile: table -> cards ===== */
   @media (max-width: 820px){
-    .tblwrap{border-radius:18px}
     .tbl2 thead{display:none}
     .tbl2, .tbl2 tbody, .tbl2 tr, .tbl2 td{display:block;width:100%}
-    .tbl2 tbody tr{
-      border-bottom:1px solid rgba(15,23,42,.10);
-      padding:10px 10px 12px;
-    }
-    .tbl2 tbody td{
-      border-bottom:0;padding:6px 8px;
-    }
+    .tbl2 tbody tr{border-bottom:1px solid rgba(15,23,42,.10);padding:10px 10px 12px}
+    .tbl2 tbody td{border-bottom:0;padding:6px 8px}
     .rowgrid{
       display:grid;grid-template-columns:1fr;gap:6px;
       background:rgba(255,255,255,.85);
@@ -142,15 +144,12 @@
       border-radius:16px;
       padding:10px;
     }
-    .kv{
-      display:flex;justify-content:space-between;gap:12px;
-      font-size:13px;color:var(--muted,#64748b);
-    }
+    .kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted,#64748b)}
     .kv b{color:inherit;font-weight:900}
     .actions{justify-content:flex-start;margin-top:8px}
   }
 
-  /* ===== Dark mode support (agar base.html html[data-theme="dark"] qilsa) ===== */
+  /* ===== Dark mode ===== */
   html[data-theme="dark"] .search,
   html[data-theme="dark"] .chip,
   html[data-theme="dark"] .tblwrap{
@@ -162,12 +161,8 @@
     border-bottom-color: rgba(148,163,184,.16);
     color: rgba(226,232,240,.75);
   }
-  html[data-theme="dark"] .tbl2 tbody td{
-    border-bottom-color: rgba(148,163,184,.14);
-  }
-  html[data-theme="dark"] .tbl2 tbody tr:hover{
-    background:rgba(99,102,241,.10);
-  }
+  html[data-theme="dark"] .tbl2 tbody td{border-bottom-color: rgba(148,163,184,.14)}
+  html[data-theme="dark"] .tbl2 tbody tr:hover{background:rgba(99,102,241,.10)}
   html[data-theme="dark"] .btn-soft,
   html[data-theme="dark"] .pager .pbtn,
   html[data-theme="dark"] .pager .pnum{
@@ -181,50 +176,6 @@
   }
 </style>
 
-<style>
-  .btn-primary-cta{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    padding:6px 15px;
-    border-radius:999px;
-    font-weight:700;
-    text-decoration:none;
-    color:#fff;
-    background:linear-gradient(135deg,#4f46e5,#22c55e);
-    box-shadow:0 14px 30px rgba(79,70,229,.35);
-    transition:.25s ease;
-    position:relative;
-    overflow:hidden;
-  }
-  .btn-primary-cta::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
-    transform:translateX(-120%);
-    transition:.6s ease;
-  }
-  .btn-primary-cta:hover{
-    transform:translateY(-2px);
-    box-shadow:0 22px 40px rgba(79,70,229,.45);
-  }
-  .btn-primary-cta:hover::after{
-    transform:translateX(120%);
-  }
-
-  .btn-primary-cta svg{
-    width:18px;
-    height:18px;
-  }
-
-  /* Dark mode moslashuvi */
-  html[data-theme="dark"] .btn-primary-cta{
-    box-shadow:0 18px 38px rgba(34,197,94,.35);
-  }
-</style>
-
-
 <div class="card">
   <div class="pagehead">
     <div>
@@ -234,17 +185,14 @@
       </div>
     </div>
 
-
-    <a href="{% url 'station_table_2_edit'  date_str=today %}?new=1"
-   class="btn-primary-cta"
-   data-i18n="create_report">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M12 5v14M5 12h14"/>
-  </svg>
-  hisobot yaratish
-</a>
-
-
+    <a href="{% url 'station_table_2_edit' date_str=today %}?new=1"
+       class="btn-primary-cta"
+       data-i18n="create_report">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      hisobot yaratish
+    </a>
   </div>
 
   <div class="controls">
@@ -257,12 +205,12 @@
 
     <div class="chip">
       <span data-i18n="shown">Ko‘rsatilmoqda</span>:
-      <b id="shownCount">0</b>
+      <b id="shownCount">{{ rows|length }}</b>
     </div>
 
     <div class="chip">
       <span data-i18n="total">Jami</span>:
-      <b id="totalCount">0</b>
+      <b id="totalCount">{{ page_obj.paginator.count|default:rows|length }}</b>
     </div>
   </div>
 
@@ -281,17 +229,10 @@
         {% for r in rows %}
         <tr class="t2row"
             data-search="{{ r.date|date:'d.m.Y' }} {{ r.date|date:'Y-m-d' }} {{ r.year }} {% if r.submitted_at %}{{ r.submitted_at|date:'d.m.Y H:i' }}{% endif %}">
-          <!-- Desktop cells -->
-          <td class="dateCell">
-            <b>{{ r.date|date:"d.m.Y" }}</b>
-          </td>
+          <td class="dateCell"><b>{{ r.date|date:"d.m.Y" }}</b></td>
           <td>{{ r.year }}</td>
           <td class="mutedCell">
-            {% if r.submitted_at %}
-              {{ r.submitted_at|date:"d.m.Y H:i" }}
-            {% else %}
-              —
-            {% endif %}
+            {% if r.submitted_at %}{{ r.submitted_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}
           </td>
           <td>
             <div class="actions">
@@ -307,7 +248,7 @@
               </form>
             </div>
 
-            <!-- Mobile card view content -->
+            <!-- Mobile -->
             <div class="rowgrid" style="display:none">
               <div class="kv"><span data-i18n="col_date">Дата</span><b>{{ r.date|date:"d.m.Y" }}</b></div>
               <div class="kv"><span data-i18n="col_year">Год</span><b>{{ r.year }}</b></div>
@@ -317,7 +258,6 @@
               <div class="actions">
                 <a class="btn-soft" href="/station/table-2/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Просмотр</a>
                 <a class="btn-soft" href="/station/table-2/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Редактировать</a>
-
                 <form method="post"
                       action="/station/table-2/delete/{{ r.date|date:'Y-m-d' }}/"
                       style="display:inline;"
@@ -339,27 +279,49 @@
       </tbody>
     </table>
 
-    <div class="pager" id="pager" style="display:none;">
-      <div class="info" id="pagerInfo">—</div>
+    {# ===== SERVER PAGER ===== #}
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+      <div class="pager" id="pager">
+        <div class="info">
+          {{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ page_obj.paginator.count }}
+        </div>
 
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="pbtn" id="prevBtn" type="button">‹</button>
-        <div class="pnums" id="pnums"></div>
-        <button class="pbtn" id="nextBtn" type="button">›</button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          {% if page_obj.has_previous %}
+            <a class="pbtn" href="?page={{ page_obj.previous_page_number }}">‹</a>
+          {% else %}
+            <a class="pbtn" aria-disabled="true" href="javascript:void(0)">‹</a>
+          {% endif %}
+
+          <div class="pnums">
+            {% for i in page_obj.paginator.page_range %}
+              {% if i == page_obj.number %}
+                <span class="pnum active">{{ i }}</span>
+              {% elif i >= page_obj.number|add:-3 and i <= page_obj.number|add:3 %}
+                <a class="pnum" href="?page={{ i }}">{{ i }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          {% if page_obj.has_next %}
+            <a class="pbtn" href="?page={{ page_obj.next_page_number }}">›</a>
+          {% else %}
+            <a class="pbtn" aria-disabled="true" href="javascript:void(0)">›</a>
+          {% endif %}
+        </div>
       </div>
-    </div>
+    {% endif %}
   </div>
 </div>
 
 <script>
 (function(){
-  // ===== i18n minimal (page-level) =====
-  // Agar base.html/base.js’da til/tungi tizimi bo'lsa, bu faqat fallback.
+  // ===== i18n fallback =====
   const dict = {
     uz: {
-      t2_reports_title: "Hisobot №2 ",
+      t2_reports_title: "Hisobot №2",
       t2_reports_sub: "Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.",
-      create_report: "+ Hisobot yaratish",
+      create_report: "hisobot yaratish",
       search_placeholder: "Sana / yil / vaqt bo‘yicha qidirish…",
       shown: "Ko‘rsatilmoqda",
       total: "Jami",
@@ -374,25 +336,24 @@
       confirm_delete: "Hisobotni o‘chirasizmi?"
     },
     ru: {
-      t2_reports_title: "Hisobot №2 ",
+      t2_reports_title: "Hisobot №2",
       t2_reports_sub: "Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.",
-      create_report: "+ Hisobot yaratish",
+      create_report: "hisobot yaratish",
       search_placeholder: "Sana / yil / vaqt bo‘yicha qidirish…",
       shown: "Ko‘rsatilmoqda",
       total: "Jami",
-      col_date: "Sana",
-      col_year: "Yil",
-      col_sent: "Yuborilgan",
-      col_actions: "Amallar",
-      view: "Ko‘rish",
-      edit: "Tahrirlash",
-      delete: "O‘chirish",
-      empty: "Hozircha hisobot yo‘q. “Hisobot yaratish” tugmasini bosing.",
-      confirm_delete: "Hisobotni o‘chirasizmi?"
+      col_date: "Дата",
+      col_year: "Год",
+      col_sent: "Отправлено",
+      col_actions: "Действия",
+      view: "Просмотр",
+      edit: "Редактировать",
+      delete: "Удалить",
+      empty: "Пока нет отчётов. Нажми “Создать отчёт”.",
+      confirm_delete: "Удалить отчёт?"
     }
   };
 
-  // tilni localStorage’dan olamiz (base’dagi bilan mos)
   const LANG_KEY = "app_lang";
   const THEME_KEY = "app_theme";
 
@@ -410,7 +371,6 @@
     });
   }
 
-  // theme (base bilan mos bo'lsa) — html[data-theme]
   function applyTheme(theme){
     document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
   }
@@ -418,131 +378,34 @@
   applyLang(localStorage.getItem(LANG_KEY) || "ru");
   applyTheme(localStorage.getItem(THEME_KEY) || "light");
 
-  // Agar base.html'da til/tungi tugmalar bo'lsa — ularga "hook" qilamiz:
-  // (id larni base.html dagi bilan moslab qo'ying)
-  const langBtn = document.getElementById("langBtn");
-  const themeBtn = document.getElementById("themeBtn");
-  const langMenu = document.getElementById("langMenu");
-
-  if(langBtn){
-    langBtn.addEventListener("click", ()=>{
-      // agar base menu bo'lsa, shu yerda toggle
-      if(langMenu){
-        langMenu.classList.toggle("open");
-      } else {
-        // fallback: toggle ru/uz
-        const cur = localStorage.getItem(LANG_KEY) || "ru";
-        const next = cur === "ru" ? "uz" : "ru";
-        localStorage.setItem(LANG_KEY, next);
-        applyLang(next);
-      }
-    });
-  }
-  // base menyudan til tanlash itemlari:
-  document.querySelectorAll("[data-set-lang]").forEach(a=>{
-    a.addEventListener("click", (e)=>{
-      e.preventDefault();
-      const lang = a.getAttribute("data-set-lang");
-      localStorage.setItem(LANG_KEY, lang);
-      applyLang(lang);
-      if(langMenu) langMenu.classList.remove("open");
-    });
-  });
-
-  if(themeBtn){
-    themeBtn.addEventListener("click", ()=>{
-      const cur = localStorage.getItem(THEME_KEY) || "light";
-      const next = cur === "dark" ? "light" : "dark";
-      localStorage.setItem(THEME_KEY, next);
-      applyTheme(next);
-    });
-  }
-
-  // ===== Responsive: mobile row grid show/hide =====
+  // ===== Responsive mobile cards =====
   function syncMobileRows(){
     const isMobile = window.matchMedia("(max-width: 820px)").matches;
     document.querySelectorAll(".t2row").forEach(tr=>{
       const rowgrid = tr.querySelector(".rowgrid");
-      if(rowgrid){
-        rowgrid.style.display = isMobile ? "grid" : "none";
-      }
+      if(rowgrid) rowgrid.style.display = isMobile ? "grid" : "none";
     });
   }
   window.addEventListener("resize", syncMobileRows);
   syncMobileRows();
 
-  // ===== Frontend filter + pager =====
-  const PAGE_SIZE = 10;
+  // ===== Search (only current page rows) =====
   const q = document.getElementById("q");
   const rows = Array.from(document.querySelectorAll(".t2row"));
-  const pager = document.getElementById("pager");
-  const pnums = document.getElementById("pnums");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  const pagerInfo = document.getElementById("pagerInfo");
   const shownCount = document.getElementById("shownCount");
-  const totalCount = document.getElementById("totalCount");
-
-  let filtered = rows.slice();
-  let page = 1;
-
-  function paginate(){
-    const total = filtered.length;
-    totalCount.textContent = String(rows.length);
-
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    page = Math.min(page, pages);
-
-    const start = (page - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-
-    rows.forEach(r => r.style.display = "none");
-    filtered.slice(start, end).forEach(r => r.style.display = "");
-
-    shownCount.textContent = String(filtered.slice(start, end).length);
-
-    // pager UI
-    pager.style.display = (rows.length > 0 && total > PAGE_SIZE) ? "" : "none";
-    prevBtn.disabled = page <= 1;
-    nextBtn.disabled = page >= pages;
-
-    pagerInfo.textContent = `${start + 1}–${Math.min(end, total)} / ${total}`;
-
-    // page numbers
-    pnums.innerHTML = "";
-    const maxBtns = 7;
-    let from = Math.max(1, page - 3);
-    let to = Math.min(pages, from + (maxBtns - 1));
-    from = Math.max(1, to - (maxBtns - 1));
-
-    for(let i=from;i<=to;i++){
-      const b = document.createElement("button");
-      b.type="button";
-      b.className = "pnum" + (i===page ? " active" : "");
-      b.textContent = i;
-      b.addEventListener("click", ()=>{page=i; paginate();});
-      pnums.appendChild(b);
-    }
-  }
 
   function applyFilter(){
     const term = (q.value || "").trim().toLowerCase();
-    if(!term){
-      filtered = rows.slice();
-    }else{
-      filtered = rows.filter(r => (r.dataset.search || "").toLowerCase().includes(term));
-    }
-    page = 1;
-    paginate();
+    let shown = 0;
+    rows.forEach(r=>{
+      const ok = !term || (r.dataset.search || "").toLowerCase().includes(term);
+      r.style.display = ok ? "" : "none";
+      if(ok) shown++;
+    });
+    if(shownCount) shownCount.textContent = String(shown);
   }
 
-  if(q){
-    q.addEventListener("input", applyFilter);
-  }
-  prevBtn?.addEventListener("click", ()=>{page=Math.max(1, page-1); paginate();});
-  nextBtn?.addEventListener("click", ()=>{page=page+1; paginate();});
-
-  paginate();
+  q && q.addEventListener("input", applyFilter);
 })();
 </script>
 {% endblock %}
