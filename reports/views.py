@@ -135,13 +135,13 @@ def station_table_1_list(request):
 def station_table_1_view(request, date_str):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
-
+    pro = get_object_or_404(StationProfile, user=request.user)
     d = _parse_date(date_str)
 
     day_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d, shift="day").first()
     night_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d, shift="night").first()
     total_obj = StationDailyTable1.objects.filter(station_user=request.user, date=d, shift="total").first()
-
+    status = pro.status
     if total_obj is None:
         return redirect("station_table_1_edit", date_str=date_str)
 
@@ -159,6 +159,7 @@ def station_table_1_view(request, date_str):
         "mode": "view",
         "TABLE1_FIELDS": TABLE1_FIELDS,
         "is_new": False,
+        "status":status
     })
 
 
@@ -648,12 +649,14 @@ def admin_table1_report_view(request, date_str):
         day_data = _apply_itogo_rules((day_obj.data if day_obj else {}) or {})
         night_data = _apply_itogo_rules((night_obj.data if night_obj else {}) or {})
         total_data = _apply_itogo_rules((total_obj.data if total_obj else {}) or {})
-
+        status = get_object_or_404(StationProfile, user__username=uname)
+        
         station_list.append({
             "name": uname,
             "day_data": day_data,
             "night_data": night_data,
             "total_data": total_data,
+            "status" : status.status,
         })
 
     station_list.sort(key=lambda x: x["name"].lower())

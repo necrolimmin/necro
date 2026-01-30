@@ -1,653 +1,1045 @@
 {% load static %}
-<!doctype html>
-<html lang="uz" data-theme="light" data-lang="uz">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>{% block title %}"O‘ztemiryo‘lkonteyner" AJ{% endblock %}</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UTK Login</title>
   <link rel="shortcut icon" href="{% static 'images/UTKlogo.png' %}" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-<body>
 
-<style>
-  html, body { margin:0 !important; padding:0 !important; height:100%; }
+  <style>
+    /* ===========================
+       UTK login (SCOPED ONLY)
+       =========================== */
 
-  :root{
-    --bg1:#f6f8ff;
-    --bg2:#eefcff;
-    --bg3:#fff4ee;
+    html, body{height:100%; margin:0; align-items: center;}
 
-    --card:#ffffffcc;
-    --stroke:rgba(15,23,42,.10);
-    --text:#0f172a;
-    --muted:#475569;
 
-    --primary:#4f46e5;
-    --green:#22c55e;
-    --cyan:#06b6d4;
+    .utk-login{
+      position:relative;
+      /* min-height:calc(100vh - 120px); */
+      min-height: 93vh;
+      padding:28px 16px 38px;
+      overflow:hidden;
+      isolation:isolate;
+      display: flex;
+      align-items: center;
 
-    --shadow:0 25px 70px rgba(15,23,42,.12);
-    --soft: rgba(255,255,255,.72);
+      /* Theme tokens (scoped) */
+      --panel: rgba(255,255,255,.08);
+      --panelStroke: rgba(255,255,255,.14);
+      --text: #fff;
+      --muted: rgba(255,255,255,.72);
+      --muted2: rgba(255,255,255,.55);
+      --fieldBg: rgba(255,255,255,.08);
+      --fieldStroke: rgba(255,255,255,.14);
+      --fieldBgFocus: rgba(255,255,255,.10);
+      --focusRing: rgba(90,170,255,.16);
+      --link: rgba(120,200,255,.90);
+      --btnText: #041022;
+      --btnGradA: rgba(65,170,255,1);
+      --btnGradB: rgba(0,255,205,1);
 
-    --ring: 0 0 0 4px rgba(79,70,229,.14);
-  }
+      --bgBase: #050914;
+      --overlayA: rgba(8,18,50,.92);
+      --overlayB: rgba(5,9,20,.78);
+      --overlayC: rgba(5,9,20,.55);
+      --overlayD: rgba(5,9,20,.20);
 
-  .theme-dark{
-    --bg1:#070a13;
-    --bg2:#0b1020;
-    --bg3:#0b142b;
-
-    --card:#0b1222cc;
-    --stroke:rgba(255,255,255,.14);
-    --text:#e5e7eb;
-    --muted:#94a3b8;
-
-    --shadow:0 30px 90px rgba(0,0,0,.50);
-    --soft: rgba(255,255,255,.08);
-
-    --ring: 0 0 0 4px rgba(99,102,241,.18);
-  }
-
-  .auth-page{
-    min-height:100vh;
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    overflow:hidden;
-
-    /* mobile safe area */
-    padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
-
-    background:
-      radial-gradient(900px 420px at 12% 18%, rgba(79,70,229,.18), transparent 60%),
-      radial-gradient(700px 380px at 88% 22%, rgba(34,197,94,.16), transparent 60%),
-      radial-gradient(700px 420px at 55% 95%, rgba(6,182,212,.15), transparent 60%),
-      linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
-  }
-
-  .auth-page::before{
-    content:"";
-    position:absolute; inset:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
-    opacity:.16;
-    pointer-events:none;
-    mix-blend-mode:overlay;
-  }
-
-  .bg-img{
-    position:absolute;
-    pointer-events:none;
-    opacity:.42;
-    filter: blur(2px) saturate(1.05);
-  }
-  .bg-train{ left:-120px; bottom:40px; max-width:540px; }
-  .bg-truck{ right:-140px; top:70px; max-width:540px; }
-
-  .bg-operator{
-    position:absolute;
-    right: calc(50% - 520px);
-    bottom: 40px;
-    max-width: 320px;
-    z-index:2;
-    opacity:.95;
-    filter: drop-shadow(0 30px 60px rgba(0,0,0,.25));
-    pointer-events:none;
-  }
-
-  /* top floating toolbar */
-  .top-tools{
-    position: fixed;
-    top: calc(14px + env(safe-area-inset-top));
-    right: 14px;
-    z-index: 50;
-    display:flex;
-    gap: 10px;
-    align-items:center;
-  }
-  .tool{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding: 10px 12px;
-    border-radius: 999px;
-    background: var(--soft);
-    border:1px solid var(--stroke);
-    box-shadow: 0 16px 40px rgba(15,23,42,.10);
-    backdrop-filter: blur(12px);
-  }
-
-  .tool-btn{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding: 8px 10px;
-    border-radius: 999px;
-    border:1px solid var(--stroke);
-    background: rgba(255,255,255,.55);
-    cursor:pointer;
-    color: var(--text);
-    font-weight: 800;
-    font-size: 12.5px;
-    transition: transform .12s ease, filter .12s ease;
-    user-select:none;
-  }
-  .theme-dark .tool-btn{ background: rgba(255,255,255,.06); }
-  .tool-btn:hover{ transform: translateY(-1px); filter: brightness(1.02); }
-  .tool-btn:active{ transform: translateY(0); }
-
-  .tool-select{
-    border:1px solid var(--stroke);
-    background: rgba(255,255,255,.55);
-    color:var(--text);
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-weight: 800;
-    font-size: 12.5px;
-    outline:none;
-    cursor:pointer;
-  }
-  .theme-dark .tool-select{ background: rgba(255,255,255,.06); }
-
-  .ic{ width:15px; height:15px; display:inline-block; }
-  .ic svg{ width:18px; height:18px; display:block; }
-
-  /* main card layout */
-  .auth-card{
-    width:min(980px,100%);
-    display:grid;
-    grid-template-columns:1.1fr .9fr;
-    gap:18px;
-    z-index:3;
-  }
-
-  .panel{
-    background:var(--card);
-    border:1px solid var(--stroke);
-    border-radius:24px;
-    padding:22px;
-    box-shadow:var(--shadow);
-    backdrop-filter:blur(14px);
-  }
-
-  /* left */
-  .brand{ display:flex; gap:12px; align-items:center; }
-  .brand img{
-    width:46px; height:46px;
-    border-radius:14px;
-    background:#fff;
-    border:1px solid rgba(0,0,0,.04);
-    object-fit:contain;
-  }
-  .brand h1{
-    margin:0;
-    font-size:15px;
-    font-weight:950;
-    color:var(--text);
-    letter-spacing:.2px;
-  }
-  .brand p{ margin:2px 0 0; font-size:12.5px; color:var(--muted); }
-
-  .headline{
-    margin:14px 0 6px;
-    font-size:22px;
-    font-weight:950;
-    color:var(--text);
-  }
-  .subline{
-    margin:0;
-    color:var(--muted);
-    font-size:13.5px;
-    line-height:1.5;
-    max-width:52ch;
-  }
-  .chips{
-    margin-top:14px;
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-  .chip{
-    padding:10px 12px;
-    border-radius:16px;
-    background: rgba(255,255,255,.65);
-    border:1px solid rgba(15,23,42,.06);
-    box-shadow:0 10px 24px rgba(0,0,0,.06);
-    font-size:12.5px;
-    color:var(--text);
-  }
-  .theme-dark .chip{
-    background: rgba(255,255,255,.06);
-    border-color: rgba(255,255,255,.12);
-    box-shadow:none;
-  }
-
-  /* right */
-  .right h2{ margin: 2px 0 0; font-size:18px; font-weight:950; color:var(--text); }
-  .right p{ margin: 0; color:var(--muted); font-size:12.8px; line-height:1.4; }
-
-  .alert{
-    margin-top: 10px;
-    border:1px solid rgba(239,68,68,.25);
-    background: rgba(239,68,68,.08);
-    color: #991b1b;
-    padding: 10px 12px;
-    border-radius: 14px;
-    font-size: 12.8px;
-  }
-  .theme-dark .alert{ color:#ffd1d8; }
-
-  .field{
-    margin-top:12px;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-  label{ font-size:12.5px; color:var(--muted); }
-
-  input{
-    width:100%;
-    box-sizing:border-box;
-    padding:12px 12px;
-    border-radius:14px;
-    border:1px solid rgba(15,23,42,.12);
-    background: rgba(255,255,255,.85);
-    color: var(--text);
-    outline:none;
-    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-  }
-  .theme-dark input{
-    border:1px solid rgba(255,255,255,.14);
-    background: rgba(255,255,255,.06);
-  }
-  input:focus{
-    border-color: rgba(79,70,229,.55);
-    box-shadow: var(--ring);
-    transform: translateY(-1px);
-  }
-
-  .pass-wrap{ position:relative; }
-
-  .eye{
-    position:absolute;
-    right:8px;
-    top:66%;
-    transform: translateY(-50%);
-    height:36px;
-    padding: 0 10px;
-    border-radius: 12px;
-    border:1px solid var(--stroke);
-    background: rgba(255,255,255,.60);
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    color: var(--text);
-    font-weight: 900;
-    font-size: 12px;
-    z-index:3;
-  }
-  .theme-dark .eye{ background: rgba(255,255,255,.06); }
-
-  .btn{
-    margin-top:16px;
-    width:100%;
-    border:0;
-    cursor:pointer;
-    padding:12px 14px;
-    border-radius:16px;
-    font-weight:950;
-    letter-spacing:.2px;
-    color:#fff;
-    background: linear-gradient(135deg,var(--primary),var(--green),var(--cyan));
-    box-shadow: 0 16px 40px rgba(79,70,229,.18);
-    transition: transform .12s ease, filter .12s ease;
-    position:relative;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-  }
-  .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
-  .btn:active{ transform: translateY(0); }
-  .btn[disabled]{ opacity:.85; cursor:not-allowed; transform:none; }
-
-  .spinner{
-    width:18px; height:18px;
-    border-radius:999px;
-    border:2px solid rgba(255,255,255,.45);
-    border-top-color: rgba(255,255,255,1);
-    animation: spin .8s linear infinite;
-    display:none;
-  }
-  .btn.loading .spinner{ display:inline-block; }
-  .btn.loading .btn-text{ opacity:.95; }
-  @keyframes spin{ to{ transform: rotate(360deg);} }
-
-  .footer{ margin-top:8px; font-size:12px; color:var(--muted); text-align:center; }
-  
-
-  /* =========================
-     RESPONSIVE (Mobile-first fixes)
-     ========================= */
-
-  /* tablet and below */
-  @media(max-width: 900px){
-    .auth-card{
-      grid-template-columns: 1fr;
-      gap: 14px;
-      width: min(560px, 100%);
+      --gridOpacity: .78;
+      --vignetteA: rgba(0,0,0,0);
+      --vignetteB: rgba(0,0,0,.65);
+      --vignetteC: rgba(0,0,0,.90);
     }
 
-    .panel{
-      border-radius: 20px;
-      padding: 18px;
+    /* Light mode (only for this section) */
+    .utk-login[data-theme="light"]{
+      --panel: rgba(255,255,255,.72);
+      --panelStroke: rgba(2,6,23,.10);
+      --text: #0b1220;
+      --muted: rgba(15,23,42,.70);
+      --muted2: rgba(15,23,42,.55);
+      --fieldBg: rgba(255,255,255,.78);
+      --fieldStroke: rgba(2,6,23,.10);
+      --fieldBgFocus: rgba(255,255,255,.92);
+      --focusRing: rgba(59,130,246,.20);
+      --link: rgba(37,99,235,.92);
+      --btnText: #041022;
+
+      --bgBase: #eaf3ff;
+      --overlayA: rgba(245,250,255,.92);
+      --overlayB: rgba(234,243,255,.80);
+      --overlayC: rgba(234,243,255,.55);
+      --overlayD: rgba(234,243,255,.10);
+
+      --gridOpacity: .10;
+      --vignetteA: rgba(255,255,255,0);
+      --vignetteB: rgba(255,255,255,.45);
+      --vignetteC: rgba(255,255,255,.72);
     }
 
-    /* move toolbar to center to avoid covering content */
-    .top-tools{
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%);
-      top: calc(12px + env(safe-area-inset-top));
+    .utk-login__bg{
+      position:absolute; inset:0;
+      z-index:-2;
+      background: var(--bgBase);
     }
 
-    /* background images: reduce clutter */
-    .bg-train,.bg-truck{ display:none; }
+    /* background image layers + smooth "Ken Burns" */
+    .utk-login__bg::before,
+    .utk-login__bg::after{
+      content:"";
+      position:absolute; inset:-2%;
+      background-position:center;
+      background-size:cover;
+      background-repeat:no-repeat;
 
-    .bg-operator{
-      position:absolute;
-      right: -30px;
-      bottom: -10px;
-      max-width: 220px;
-      opacity:.35;
-      filter: blur(0px) drop-shadow(0 22px 44px rgba(0,0,0,.18));
+      /* start state */
+      transform: scale(1.06) translate3d(0,0,0);
+      filter:saturate(1.08) contrast(1.05);
+      opacity:0;
+
+      transition: opacity 1200ms ease;
+      will-change: opacity, transform, filter;
+      animation: utkKenBurns 12s ease-in-out infinite;
     }
 
-    .headline{ font-size: 20px; }
-    .subline{ font-size: 13.2px; }
 
-    input{
-      padding: 13px 12px;
-      border-radius: 14px;
-      font-size: 16px; /* iOS zoom fix */
+    /* alternate animation phase */
+    .utk-login__bg::after{ animation-delay: -4s; }
+
+    @keyframes utkKenBurns{
+      0%   { transform: scale(1.06) translate3d(0%,0%,0); }
+      50%  { transform: scale(1.12) translate3d(-1.5%, -1%, 0); }
+      100% { transform: scale(1.06) translate3d(0%,0%,0); }
     }
 
-    .btn{
-      padding: 13px 14px;
-      border-radius: 16px;
-      font-size: 15px;
+    /* active image layers: we fade between ::before and ::after */
+    .utk-login__bg[data-layer="a"]::before{ opacity:1; }
+    .utk-login__bg[data-layer="a"]::after{ opacity:0; }
+    .utk-login__bg[data-layer="b"]::before{ opacity:0; }
+    .utk-login__bg[data-layer="b"]::after{ opacity:1; }
+
+    /* overlay: add subtle gradient drift */
+    .utk-login__bgOverlay{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(1200px 600px at 18% 50%, var(--overlayA) 0%, var(--overlayB) 55%, var(--overlayC) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%); /* placeholder */
+      z-index:1;
+      animation: utkOverlayDrift 14s ease-in-out infinite;
+    }
+    @keyframes utkOverlayDrift{
+      0%,100%{
+        filter: saturate(1.0) brightness(1.0);
+        transform: translate3d(0,0,0);
+      }
+      50%{
+        filter: saturate(1.06) brightness(1.03);
+        transform: translate3d(0.5%, -0.5%, 0);
+      }
     }
 
-    /* eye button: align better on mobile */
-    .eye{
-      top: 64%;
-      height: 38px;
-      padding: 0 10px;
-      border-radius: 12px;
+    .utk-login__bgVignette{
+      position:absolute; inset:-20%;
+      background:radial-gradient(circle at 50% 40%, var(--vignetteA) 0%, var(--vignetteB) 62%, var(--vignetteC) 100%);
+      z-index:2;
+      pointer-events:none;
     }
-  }
-
-  /* small phones */
-  @media(max-width: 420px){
-    .auth-page{ padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
-
-    .tool{
-      padding: 8px 10px;
-      gap: 8px;
+    .utk-login__bgGrid{
+      position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px);
+      background-size:48px 48px;
+      opacity:var(--gridOpacity);
+      z-index:2;
+      mask-image:radial-gradient(600px 500px at 25% 45%, #000 0%, transparent 70%);
+      pointer-events:none;
+      animation:utkGrid 10s linear infinite;
     }
-    .tool-btn{ padding: 7px 9px; font-size: 12px; }
-    .tool-select{ padding: 4px 8px; font-size: 12px; }
-
-    .panel{ padding: 16px; border-radius: 18px; }
-
-    .brand img{ width:42px; height:42px; border-radius: 12px; }
-    .brand h1{ font-size: 14px; }
-    .brand p{ font-size: 12.2px; }
-
-    .headline{ font-size: 19px; }
-    .chip{ padding: 9px 10px; border-radius: 14px; }
-
-    /* keep text readable, avoid cramped layout */
-    .right h2{ font-size: 17px; }
-    .right p{ font-size: 12.6px; }
-
-    .eye{
-      right: 6px;
-      height: 38px;
-      font-size: 11.5px;
-    }
-  }
-
-
-
-  /* very small devices */
-  @media(max-width: 360px){
-    .panel{ padding: 14px; }
-    .headline{ font-size: 18px; }
-    .chip{ font-size: 12px; }
-    .eye span:last-child{ display:none; } /* only icon remains */
-  }
-</style>
-
-
-
-<div class="auth-page" id="authRoot">
-
-  <div class="top-tools">
-    <div class="tool">
-      <span class="ic" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M4 5h10M4 9h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M12 5s-1 6-6 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M9 11s2 3 6 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M15 19l3-10 3 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M16.5 15h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <select id="langSel" class="tool-select" aria-label="Language">
-        <option value="uz">UZ</option>
-        <option value="ru">RU</option>
-      </select>
-    </div>
-
-    <div class="tool">
-      <button type="button" id="themeBtn" class="tool-btn" aria-label="Theme">
-        <span class="ic" id="themeIcon" aria-hidden="true"></span>
-        <span id="themeText">Light</span>
-      </button>
-    </div>
-  </div>
-
-  <img src="{% static 'images/train2.png' %}" class="bg-img bg-train" alt="">
-  <img src="{% static 'images/truck3.png' %}" class="bg-img bg-truck" alt="">
-  <img src="{% static 'images/gi1.png' %}" class="bg-operator" alt="">
-
-  <div class="auth-card">
-    <div class="panel">
-      <div class="brand">
-        <img src="{% static 'images/UTKlogo.png' %}" alt="Logo">
-        <div>
-          <h1 data-i18n="brand">“O‘ztemiryo‘lkonteyner” AJ</h1>
-          <p data-i18n="brand_sub">Ortish–tushirish monitoring platformasi</p>
-        </div>
-      </div>
-
-      <div class="headline" data-i18n="hero_title">
-        Kundalik ish hajmini bir oynada ko‘ring
-      </div>
-      <p class="subline" data-i18n="hero_sub">
-        O‘sish/kamayish dinamikasi, umumiy salohiyat, reja/fakt va operatsion ko‘rsatkichlar — barchasi bitta platformada.
-      </p>
-
-      <div class="chips">
-        <div class="chip"><b data-i18n="chip1">Trendlar</b></div>
-        <div class="chip"><b data-i18n="chip2">Salohiyat</b></div>
-        <div class="chip"><b data-i18n="chip3">Hisobot</b></div>
-      </div>
-    </div>
-
-    <div class="panel right">
-      <h2 data-i18n="login_title">Kirish</h2>
-      <p data-i18n="login_sub">Iltimos, tizimga kirish uchun login va parolni kiriting.</p>
-
-      {% if form.errors %}
-        <div class="alert" data-i18n="err">Login yoki parol noto‘g‘ri.</div>
-      {% endif %}
-
-      <form method="post" id="loginForm">
-        {% csrf_token %}
-
-        <div class="field">
-          <label data-i18n="user_label">Login</label>
-          {{ form.username }}
-        </div>
-
-        <div class="field pass-wrap">
-          <label data-i18n="pass_label">Parol</label>
-          {{ form.password }}
-
-          <button type="button" class="eye" id="togglePass" aria-label="Show password">
-            <span class="ic" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </span>
-            <span id="passBtnText">Show</span>
-          </button>
-        </div>
-
-        <button class="btn" type="submit" id="submitBtn">
-          <span class="spinner" aria-hidden="true"></span>
-          <span class="btn-text" data-i18n="btn">Kirish</span>
-        </button>
-
-        <div class="footer" data-i18n="footer">Kirishlar xavfsizlik uchun audit qilinadi.</div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<script>
-(function(){
-  const root = document.getElementById("authRoot");
-  const themeBtn = document.getElementById("themeBtn");
-  const themeIcon = document.getElementById("themeIcon");
-  const themeText = document.getElementById("themeText");
-  const langSel = document.getElementById("langSel");
-
-  const togglePass = document.getElementById("togglePass");
-  const passBtnText = document.getElementById("passBtnText");
-  const passInput = document.getElementById("id_password");
-
-  const form = document.getElementById("loginForm");
-  const submitBtn = document.getElementById("submitBtn");
-
-  const ICON_SUN = `
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/>
-      <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>`;
-  const ICON_MOON = `
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"
-            stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-    </svg>`;
-
-  const THEME_KEY = "uk_theme";
-  function applyTheme(theme){
-    const isDark = theme === "dark";
-    root.classList.toggle("theme-dark", isDark);
-    themeIcon.innerHTML = isDark ? ICON_MOON : ICON_SUN;
-    themeText.textContent = isDark ? "Dark" : "Light";
-    localStorage.setItem(THEME_KEY, theme);
-  }
-  applyTheme(localStorage.getItem(THEME_KEY) || "light");
-  themeBtn.addEventListener("click", () => {
-    applyTheme(root.classList.contains("theme-dark") ? "light" : "dark");
-  });
-
-  const LANG_KEY = "uk_lang";
-  const dict = {
-    uz: {
-      brand:"“O‘ztemiryo‘lkonteyner” AJ",
-      brand_sub:"Ortish–tushirish monitoring platformasi",
-      hero_title:"Kundalik ish hajmini bir oynada ko‘ring",
-      hero_sub:"O‘sish/kamayish dinamikasi, umumiy salohiyat, reja/fakt va operatsion ko‘rsatkichlar — barchasi bitta platformada.",
-      chip1:"Dashboard", chip2:"Ortish/Tushirish", chip3:"Hisobot",
-      login_title:"Kirish",
-      login_sub:"Iltimos, tizimga kirish uchun login va parolni kiriting.",
-      user_label:"Login",
-      pass_label:"Parol",
-      btn:"Kirish",
-      footer:"Kirishlar xavfsizlik uchun audit qilinadi.",
-      err:"Login yoki parol noto‘g‘ri.",
-      show:"Ko'rsatish", hide:"yopish",
-      loading:"Kirilmoqda..."
-    },
-    ru: {
-      brand:"Узтемирйул Контейнер АЖ",
-      brand_sub:"Платформа мониторинга погрузки/выгрузки",
-      hero_title:"Контролируйте объём работ в одном окне",
-      hero_sub:"Динамика роста/снижения, потенциал, план/факт и операционные показатели — на одной платформе.",
-      chip1:"Дашбоард", chip2:"Погрузка/Выгрузка", chip3:"Отчёт",
-      login_title:"Вход",
-      login_sub:"Пожалуйста, введите логин и пароль для входа.",
-      user_label:"Логин",
-      pass_label:"Пароль",
-      btn:"Войти",
-      footer:"Для безопасности входы протоколируются.",
-      err:"Неверный логин или пароль.",
-      show:"Показать", hide:"Скрыть",
-      loading:"Вход..."
-    },
     
-  };
+    @keyframes utkGrid{ to{ transform:translate3d(-48px,-48px,0); } }
 
-  function applyLang(lang){
-    const t = dict[lang] || dict.uz;
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-      const key = el.getAttribute("data-i18n");
-      if (t[key] !== undefined) el.textContent = t[key];
-    });
-    const u = document.getElementById("id_username");
-    const p = document.getElementById("id_password");
-    if (u) u.placeholder = (lang === "ru") ? "логин" : (lang === "en" ? "username" : "login");
-    if (p) p.placeholder = (lang === "ru") ? "пароль" : (lang === "en" ? "password" : "parol");
-
-    if (passInput){
-      passBtnText.textContent = passInput.type === "password" ? t.show : t.hide;
+    .utk-login__wrap{
+      max-width:1100px;
+      width: 100%;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:18px;
+      align-items:stretch;
     }
-    localStorage.setItem(LANG_KEY, lang);
-  }
+    
+    @media (max-width: 980px){
+      .utk-login__wrap{ grid-template-columns:1fr; }
+      .utk-login__side{ display:none; }
+    }
 
-  const savedLang = localStorage.getItem(LANG_KEY) || "uz";
-  langSel.value = savedLang;
-  applyLang(savedLang);
-  langSel.addEventListener("change", (e) => applyLang(e.target.value));
+    .utk-login__panel{
+      background: var(--panel);
+      border:1px solid var(--panelStroke);
+      border-radius:22px;
+      padding:22px 22px 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .utk-login__panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(500px 200px at 30% 0%, rgba(40,140,255,.25), transparent 60%),
+                  radial-gradient(520px 220px at 90% 40%, rgba(0,255,200,.14), transparent 60%);
+      filter: blur(12px);
+      opacity:.9;
+      pointer-events:none;
+    }
 
-  if (togglePass && passInput){
-    togglePass.addEventListener("click", () => {
-      passInput.type = (passInput.type === "password") ? "text" : "password";
-      const t = dict[langSel.value] || dict.uz;
-      passBtnText.textContent = passInput.type === "password" ? t.show : t.hide;
-    });
-  }
+    .utk-login__brand{
+      display:flex; gap:10px; align-items:center;
+      position:relative;
+      justify-content:space-between;
+      flex-wrap: wrap;
+  
+    }
+    .utk-login__brandLeft{
+      display:flex; gap:12px; align-items:center;
+      min-width:0;
+    }
+    /* Mobile: controls pastga tushsin va to‘g‘ri joylashsin */
+    @media (max-width: 520px){
+      .utk-login__brand{
+        align-items: flex-start;
+      }
 
-  form.addEventListener("submit", () => {
-    submitBtn.classList.add("loading");
-    submitBtn.setAttribute("disabled", "disabled");
-    const t = dict[langSel.value] || dict.uz;
-    const txt = submitBtn.querySelector(".btn-text");
-    if (txt) txt.textContent = t.loading;
-  });
-})();
-</script>
+      .utk-login__brandLeft{
+        width: 100%;
+      }
 
+      .utk-login__controls{
+        width: 100%;
+        justify-content: flex-end; /* o‘ng tomonga */
+      }
+
+      /* ixtiyoriy: title juda katta bo‘lsa */
+      .utk-login__title{ font-size: 24px; }
+    }
+    @media (max-width: 380px){
+      .utk-pill span{ display:none; } /* “Tema” yashirib, faqat switch qoldiradi */
+    }
+
+    /* RESPONSIVE: cardlar ekranga yopishib ketmasin, o‘rtada tursin */
+    .utk-login__wrap{
+      width: min(1100px, 100%);   /* desktopda 1100px, kichikda 100% */
+      margin: 0 auto;            /* o‘rtaga */
+    }
+
+    /* Mobil/Tablet: wrap kengligini cheklaymiz */
+    @media (max-width: 980px){
+      .utk-login__wrap{
+        width: min(720px, calc(100% - 24px));  /* 12px+12px bo‘sh joy */
+        margin: 0 auto;
+      }
+
+      /* panel(lar) ichida padding ok, lekin juda katta bo‘lib ketmasin */
+      .utk-login__panel{
+        padding: 18px 16px 16px;
+      }
+      .utk-login__sideCard{
+        padding: 16px;
+      }
+    }
+
+    /* Juda kichik ekranlar: yanada chiroyli */
+    @media (max-width: 420px){
+      .utk-login__wrap{
+        width: min(380px, calc(100% - 20px));
+      }
+    }
+
+
+    .utk-login__logo{
+      width:44px; height:44px;
+      border-radius:14px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      display:grid; place-items:center;
+      overflow:hidden;
+      flex:0 0 auto;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    }
+    .utk-login[data-theme="light"] .utk-login__logo{
+      background: rgba(255,255,255,.85);
+      border-color: rgba(2,6,23,.08);
+    }
+    .utk-login__logo img{ width:80%; height:auto; display:block; }
+
+    .utk-login__brandTitle{
+      font-weight:900;
+      letter-spacing:.02em;
+      color:var(--text);
+      font-size:14px;
+      line-height:1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .utk-login__brandSub{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* Top-right controls (theme + language) */
+    .utk-login__controls{
+      display:flex; gap:10px; align-items:center;
+      flex:0 0 auto;
+    }
+    .utk-pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+    .utk-login[data-theme="light"] .utk-pill{
+      background: rgba(255,255,255,.70);
+      border-color: rgba(2,6,23,.10);
+      color: rgba(15,23,42,.75);
+    }
+
+    .utk-toggle{
+      position:relative;
+      width:46px; height:26px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      cursor:pointer;
+      outline:0;
+      transition: background .2s ease, border-color .2s ease;
+      flex:0 0 auto;
+    }
+    .utk-toggle::after{
+      content:"";
+      position:absolute;
+      top:3px; left:3px;
+      width:20px; height:20px;
+      border-radius:999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.70));
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+      transition: transform .22s ease;
+    }
+    .utk-login[data-theme="light"] .utk-toggle{
+      background: rgba(2,6,23,.06);
+      border-color: rgba(2,6,23,.12);
+    }
+    .utk-login[data-theme="light"] .utk-toggle::after{
+      background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.78));
+    }
+    .utk-toggle[aria-checked="true"]::after{
+      transform: translateX(20px);
+    }
+
+    .utk-lang{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border-radius: 999px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+      outline:0;
+    }
+    .utk-login[data-theme="light"] .utk-lang{
+      border-color: rgba(2,6,23,.10);
+      background: rgba(255,255,255,.72);
+      color: rgba(15,23,42,.88);
+    }
+
+    .utk-login__title{
+      margin:14px 0 6px;
+      font-size:28px;
+      font-weight:950;
+      letter-spacing:-.02em;
+      color:var(--text);
+      position:relative;
+    }
+    .utk-login__desc{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      max-width:54ch;
+      position:relative;
+    }
+
+    .utk-login__alert{
+      display:flex; align-items:center; gap:10px;
+      background:rgba(255,75,75,.12);
+      border:1px solid rgba(255,75,75,.28);
+      color:#ffd7d7;
+      padding:10px 12px;
+      border-radius:14px;
+      margin:10px 0 14px;
+      position:relative;
+    }
+    .utk-login__alertDot{
+      width:10px; height:10px; border-radius:999px;
+      background:rgba(255,75,75,.9);
+      box-shadow:0 0 0 6px rgba(255,75,75,.12);
+      flex:0 0 auto;
+    }
+
+    .utk-login__form{ position:relative; }
+
+    .utk-login__field{ margin:12px 0; }
+    .utk-login__label{
+      display:block;
+      margin:0 0 6px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.01em;
+    }
+
+    .utk-login__inputWrap{
+      display:flex; align-items:center;
+      gap:10px;
+      border-radius:16px;
+      background:var(--fieldBg);
+      border:1px solid var(--fieldStroke);
+      padding:12px 12px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .utk-login__inputWrap:focus-within{
+      border-color: rgba(90,170,255,.55);
+      background: var(--fieldBgFocus);
+      box-shadow: 0 0 0 4px var(--focusRing);
+      transform: translateY(-1px);
+      
+    }
+
+    .utk-login__icon{
+      width:20px; height:20px;
+      color:var(--muted);
+      flex:0 0 auto;
+    }
+    .utk-login__icon svg{ width:20px; height:20px; display:block; }
+
+    .utk-login__input{
+      width:100%;
+      border:0; outline:0;
+      background:transparent;
+      color:var(--text);
+      font-size:14px;
+      padding:0;
+      min-width:0;
+    }
+    .utk-login__input::placeholder{ color:rgba(255,255,255,.45); }
+    .utk-login[data-theme="light"] .utk-login__input::placeholder{ color: rgba(15,23,42,.40); }
+
+    
+    .utk-login__peek{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      width:34px; height:34px;
+      border-radius:12px;
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: background .2s ease, transform .2s ease;
+      flex:0 0 auto;
+    }
+    .utk-login__peek:hover{
+      background:rgba(255,255,255,.10);
+      transform: translateY(-1px);
+    }
+    .utk-login__peek svg{ width:20px; height:20px; display:block; }
+
+    .utk-login__row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      margin:10px 2px 14px;
+      flex-wrap:wrap;
+    }
+
+    .utk-login__check{
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      user-select:none;
+    }
+    .utk-login__check input{
+      width:18px; height:18px;
+      accent-color: #3aa6ff;
+    }
+
+    .utk-login__link{
+      color:var(--link);
+      font-size:13px;
+      text-decoration:none;
+      border-bottom:1px dashed rgba(120,200,255,.35);
+      transition: color .2s ease, border-color .2s ease;
+    }
+    .utk-login__link:hover{
+      color:var(--text);
+      border-color: rgba(255,255,255,.35);
+    }
+
+    .utk-login__btn{
+      width:100%;
+      border:0;
+      border-radius:16px;
+      padding:13px 14px;
+      cursor:pointer;
+      color:var(--btnText);
+      font-weight:950;
+      letter-spacing:.01em;
+      display:flex; align-items:center; justify-content:center;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+      background: linear-gradient(90deg, var(--btnGradA) 0%, var(--btnGradB) 100%);
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      transform: translateY(0);
+      transition: transform .2s ease, filter .2s ease;
+    }
+    .utk-login__btn:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+    .utk-login__btn:active{ transform: translateY(0); }
+
+    .utk-login__btnGlow{
+      position:absolute; inset:-40%;
+      background: radial-gradient(circle at 30% 40%, rgba(255,255,255,.60), transparent 40%),
+                  radial-gradient(circle at 70% 60%, rgba(255,255,255,.35), transparent 45%);
+      opacity:.55;
+      animation: utkGlow 2.8s ease-in-out infinite;
+      pointer-events:none;
+      filter: blur(2px);
+    }
+    @keyframes utkGlow{
+      0%,100%{ transform: translate3d(-6%, -4%, 0) rotate(0deg); }
+      50%{ transform: translate3d(6%, 4%, 0) rotate(4deg); }
+    }
+
+    .utk-login__btnText{ position:relative; z-index:1; }
+    .utk-login__btnArrow{ position:relative; z-index:1; font-size:18px; }
+
+    .utk-login__foot{
+      margin-top:12px;
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted2);
+      font-size:12px;
+      position:relative;
+    }
+    .utk-login__footDot{
+      width:8px; height:8px; border-radius:999px;
+      background: rgba(0,255,205,.85);
+      box-shadow: 0 0 0 6px rgba(0,255,205,.12);
+    }
+
+    /* Right side */
+    .utk-login__side{
+      display:flex;
+      align-items:stretch;
+    }
+    .utk-login__sideCard{
+      width:100%;
+      border-radius:22px;
+      padding:18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.30);
+      position:relative;
+      overflow:hidden;
+      color: var(--text);
+    }
+    .utk-login[data-theme="light"] .utk-login__sideCard{
+      background: rgba(255,255,255,.62);
+      border-color: rgba(2,6,23,.10);
+    }
+    .utk-login__sideCard::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(650px 280px at 30% 0%, rgba(40,140,255,.22), transparent 60%),
+        radial-gradient(520px 240px at 80% 60%, rgba(0,255,205,.12), transparent 60%);
+      filter: blur(10px);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .utk-login__sideTitle{
+      color:var(--text);
+      font-weight:950;
+      letter-spacing:-.01em;
+      font-size:24px;
+      position:relative;
+    }
+    .utk-login__sideText{
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.6;
+      margin-top:8px;
+      position:relative;
+    }
+    .utk-login__chips{
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin-top:14px;
+      position:relative;
+    }
+    .utk-chip{
+      font-size:14px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      transform: translateY(0);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .utk-login[data-theme="light"] .utk-chip{
+      background: rgba(255,255,255,.70);
+      border-color: rgba(2,6,23,.10);
+      color: rgba(15,23,42,.70);
+    }
+    .utk-chip:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.10);
+    }
+    .utk-login__meter{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      margin-top:16px;
+      overflow:hidden;
+      position:relative;
+    }
+    .utk-login__meterBar{
+      height:100%;
+      width:65%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(65,170,255,1), rgba(0,255,205,1));
+      animation: utkMeter 4s ease-in-out infinite;
+    }
+    @keyframes utkMeter{
+      0%,100%{ width:36%; }
+      50%{ width:78%; }
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .utk-login__bgGrid, .utk-login__btnGlow, .utk-login__meterBar,
+      .utk-login__bg::before, .utk-login__bg::after, .utk-login__bgOverlay{
+        animation:none !important;
+        transition:none !important;
+      }
+    }
+
+    .utk-login[data-theme="dark"] .utk-sideLogo img{
+        filter: grayscale(100%) invert(1);
+    }
+    .utk-login[data-theme="dark"] 
+    .utk-login__sideCard:hover .utk-sideLogo img{
+      filter: grayscale(0%) blur(0)
+              drop-shadow(0 0 40px rgba(0,255,200,.4));
+    }
+
+    /* Side card logo (center watermark) */
+    .utk-sideLogo{
+      margin-top: 50px;
+      margin-bottom: 60px;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;   /* bosilmaydi */
+      z-index:7;
+    }
+
+    /* Default: watermark */
+    .utk-sideLogo img{
+      width:220px;
+      opacity:0.22;
+      filter: grayscale(100%) blur(0.3px);
+      transform: scale(1);
+      transition: 
+        opacity .4s ease,
+        filter .4s ease,
+        transform .4s ease;
+    }
+
+    /* Hover: jonlanadi */
+    .utk-login__sideCard:hover .utk-sideLogo img{
+      opacity:1;
+      filter: grayscale(0%) blur(0)
+              drop-shadow(0 20px 40px rgba(0,0,0,.25));
+      transform: scale(1.1);
+    }
+
+  </style>
+</head>
+
+<body>
+  <!-- add data-theme + data-lang to section (scoped) -->
+  <section class="utk-login" id="utkLogin" data-theme="dark" data-lang="uz" aria-label="Login">
+    <!-- Background slideshow -->
+    <div class="utk-login__bg" id="utkBg" aria-hidden="true" data-layer="a">
+      <div class="utk-login__bgOverlay"></div>
+      <div class="utk-login__bgGrid"></div>
+      <div class="utk-login__bgVignette"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="utk-login__wrap">
+      <div class="utk-login__panel">
+
+        <!-- Brand row -->
+        <div class="utk-login__brand">
+          <div class="utk-login__brandLeft">
+            <div class="utk-login__logo">
+              <img src="{% static 'images/UTKlogo.png' %}" alt="UTK" />
+            </div>
+            <div class="utk-login__brandText">
+              <div class="utk-login__brandTitle">O‘ZTEMIRYO‘LKONTEYNER</div>
+              <div class="utk-login__brandSub" data-i18n="brand_sub">Transport & Logistics Platform</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="utk-login__controls">
+            <div class="utk-pill" title="Theme">
+              <span data-i18n="theme_label">Tema</span>
+              <button class="utk-toggle" id="utkThemeBtn" type="button" role="switch" aria-checked="false" aria-label="Toggle theme"></button>
+            </div>
+
+            <select class="utk-lang" id="utkLang" aria-label="Language">
+              <option value="uz">UZ</option>
+              <option value="ru">RU</option>
+              <option value="en">EN</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="utk-login__title" data-i18n="title">Tizimga kirish</h1>
+        <p class="utk-login__desc" data-i18n="desc">
+          Login va parolingizni kiriting. Xavfsiz sessiya va tezkor ish jarayonlari uchun yagona panel.
+        </p>
+
+        {% if form.errors %}
+          <div class="utk-login__alert" role="alert">
+            <span class="utk-login__alertDot"></span>
+            <span data-i18n="error">Login yoki parol noto‘g‘ri. Qaytadan urinib ko‘ring.</span>
+          </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form method="post" class="utk-login__form" autocomplete="on" novalidate>
+          {% csrf_token %}
+
+          <div class="utk-login__field">
+            <label class="utk-login__label" for="id_username" data-i18n="login_label">Login</label>
+            <div class="utk-login__inputWrap">
+              <span class="utk-login__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M12 13a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z" stroke="currentColor" stroke-width="1.7"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                name="username"
+                id="id_username"
+                class="utk-login__input"
+                placeholder="Masalan: admin yoki telefon"
+                data-i18n-placeholder="login_ph"
+                autocomplete="username"
+                required
+                value="{{ form.username.value|default_if_none:'' }}"
+              />
+            </div>
+          </div>
+
+          <div class="utk-login__field">
+            <label class="utk-login__label" for="id_password" data-i18n="pass_label">Parol</label>
+            <div class="utk-login__inputWrap">
+              <span class="utk-login__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M7.5 10V8.3A4.5 4.5 0 0 1 12 3.8a4.5 4.5 0 0 1 4.5 4.5V10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M6.5 10.2h11a2 2 0 0 1 2 2v6.6a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-6.6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M12 14.2v2.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+
+              <input
+                type="password"
+                name="password"
+                id="id_password"
+                class="utk-login__input"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              />
+
+              <button type="button" class="utk-login__peek" id="utkPeek" aria-label="Show password">
+                <svg id="utkEye" viewBox="0 0 24 24" fill="none">
+                  <path d="M2.2 12s3.5-7 9.8-7 9.8 7 9.8 7-3.5 7-9.8 7-9.8-7-9.8-7Z" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4Z" stroke="currentColor" stroke-width="1.7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="utk-login__row">
+            <label class="utk-login__check">
+              <input type="checkbox" name="remember" />
+              <span data-i18n="remember">Esda saqlash</span>
+            </label>
+
+            <a class="utk-login__link" href="#" onclick="return false;" data-i18n="forgot">Parolni unutdingizmi?</a>
+          </div>
+
+          <button class="utk-login__btn" type="submit">
+            <span class="utk-login__btnGlow" aria-hidden="true"></span>
+            <span class="utk-login__btnText" data-i18n="submit">Kirish</span>
+            <span class="utk-login__btnArrow" aria-hidden="true">→</span>
+          </button>
+
+          <div class="utk-login__foot">
+            <span class="utk-login__footDot"></span>
+            <span data-i18n="foot">Himoyalangan kirish • Audit log • Sessiya nazorati</span>
+          </div>
+        </form>
+
+      </div>
+
+      <!-- Right-side info card (optional) -->
+      <aside class="utk-login__side" aria-hidden="true">
+        <div class="utk-login__sideCard">
+          <div class="utk-login__sideTitle" data-i18n="side_title">Operatsion panel</div>
+          <div class="utk-login__sideText" data-i18n="side_text">
+            Yuk oqimlari, container status, filiallar kesimida KPI va real-time monitoring.
+          </div>
+
+          <div class="utk-login__chips">
+            <span class="utk-chip">Tracking</span>
+            <span class="utk-chip">Dispatch</span>
+            <span class="utk-chip">Analytics</span>
+            <span class="utk-chip">Integrations</span>
+          </div>
+
+          <div class="utk-sideLogo">
+            <img src="{% static 'images/UTKlogo.png' %}" alt="UTK">
+          </div>
+
+
+          <div class="utk-login__meter">
+            <div class="utk-login__meterBar"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    
+  </section>
+
+  <script>
+      (function(){
+        const root = document.getElementById("utkLogin");
+        const bg = document.getElementById("utkBg");
+        if (!root || !bg) return;
+
+        /* ======================
+           1) Background slideshow (smooth)
+           ====================== */
+        const images = [
+          "{% static 'images/12.jpg' %}",
+          "{% static 'images/11.jpg' %}",
+          "{% static 'images/1.JPG' %}",
+          "{% static 'images/2.JPG' %}",
+          "{% static 'images/4.JPG' %}",
+          "{% static 'images/5.JPG' %}",
+          "{% static 'images/6.JPG' %}",
+          "{% static 'images/7.JPG' %}",
+          "{% static 'images/8.JPG' %}",
+          "{% static 'images/9.PNG' %}",
+          "{% static 'images/10.PNG' %}",
+          
+          
+          "{% static 'images/train1.jpg' %}",
+          "{% static 'images/truck1.png' %}",
+          "{% static 'images/truck2.png' %}",
+          "{% static 'images/truck3.png' %}",
+        ];
+
+        // Preload
+        images.forEach((src)=>{ const im=new Image(); im.decoding="async"; im.loading="eager"; im.src=src; });
+
+        let idx = 0;
+        let layer = "a";
+        bg.dataset.layer = layer;
+
+        // Connect pseudo backgrounds to CSS variables
+        const style = document.createElement("style");
+        style.textContent = `
+          #utkBg::before{ background-image: var(--imgA); }
+          #utkBg::after{ background-image: var(--imgB); }
+        `;
+        document.head.appendChild(style);
+
+        function setLayerImage(targetLayer, src){
+          const val = `url("${src}")`;
+          if (targetLayer === "a") bg.style.setProperty("--imgA", val);
+          else bg.style.setProperty("--imgB", val);
+        }
+
+        // init
+        setLayerImage("a", images[0]);
+        setLayerImage("b", images[1] || images[0]);
+
+        function nextSlide(){
+          idx = (idx + 1) % images.length;
+          const nextLayer = (layer === "a") ? "b" : "a";
+          setLayerImage(nextLayer, images[idx]);
+
+          // toggle fade
+          layer = nextLayer;
+          bg.dataset.layer = layer;
+        }
+
+        // change interval (smooth, not too fast)
+        const intervalMs = 6500;
+        let timer = setInterval(nextSlide, intervalMs);
+
+        // Pause on tab hidden (optional, cleaner)
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) { clearInterval(timer); timer = null; }
+          else if (!timer) { timer = setInterval(nextSlide, intervalMs); }
+        });
+
+        /* ======================
+           2) Password peek
+           ====================== */
+        const peek = document.getElementById("utkPeek");
+        const pass = document.getElementById("id_password");
+        if (peek && pass){
+          peek.addEventListener("click", () => {
+            pass.type = (pass.type === "password") ? "text" : "password";
+            peek.setAttribute("aria-label", pass.type === "text" ? "Hide password" : "Show password");
+          });
+        }
+
+        /* ======================
+           3) i18n (UZ/RU/EN) - client side
+           ====================== */
+        const dict = {
+          uz: {
+            theme_label: "Tema",
+            brand_sub: "Transport & Logistics Platform",
+            title: "Tizimga kirish",
+            desc: "Login va parolingizni kiriting. Xavfsiz sessiya va tezkor ish jarayonlari uchun yagona panel.",
+            error: "Login yoki parol noto‘g‘ri. Qaytadan urinib ko‘ring.",
+            login_label: "Login",
+            login_ph: "Masalan: admin yoki telefon",
+            pass_label: "Parol",
+            remember: "Esda saqlash",
+            forgot: "Parolni unutdingizmi?",
+            submit: "Kirish",
+            foot: "Himoyalangan kirish • Audit log • Sessiya nazorati",
+            side_title: "Kundalik ish hajmini bir oynada ko‘ring",
+            side_text: "Yuk oqimlari, container status, filiallar kesimida KPI va real-time monitoring. O‘sish/kamayish dinamikasi, umumiy salohiyat, reja/fakt va operatsion ko‘rsatkichlar — barchasi bitta platformada."
+          },
+          ru: {
+            theme_label: "Тема",
+            brand_sub: "Транспорт & Логистика",
+            title: "Вход в систему",
+            desc: "Введите логин и пароль. Безопасная сессия и единая панель для быстрых процессов.",
+            error: "Неверный логин или пароль. Попробуйте ещё раз.",
+            login_label: "Логин",
+            login_ph: "Например: admin или телефон",
+            pass_label: "Пароль",
+            remember: "Запомнить",
+            forgot: "Забыли пароль?",
+            submit: "Войти",
+            foot: "Защищённый вход • Audit log • Контроль сессий",
+            side_title: "Операционная панель",
+            side_text: "Потоки грузов, статусы контейнеров, KPI по филиалам и мониторинг в реальном времени."
+          },
+          en: {
+            theme_label: "Theme",
+            brand_sub: "Transport & Logistics Platform",
+            title: "Sign in",
+            desc: "Enter your login and password. Secure session and a unified panel for fast operations.",
+            error: "Invalid login or password. Please try again.",
+            login_label: "Login",
+            login_ph: "Example: admin or phone",
+            pass_label: "Password",
+            remember: "Remember me",
+            forgot: "Forgot password?",
+            submit: "Sign in",
+            foot: "Protected access • Audit log • Session control",
+            side_title: "Operations panel",
+            side_text: "Cargo flows, container status, branch-level KPIs, and real-time monitoring."
+          }
+        };
+
+        function applyLang(lang){
+          const t = dict[lang] || dict.uz;
+          root.dataset.lang = lang;
+
+          // text nodes
+          document.querySelectorAll("#utkLogin [data-i18n]").forEach(el=>{
+            const key = el.getAttribute("data-i18n");
+            if (t[key] != null) el.textContent = t[key];
+          });
+
+          // placeholders
+          document.querySelectorAll("#utkLogin [data-i18n-placeholder]").forEach(el=>{
+            const key = el.getAttribute("data-i18n-placeholder");
+            if (t[key] != null) el.setAttribute("placeholder", t[key]);
+          });
+
+          localStorage.setItem("utk_lang", lang);
+        }
+
+        const langSel = document.getElementById("utkLang");
+        const savedLang = localStorage.getItem("utk_lang") || "uz";
+        if (langSel){
+          langSel.value = savedLang;
+          langSel.addEventListener("change", (e)=>applyLang(e.target.value));
+        }
+        applyLang(savedLang);
+
+        /* ======================
+           4) Theme toggle (Dark/Light) - scoped
+           ====================== */
+        const themeBtn = document.getElementById("utkThemeBtn");
+        const savedTheme = localStorage.getItem("utk_theme") || "dark";
+
+        function applyTheme(theme){
+          root.dataset.theme = theme;
+          const on = (theme === "light");
+          if (themeBtn) themeBtn.setAttribute("aria-checked", on ? "true" : "false");
+          localStorage.setItem("utk_theme", theme);
+        }
+
+        if (themeBtn){
+          themeBtn.addEventListener("click", () => {
+            const cur = root.dataset.theme || "dark";
+            applyTheme(cur === "dark" ? "light" : "dark");
+          });
+        }
+        applyTheme(savedTheme);
+
+      })();
+    </script>
 </body>
 </html>

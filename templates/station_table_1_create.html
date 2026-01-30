@@ -263,7 +263,7 @@
 
 <div class="t1-card">
   <h2 class="t1-title">
-    <span data-i18n="t1_title">Таблица №1 —</span>
+    <span data-i18n="t1_title">Jadval №1 —</span>
     {% if mode == "view" %}
       <span data-i18n="t1_mode_view">просмотр</span>
     {% else %}
@@ -278,7 +278,6 @@
   <p class="t1-muted" data-i18n="t1_help">
     ИТОГ: если поле пустое — берётся День+Ночь. Если введёшь значение — будет использовано твоё.
   </p>
-
   <form method="post">
     {% csrf_token %}
 
@@ -435,6 +434,7 @@
 
             <td class="g-gray dash">—</td>
           </tr>
+          
           {% if status %}
           <!-- NIGHT -->
           <tr data-row="night">
