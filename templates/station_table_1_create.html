@@ -283,13 +283,18 @@
     {% csrf_token %}
 
     <div class="t1-actions">
+      <a class="t1-btn secondary" href="{% url 'station_table_1_list' %}">
+        <span aria-hidden="true">←</span>
+        <span data-i18n="back">Назад</span>
+      </a>
+
       <div class="t1-field">
         <label data-i18n="t1_date">Дата</label>
         <input class="t1-inp" type="date" name="date" value="{{ date|date:'Y-m-d' }}" required {% if mode == "view" %}disabled{% endif %}>
       </div>
 
       <div class="t1-field" style="min-width:260px; max-width: 360px;">
-        <label data-i18n="t1_station">Станция</label>
+        <label data-i18n="t1_station">Filial</label>
         <input class="t1-inp" value="{{ station_name }}" disabled>
       </div>
 
@@ -302,11 +307,7 @@
           {% endif %}
         </button>
       {% endif %}
-
-      <a class="t1-btn secondary" href="{% url 'station_table_1_list' %}">
-        <span aria-hidden="true">←</span>
-        <span data-i18n="back">Назад</span>
-      </a>
+      
     </div>
 
     <div class="xwrap">
@@ -634,7 +635,7 @@
       t1_mode_edit: "tahrirlash",
       t1_help: "JAMI: maydon bo‘sh bo‘lsa — Kun+Tun yig‘indisi olinadi. Qiymat kiritsangiz — shu qiymat ishlatiladi.",
       t1_date: "Sana",
-      t1_station: "Stansiya",
+      t1_station: "Filial",
       t1_btn_create: "Hisobot yaratish",
       t1_btn_save: "Saqlash",
       back: "Ortga",
