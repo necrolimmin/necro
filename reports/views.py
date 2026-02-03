@@ -235,12 +235,9 @@ def station_table_1_edit(request, date_str):
         for key, _label in TABLE1_FIELDS:
             if key == "k_podache_so_st":
                 continue
-            if key == "income_daily":
-                day_data[key] = 0
-                night_data[key] = 0
-                continue
             day_data[key] = _read_int(request.POST.get(f"day__{key}"))
             night_data[key] = _read_int(request.POST.get(f"night__{key}"))
+
 
         day_data["k_podache_so_st"] = common_k
         night_data["k_podache_so_st"] = common_k

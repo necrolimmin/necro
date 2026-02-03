@@ -435,7 +435,14 @@
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="day__spc_lc" value="{{ day_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="day__spc_station" value="{{ day_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-            <td class="g-gray dash">—</td>
+            <td class="xinput g-gray">
+              <input {% if mode == "view" %}disabled{% endif %}
+                    name="day__income_daily"
+                    value="{{ day_obj|data_val:'income_daily' }}"
+                    data-key="income_daily"
+                    inputmode="numeric">
+            </td>
+
           </tr>
           
           {% if status %}
@@ -480,7 +487,14 @@
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="night__spc_lc" value="{{ night_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="night__spc_station" value="{{ night_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-              <td class="g-gray dash">—</td>
+              <td class="xinput g-gray">
+                <input {% if mode == "view" %}disabled{% endif %}
+                      name="night__income_daily"
+                      value="{{ night_obj|data_val:'income_daily' }}"
+                      data-key="income_daily"
+                      inputmode="numeric">
+              </td>
+
             </tr>
 
             <!-- TOTAL -->
