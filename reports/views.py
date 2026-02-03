@@ -175,7 +175,6 @@ def station_table_1_view(request, date_str):
 def station_table_1_edit(request, date_str):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
-
     status = request.user.station_profile.status
     d_url = _parse_date(date_str)
 
@@ -202,15 +201,17 @@ def station_table_1_edit(request, date_str):
         posted_date_str = (request.POST.get("date") or "").strip()
         d_form = _parse_date(posted_date_str) if posted_date_str else d_url
 
+        # ✅ если это "создание" — сохраняем в выбранную дату
         d_save = d_form if is_new else d_url
 
-        # защита от дубля при создании
+        # ✅ ЖЁСТКАЯ защита: если отчёт существует — НЕ создаём и НЕ редиректим
         if is_new and StationDailyTable1.objects.filter(
             station_user=request.user, date=d_save, shift="total"
         ).exists():
             error = f"Отчёт за {d_save.strftime('%d.%m.%Y')} уже существует. Выберите другую дату."
+            # остаёмся на этой же странице как пустая форма "создания"
             return render(request, "station_table_1_create.html", {
-                "date": d_save,
+                "date": d_save,  # ✅ показать выбранную дату
                 "day_obj": None,
                 "night_obj": None,
                 "total_obj": None,
@@ -220,49 +221,34 @@ def station_table_1_edit(request, date_str):
                 "TABLE1_FIELDS": TABLE1_FIELDS,
                 "is_new": True,
                 "error": error,
-                "status": status
+                "status":status
             })
 
+        # ===== обычное сохранение (как у тебя) =====
         day_data = {}
         night_data = {}
         total_data = {}
 
         common_k = _read_int(request.POST.get("common__k_podache_so_st"))
 
-        # ключи, которые входят в суточный доход
-        income_keys = [k for k, _ in TABLE1_FIELDS if k not in ("k_podache_so_st", "income_daily")]
-
-        # читаем ДЕНЬ/НОЧЬ
         for key, _label in TABLE1_FIELDS:
-            if key in ("k_podache_so_st", "income_daily"):
+            if key == "k_podache_so_st":
                 continue
-
             day_data[key] = _read_int(request.POST.get(f"day__{key}"))
-            night_data[key] = _read_int(request.POST.get(f"night__{key}")) if status else 0
+            night_data[key] = _read_int(request.POST.get(f"night__{key}"))
 
-        # общий k
+
         day_data["k_podache_so_st"] = common_k
-        if status:
-            night_data["k_podache_so_st"] = common_k
+        night_data["k_podache_so_st"] = common_k
 
-        # считаем доходы автоматически
-        day_income_auto = sum(int(day_data.get(k, 0) or 0) for k in income_keys)
-        night_income_auto = sum(int(night_data.get(k, 0) or 0) for k in income_keys) if status else 0
-
-        day_data["income_daily"] = day_income_auto
-        if status:
-            night_data["income_daily"] = night_income_auto
-
-        # TOTAL по полям = день+ночь
         for key, _label in TABLE1_FIELDS:
             if key == "k_podache_so_st":
                 total_data[key] = common_k
                 continue
             if key == "income_daily":
                 continue
-            total_data[key] = int(day_data.get(key, 0) or 0) + int(night_data.get(key, 0) or 0)
+            total_data[key] = int(day_data.get(key, 0)) + int(night_data.get(key, 0))
 
-        # manual override ТОЛЬКО для TOTAL (кроме income_daily)
         for key, _label in TABLE1_FIELDS:
             if key in ("k_podache_so_st", "income_daily"):
                 continue
@@ -270,24 +256,25 @@ def station_table_1_edit(request, date_str):
             if manual_raw != "":
                 total_data[key] = _read_int(manual_raw)
 
-        # TOTAL income = доход дня + доход ночи
-        total_data["income_daily"] = int(day_income_auto) + int(night_income_auto)
+        income_auto = 0
+        for key, _label in TABLE1_FIELDS:
+            if key in ("income_daily", "k_podache_so_st"):
+                continue
+            income_auto += int(total_data.get(key, 0) or 0)
+
+        income_manual_raw = (request.POST.get("total__income_daily") or "").strip()
+        total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
+
+
 
         StationDailyTable1.objects.update_or_create(
             station_user=request.user, date=d_save, shift="day",
             defaults={"data": day_data}
         )
-
-        if status:
-            StationDailyTable1.objects.update_or_create(
-                station_user=request.user, date=d_save, shift="night",
-                defaults={"data": night_data}
-            )
-        else:
-            StationDailyTable1.objects.filter(
-                station_user=request.user, date=d_save, shift="night"
-            ).delete()
-
+        StationDailyTable1.objects.update_or_create(
+            station_user=request.user, date=d_save, shift="night",
+            defaults={"data": night_data}
+        )
         StationDailyTable1.objects.update_or_create(
             station_user=request.user, date=d_save, shift="total",
             defaults={"data": total_data}
@@ -295,6 +282,7 @@ def station_table_1_edit(request, date_str):
 
         return redirect("station_table_1_list")
 
+    # GET render
     return render(request, "station_table_1_create.html", {
         "date": d_url,
         "day_obj": day_obj,
@@ -306,7 +294,7 @@ def station_table_1_edit(request, date_str):
         "TABLE1_FIELDS": TABLE1_FIELDS,
         "is_new": is_new,
         "error": error,
-        "status": status,
+        "status":status
     })
 
 
@@ -988,13 +976,3 @@ def _get_all_stations():
         pass
 
     return list(qs.values_list("id", "username").order_by("username"))
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
-
->>>>>>> origin/main
