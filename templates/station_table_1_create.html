@@ -328,8 +328,8 @@
 
           <thead>
             <tr>
-              <th rowspan="2" class="xname" data-i18n="t1_col_name">Наименование ЛЦ</th>
-              <th rowspan="2" class="xname" data-i18n="t1_col_shift">Смена</th>
+              <th rowspan="4" class="xname" data-i18n="t1_col_name">Наименование ЛЦ</th>
+              <th rowspan="4" class="xname" data-i18n="t1_col_shift">Смена</th>
               
               <th rowspan="2"><div class="vtxt" data-i18n="t1_col_podano">Подано на ЛЦ</div></th>
               <th rowspan="2"><div class="vtxt" data-i18n="t1_col_kpod">к подаче со ст</div></th>
@@ -385,8 +385,8 @@
           <tbody>
             <!-- DAY -->
             <tr data-row="day">
-              <td rowspan="2" class="xshift">{{ station_name }}</td>
-              <td class="xshift" data-i18n="t1_shift_day">kun</td>
+              <td rowspan="3" class="xshift">{{ station_name }}</td>
+              <td class="xshift"  data-i18n="t1_shift_day">kun</td>
 
               <td class="xinput">
                 <input {% if mode == "view" %}disabled{% endif %} name="day__podano_lc"
@@ -441,7 +441,7 @@
           {% if status %}
           <!-- NIGHT -->
           <tr data-row="night">
-            <td class="xshift" data-i18n="t1_shift_night">tun</td>
+            <td class="xshift" rowspan="1" data-i18n="t1_shift_night">tun</td>
             <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="night__podano_lc" value="{{ night_obj|data_val:'podano_lc' }}" data-key="podano_lc"></td>
 
               
@@ -485,7 +485,7 @@
 
             <!-- TOTAL -->
             <tr class="g-total" data-row="total">
-              <td colspan="2" class="xshift xbig" data-i18n="t1_total">ИТОГ</td>
+              <td rowspan="1" colspan="" class="xshift xbig" data-i18n="t1_total">ИТОГ</td>
               
 
             <td class="xinput">
@@ -495,7 +495,7 @@
                      data-total-key="podano_lc"
                      placeholder="">
             </td>
-            {% endif %}
+            
             {# колонка "к подаче со ст" уже занята rowspan=3 — тут td НЕ ДОЛЖНО быть #}
 
 
@@ -542,6 +542,7 @@
                        placeholder=""
                        inputmode="numeric">
               </td>
+              {% endif %}
             </tr>
           </tbody>
         </table>
