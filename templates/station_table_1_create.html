@@ -9,7 +9,7 @@
      Page container (base tokens)
      ========================= */
   .t1-card{
-    background: var(--surface);
+    /* background: var(--surface); */
     border: 1px solid var(--stroke);
     border-radius: 20px;
     box-shadow: var(--shadow);
@@ -328,7 +328,9 @@
 
           <thead>
             <tr>
-              <th rowspan="2" class="xname" data-i18n="t1_col_name">Наименование ЛЦ</th>
+              <th rowspan="4" class="xname" data-i18n="t1_col_name">Наименование ЛЦ</th>
+              <th rowspan="4" class="xname" data-i18n="t1_col_shift">Смена</th>
+              
               <th rowspan="2"><div class="vtxt" data-i18n="t1_col_podano">Подано на ЛЦ</div></th>
               <th rowspan="2"><div class="vtxt" data-i18n="t1_col_kpod">к подаче со ст</div></th>
 
@@ -383,7 +385,8 @@
           <tbody>
             <!-- DAY -->
             <tr data-row="day">
-              <td rowspan="2" class="xshift">{{ station_name }}</td>
+              <td rowspan="3" class="xshift">{{ station_name }}</td>
+              <td class="xshift"  data-i18n="t1_shift_day">kun</td>
 
               <td class="xinput">
                 <input {% if mode == "view" %}disabled{% endif %} name="day__podano_lc"
@@ -432,15 +435,23 @@
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="day__spc_lc" value="{{ day_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="day__spc_station" value="{{ day_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-            <td class="g-gray dash">—</td>
+            <td class="xinput g-gray">
+              <input {% if mode == "view" %}disabled{% endif %}
+                    name="day__income_daily"
+                    value="{{ day_obj|data_val:'income_daily' }}"
+                    data-key="income_daily"
+                    inputmode="numeric">
+            </td>
+
           </tr>
           
           {% if status %}
           <!-- NIGHT -->
           <tr data-row="night">
+            <td class="xshift" rowspan="1" data-i18n="t1_shift_night">tun</td>
             <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="night__podano_lc" value="{{ night_obj|data_val:'podano_lc' }}" data-key="podano_lc"></td>
 
-
+              
               <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_ft" value="{{ night_obj|data_val:'vygr_ft' }}" data-key="vygr_ft" inputmode="numeric"></td>
               <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_cont" value="{{ night_obj|data_val:'vygr_cont' }}" data-key="vygr_cont" inputmode="numeric"></td>
               <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_kr" value="{{ night_obj|data_val:'vygr_kr' }}" data-key="vygr_kr" inputmode="numeric"></td>
@@ -476,13 +487,20 @@
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="night__spc_lc" value="{{ night_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
               <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="night__spc_station" value="{{ night_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-              <td class="g-gray dash">—</td>
+              <td class="xinput g-gray">
+                <input {% if mode == "view" %}disabled{% endif %}
+                      name="night__income_daily"
+                      value="{{ night_obj|data_val:'income_daily' }}"
+                      data-key="income_daily"
+                      inputmode="numeric">
+              </td>
+
             </tr>
 
             <!-- TOTAL -->
             <tr class="g-total" data-row="total">
-              <td class="xshift xbig" data-i18n="t1_total">ИТОГ</td>
-
+              <td rowspan="1" colspan="" class="xshift xbig" data-i18n="t1_total">ИТОГ</td>
+              
 
             <td class="xinput">
               <input {% if mode == "view" %}disabled{% endif %}
@@ -491,7 +509,7 @@
                      data-total-key="podano_lc"
                      placeholder="">
             </td>
-            {% endif %}
+            
             {# колонка "к подаче со ст" уже занята rowspan=3 — тут td НЕ ДОЛЖНО быть #}
 
 
@@ -538,6 +556,7 @@
                        placeholder=""
                        inputmode="numeric">
               </td>
+              {% endif %}
             </tr>
           </tbody>
         </table>

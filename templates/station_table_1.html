@@ -35,7 +35,7 @@
     display:flex;align-items:center;gap:10px;
     padding:10px 12px;border-radius:14px;
     border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.72);
+    /* background:rgba(255,255,255,.72); */
     backdrop-filter: blur(10px);
   }
   .search .ico{font-weight:900;color:var(--muted,#64748b)}
@@ -47,7 +47,7 @@
     display:inline-flex;align-items:center;gap:8px;
     padding:10px 12px;border-radius:14px;
     border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.72);
+    /* background:rgba(255,255,255,.72); */
     backdrop-filter: blur(10px);
     font-size:13px;color:var(--muted,#64748b);
     white-space:nowrap;
@@ -58,7 +58,7 @@
     border:1px solid rgba(15,23,42,.12);
     border-radius:16px;
     overflow:hidden;
-    background:rgba(255,255,255,.78);
+    /* background:rgba(255,255,255,.78); */
     backdrop-filter: blur(10px);
   }
   table.tbl2{width:100%;border-collapse:separate;border-spacing:0}
@@ -220,10 +220,10 @@
     <table class="tbl2" id="t1table">
       <thead>
         <tr>
-          <th style="width:180px" data-i18n="col_date">Дата</th>
-          <th style="width:90px" data-i18n="col_year">Год</th>
-          <th style="width:190px" data-i18n="col_sent">Отправлено</th>
-          <th style="width:360px;text-align:right" data-i18n="col_actions">Действия</th>
+          <th style="width:180px" data-i18n="col_date">Sana</th>
+          <th style="width:90px" data-i18n="col_year">Yil</th>
+          <th style="width:190px" data-i18n="col_sent">Jo'natilgan</th>
+          <th style="width:360px;text-align:right" data-i18n="col_actions">Amallar</th>
         </tr>
       </thead>
 
@@ -238,33 +238,33 @@
           </td>
           <td>
             <div class="actions">
-              <a class="btn-soft" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Просмотр</a>
-              <a class="btn-soft" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Редактировать</a>
+              <a class="btn-soft" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Ko'rish</a>
+              <a class="btn-soft" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Tahrirlash</a>
 
               <form method="post"
                     action="/station/table-1/delete/{{ r.date|date:'Y-m-d' }}/"
                     style="display:inline;"
                     onsubmit="return confirm(window.__t?.confirm_delete || 'Удалить отчёт?');">
                 {% csrf_token %}
-                <button class="btn-danger" type="submit" data-i18n="delete">Удалить</button>
+                <button class="btn-danger" type="submit" data-i18n="delete">O'chirish</button>
               </form>
             </div>
 
             <div class="rowgrid" style="display:none">
-              <div class="kv"><span data-i18n="col_date">Дата</span><b>{{ r.date|date:"d.m.Y" }}</b></div>
-              <div class="kv"><span data-i18n="col_year">Год</span><b>{{ r.year }}</b></div>
-              <div class="kv"><span data-i18n="col_sent">Отправлено</span>
+              <div class="kv"><span data-i18n="col_date">Sana</span><b>{{ r.date|date:"d.m.Y" }}</b></div>
+              <div class="kv"><span data-i18n="col_year">Yil</span><b>{{ r.year }}</b></div>
+              <div class="kv"><span data-i18n="col_sent">Jo'natilgan</span>
                 <b>{% if r.submitted_at %}{{ r.submitted_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}</b>
               </div>
               <div class="actions">
-                <a class="btn-soft" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Просмотр</a>
-                <a class="btn-soft" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Редактировать</a>
+                <a class="btn-soft" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Ko'rish</a>
+                <a class="btn-soft" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Tahrirlash</a>
                 <form method="post"
                       action="/station/table-1/delete/{{ r.date|date:'Y-m-d' }}/"
                       style="display:inline;"
                       onsubmit="return confirm(window.__t?.confirm_delete || 'Удалить отчёт?');">
                   {% csrf_token %}
-                  <button class="btn-danger" type="submit" data-i18n="delete">Удалить</button>
+                  <button class="btn-danger" type="submit" data-i18n="delete">O'chirish</button>
                 </form>
               </div>
             </div>

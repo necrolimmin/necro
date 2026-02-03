@@ -6,7 +6,7 @@
   .panel{
     
    
-    background: var(--surface);
+    /* background: var(--surface); */
     border: 1px solid var(--stroke);
     border-radius: 20px;
     box-shadow: var(--shadow);
@@ -157,10 +157,10 @@
 <div class="panel">
   <div class="hdr">
     <div>
-      <h2 data-i18n="t1_title">Таблица №1 — отчёты по датам</h2>
+      <h2 data-i18n="t1_title">Hisobot №1 — Sanalar kesimida </h2>
       <div class="muted" data-i18n="t1_help">
-        “Отправили X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
-        Pastdagi Oldingi/Keyingi tugmalar bilan 10 tadan sahifalanadi (frontend).
+        “Jo'natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
+        Pastdagi Oldingi/Keyingi tugmalar bilan 10 tadan sahifalanadi.
       </div>
     </div>
   </div>
@@ -191,7 +191,7 @@
                       class="statusBtn"
                       data-open="m-{{ forloop.counter }}">
                 <span class="statusBadge">
-                  Отправили <b>{{ it.submitted_count }}/{{ it.total_count }}</b>
+                  Jo'natgan <b>{{ it.submitted_count }}/{{ it.total_count }}</b>
                 </span>
                 <span style="opacity:.8">Batafsil</span>
               </button>
@@ -207,7 +207,7 @@
                     <div class="cols">
                       <div class="col">
                         <div style="margin-bottom:10px;">
-                          <span class="pill ok">Отправили ({{ it.submitted_count }})</span>
+                          <span class="pill ok">Jo'natganlar ({{ it.submitted_count }})</span>
                         </div>
                         {% for s in it.submitted %}
                           <div class="stLine">
@@ -221,7 +221,7 @@
 
                       <div class="col">
                         <div style="margin-bottom:10px;">
-                          <span class="pill no">Не отправили ({{ it.not_submitted_count }})</span>
+                          <span class="pill no">Jo'natmaganlar ({{ it.not_submitted_count }})</span>
                         </div>
                         {% for s in it.not_submitted %}
                           <div class="stLine">
