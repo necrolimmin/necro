@@ -1,17 +1,22 @@
 from datetime import date as dt_date, datetime
+from functools import wraps
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Max, Count
+from django.db.models import Sum, Max
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
 
-from accounts.models import StationProfile
-
-from .models import StationDailyTable1, StationDailyTable2, KPIValue
-from .forms import TABLE1_FIELDS
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldError
 from django.core.paginator import Paginator
+
+from accounts.models import StationProfile
+from .models import StationDailyTable1, StationDailyTable2, KPIValue
+from .forms import TABLE1_FIELDS
+import io
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+from django.http import HttpResponse
 
 
 # =========================
@@ -19,11 +24,13 @@ from django.core.paginator import Paginator
 # =========================
 
 def staff_required(view_func):
+    @wraps(view_func)
+    @login_required
     def wrapper(request, *args, **kwargs):
         if not (request.user.is_staff or request.user.is_superuser):
             return redirect("station_table_1_list")
         return view_func(request, *args, **kwargs)
-    return login_required(wrapper)
+    return wrapper
 
 
 def _parse_date(date_str: str) -> dt_date:
@@ -175,6 +182,7 @@ def station_table_1_view(request, date_str):
 def station_table_1_edit(request, date_str):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
+
     status = request.user.station_profile.status
     d_url = _parse_date(date_str)
 
@@ -201,17 +209,14 @@ def station_table_1_edit(request, date_str):
         posted_date_str = (request.POST.get("date") or "").strip()
         d_form = _parse_date(posted_date_str) if posted_date_str else d_url
 
-        # ✅ если это "создание" — сохраняем в выбранную дату
         d_save = d_form if is_new else d_url
 
-        # ✅ ЖЁСТКАЯ защита: если отчёт существует — НЕ создаём и НЕ редиректим
         if is_new and StationDailyTable1.objects.filter(
             station_user=request.user, date=d_save, shift="total"
         ).exists():
             error = f"Отчёт за {d_save.strftime('%d.%m.%Y')} уже существует. Выберите другую дату."
-            # остаёмся на этой же странице как пустая форма "создания"
             return render(request, "station_table_1_create.html", {
-                "date": d_save,  # ✅ показать выбранную дату
+                "date": d_save,
                 "day_obj": None,
                 "night_obj": None,
                 "total_obj": None,
@@ -221,10 +226,9 @@ def station_table_1_edit(request, date_str):
                 "TABLE1_FIELDS": TABLE1_FIELDS,
                 "is_new": True,
                 "error": error,
-                "status":status
+                "status": status,
             })
 
-        # ===== обычное сохранение (как у тебя) =====
         day_data = {}
         night_data = {}
         total_data = {}
@@ -237,10 +241,10 @@ def station_table_1_edit(request, date_str):
             day_data[key] = _read_int(request.POST.get(f"day__{key}"))
             night_data[key] = _read_int(request.POST.get(f"night__{key}"))
 
-
         day_data["k_podache_so_st"] = common_k
         night_data["k_podache_so_st"] = common_k
 
+        # auto total = day+night (кроме income_daily)
         for key, _label in TABLE1_FIELDS:
             if key == "k_podache_so_st":
                 total_data[key] = common_k
@@ -249,6 +253,7 @@ def station_table_1_edit(request, date_str):
                 continue
             total_data[key] = int(day_data.get(key, 0)) + int(night_data.get(key, 0))
 
+        # ручная корректировка total__*
         for key, _label in TABLE1_FIELDS:
             if key in ("k_podache_so_st", "income_daily"):
                 continue
@@ -256,6 +261,7 @@ def station_table_1_edit(request, date_str):
             if manual_raw != "":
                 total_data[key] = _read_int(manual_raw)
 
+        # income: если заполнен вручную — берём, иначе auto сумма total полей
         income_auto = 0
         for key, _label in TABLE1_FIELDS:
             if key in ("income_daily", "k_podache_so_st"):
@@ -264,8 +270,6 @@ def station_table_1_edit(request, date_str):
 
         income_manual_raw = (request.POST.get("total__income_daily") or "").strip()
         total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
-
-
 
         StationDailyTable1.objects.update_or_create(
             station_user=request.user, date=d_save, shift="day",
@@ -282,7 +286,6 @@ def station_table_1_edit(request, date_str):
 
         return redirect("station_table_1_list")
 
-    # GET render
     return render(request, "station_table_1_create.html", {
         "date": d_url,
         "day_obj": day_obj,
@@ -294,7 +297,7 @@ def station_table_1_edit(request, date_str):
         "TABLE1_FIELDS": TABLE1_FIELDS,
         "is_new": is_new,
         "error": error,
-        "status":status
+        "status": status,
     })
 
 
@@ -442,7 +445,6 @@ def station_table_2_edit(request, date_str):
         return redirect("admin_table2_reports")
 
     d_url = _parse_date(date_str)
-
     force_new = (request.GET.get("new") == "1")
 
     if force_new:
@@ -457,7 +459,6 @@ def station_table_2_edit(request, date_str):
     if request.method == "POST":
         posted_date_str = (request.POST.get("date") or "").strip()
         d_form = _parse_date(posted_date_str) if posted_date_str else d_url
-
         d_save = d_form if is_new else d_url
 
         if is_new and StationDailyTable2.objects.filter(station_user=request.user, date=d_save).exists():
@@ -498,9 +499,7 @@ def station_table_2_edit(request, date_str):
         for k in int_keys:
             data[TABLE2_BOTTOM_FIELDS[k]] = _read_int_post(request, TABLE2_BOTTOM_FIELDS[k])
 
-        data[TABLE2_BOTTOM_FIELDS["cargo_name"]] = (
-            request.POST.get(TABLE2_BOTTOM_FIELDS["cargo_name"]) or ""
-        ).strip()
+        data[TABLE2_BOTTOM_FIELDS["cargo_name"]] = (request.POST.get(TABLE2_BOTTOM_FIELDS["cargo_name"]) or "").strip()
 
         StationDailyTable2.objects.update_or_create(
             station_user=request.user,
@@ -535,7 +534,11 @@ def station_table_2_delete(request, date_str):
     return redirect("station_table_2_list")
 
 
+@staff_required
 def promote_station(request, pk):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
     station = get_object_or_404(StationProfile, id=pk)
     station.status = not station.status
     station.save()
@@ -628,6 +631,12 @@ def admin_table1_report_view(request, date_str):
         day_data = _apply_itogo_rules((day_obj.data if day_obj else {}) or {})
         night_data = _apply_itogo_rules((night_obj.data if night_obj else {}) or {})
         total_data = _apply_itogo_rules((total_obj.data if total_obj else {}) or {})
+
+        # ✅ ГЛАВНОЕ: income_daily в "итог" = день + ночь (жёстко)
+        day_income = _int0(day_data.get("income_daily"))
+        night_income = _int0(night_data.get("income_daily"))
+        total_data["income_daily"] = day_income + night_income
+
         status_obj = get_object_or_404(StationProfile, user__username=uname)
 
         station_list.append({
@@ -919,6 +928,7 @@ def admin_table2_layout(request, date_str):
     })
 
 
+@staff_required
 def admin_table2_station_pick(request, date_str):
     d = _parse_date(date_str)
 
@@ -943,6 +953,7 @@ def admin_table2_station_pick(request, date_str):
     })
 
 
+@staff_required
 def admin_table2_station_view(request, date_str, user_id: int):
     d = _parse_date(date_str)
 
@@ -976,3 +987,71 @@ def _get_all_stations():
         pass
 
     return list(qs.values_list("id", "username").order_by("username"))
+
+
+def admin_table1_export_excel(request, date_str):
+    d = _parse_date(date_str)
+
+    # Берём все записи за дату
+    rows = (
+        StationDailyTable1.objects
+        .filter(date=d)
+        .select_related("station_user")
+        .order_by("station_user__username", "shift")
+    )
+
+    # Группируем как в admin_table1_report_view
+    stations = {}
+    for obj in rows:
+        uname = obj.station_user.username
+        if uname not in stations:
+            stations[uname] = {"day": None, "night": None, "total": None}
+        stations[uname][obj.shift] = obj
+
+    # Excel
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Table1 {d.strftime('%d.%m.%Y')}"
+
+    # Заголовок
+    headers = ["Станция", "Смена"] + [label for _key, label in TABLE1_FIELDS]
+    ws.append(headers)
+
+    def _row_for(uname, shift, obj):
+        data = (obj.data if obj and obj.data else {}) or {}
+        data = _apply_itogo_rules(data)
+
+        # income_daily для total = day + night (как у тебя в админке)
+        if shift == "total":
+            day_income = _int0(_apply_itogo_rules((stations[uname]["day"].data if stations[uname]["day"] else {}) or {}).get("income_daily"))
+            night_income = _int0(_apply_itogo_rules((stations[uname]["night"].data if stations[uname]["night"] else {}) or {}).get("income_daily"))
+            data["income_daily"] = day_income + night_income
+
+        row = [uname, shift]
+        for key, _label in TABLE1_FIELDS:
+            row.append(data.get(key, 0) if key != "k_podache_so_st" else data.get(key, ""))
+        return row
+
+    for uname in sorted(stations.keys(), key=lambda x: x.lower()):
+        pack = stations[uname]
+        ws.append(_row_for(uname, "day", pack["day"]))
+        ws.append(_row_for(uname, "night", pack["night"]))
+        ws.append(_row_for(uname, "total", pack["total"]))
+        ws.append([])  # пустая строка между станциями
+
+    # Подгон ширины колонок
+    for col in range(1, ws.max_column + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 18
+
+    # Отдаём файл
+    buff = io.BytesIO()
+    wb.save(buff)
+    buff.seek(0)
+
+    filename = f"table1_{d.strftime('%Y-%m-%d')}.xlsx"
+    resp = HttpResponse(
+        buff.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return resp
