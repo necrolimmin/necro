@@ -1,9 +1,11 @@
+
+
 from datetime import date as dt_date, datetime
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Max
-from django.http import HttpResponseNotAllowed
+from django.http import HttpResponseNotAllowed, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from django.contrib.auth import get_user_model
@@ -13,10 +15,10 @@ from django.core.paginator import Paginator
 from accounts.models import StationProfile
 from .models import StationDailyTable1, StationDailyTable2, KPIValue
 from .forms import TABLE1_FIELDS
+
 import io
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
-from django.http import HttpResponse
 
 
 # =========================
@@ -355,19 +357,29 @@ TABLE2_ROWS = [
     (34, "Наличие в запасе",             "КЗ",   "r34_total", "r34_ktk"),
 ]
 
+# ✅ FIXED: added ДОХОД keys for bottom block
 TABLE2_BOTTOM_FIELDS = {
     "income": "income_daily",
+
     "vygr_wag_total": "vygr_wag_total",
     "vygr_wag_ktk": "vygr_wag_ktk",
     "vygr_tonn": "vygr_tonn",
+    "vygr_income": "vygr_income",
+
     "pogr_wag_total": "pogr_wag_total",
     "pogr_wag_ktk": "pogr_wag_ktk",
     "pogr_tonn": "pogr_tonn",
+    "pogr_income": "pogr_income",
+
     "os_wag_total": "os_wag_total",
     "os_wag_ktk": "os_wag_ktk",
     "os_tonn": "os_tonn",
+    "os_income": "os_income",
+
     "cargo_name": "cargo_name",
     "cargo_volume": "cargo_volume",
+    "cargo_income": "cargo_income",
+
     "kp_fp_capacity": "kp_fp_capacity",
     "kp_fp_fact": "kp_fp_fact",
     "kp_fp_free": "kp_fp_free",
@@ -485,11 +497,12 @@ def station_table_2_edit(request, date_str):
 
         data[TABLE2_BOTTOM_FIELDS["income"]] = _read_int_post(request, TABLE2_BOTTOM_FIELDS["income"])
 
+        # ✅ FIXED: include new income fields
         int_keys = [
-            "vygr_wag_total", "vygr_wag_ktk", "vygr_tonn",
-            "pogr_wag_total", "pogr_wag_ktk", "pogr_tonn",
-            "os_wag_total", "os_wag_ktk", "os_tonn",
-            "cargo_volume",
+            "vygr_wag_total", "vygr_wag_ktk", "vygr_tonn", "vygr_income",
+            "pogr_wag_total", "pogr_wag_ktk", "pogr_tonn", "pogr_income",
+            "os_wag_total", "os_wag_ktk", "os_tonn", "os_income",
+            "cargo_volume", "cargo_income",
             "kp_fp_capacity", "kp_fp_fact", "kp_fp_free",
             "kp_uus_capacity", "kp_uus_fact", "kp_uus_free",
             "kp_ready_send", "kp_ready_autocar",
@@ -632,7 +645,7 @@ def admin_table1_report_view(request, date_str):
         night_data = _apply_itogo_rules((night_obj.data if night_obj else {}) or {})
         total_data = _apply_itogo_rules((total_obj.data if total_obj else {}) or {})
 
-        # ✅ ГЛАВНОЕ: income_daily в "итог" = день + ночь (жёстко)
+        # ✅ income_daily в "итог" = день + ночь (жёстко)
         day_income = _int0(day_data.get("income_daily"))
         night_income = _int0(night_data.get("income_daily"))
         total_data["income_daily"] = day_income + night_income
@@ -992,7 +1005,6 @@ def _get_all_stations():
 def admin_table1_export_excel(request, date_str):
     d = _parse_date(date_str)
 
-    # Берём все записи за дату
     rows = (
         StationDailyTable1.objects
         .filter(date=d)
@@ -1000,7 +1012,6 @@ def admin_table1_export_excel(request, date_str):
         .order_by("station_user__username", "shift")
     )
 
-    # Группируем как в admin_table1_report_view
     stations = {}
     for obj in rows:
         uname = obj.station_user.username
@@ -1008,47 +1019,280 @@ def admin_table1_export_excel(request, date_str):
             stations[uname] = {"day": None, "night": None, "total": None}
         stations[uname][obj.shift] = obj
 
-    # Excel
+    # -------- build station_list like in admin_table1_report_view ----------
+    station_list = []
+    for uname in sorted(stations.keys(), key=lambda x: x.lower()):
+        pack = stations[uname]
+        day_obj = pack.get("day")
+        night_obj = pack.get("night")
+        total_obj = pack.get("total")
+
+        day_data = _apply_itogo_rules((day_obj.data if day_obj else {}) or {})
+        night_data = _apply_itogo_rules((night_obj.data if night_obj else {}) or {})
+        total_data = _apply_itogo_rules((total_obj.data if total_obj else {}) or {})
+
+        # total income = day + night (как в твоём view)
+        day_income = _int0(day_data.get("income_daily"))
+        night_income = _int0(night_data.get("income_daily"))
+        total_data["income_daily"] = day_income + night_income
+
+        # status: если False -> ночной смены нет
+        try:
+            status_obj = StationProfile.objects.get(user__username=uname)
+            status = bool(status_obj.status)
+        except StationProfile.DoesNotExist:
+            status = True
+
+        station_list.append({
+            "name": uname,
+            "day": day_data,
+            "night": night_data,
+            "total": total_data,
+            "status": status,
+        })
+
+    # ------------------- Excel (openpyxl) -------------------
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.utils import get_column_letter
+    from openpyxl.cell.cell import MergedCell
+
     wb = Workbook()
     ws = wb.active
     ws.title = f"Table1 {d.strftime('%d.%m.%Y')}"
 
-    # Заголовок
-    headers = ["Станция", "Смена"] + [label for _key, label in TABLE1_FIELDS]
-    ws.append(headers)
+    thin = Side(style="thin", color="99A3B3")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    def _row_for(uname, shift, obj):
-        data = (obj.data if obj and obj.data else {}) or {}
-        data = _apply_itogo_rules(data)
+    bold = Font(bold=True)
+    bold_big = Font(bold=True, size=13)
+    hdr_font = Font(bold=True)
 
-        # income_daily для total = day + night (как у тебя в админке)
-        if shift == "total":
-            day_income = _int0(_apply_itogo_rules((stations[uname]["day"].data if stations[uname]["day"] else {}) or {}).get("income_daily"))
-            night_income = _int0(_apply_itogo_rules((stations[uname]["night"].data if stations[uname]["night"] else {}) or {}).get("income_daily"))
-            data["income_daily"] = day_income + night_income
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+    vtxt = Alignment(horizontal="center", vertical="center", text_rotation=90, wrap_text=True)
 
-        row = [uname, shift]
-        for key, _label in TABLE1_FIELDS:
-            row.append(data.get(key, 0) if key != "k_podache_so_st" else data.get(key, ""))
-        return row
+    # ✅ helper: safe set_cell (не пишет value в MergedCell)
+    def set_cell(r, c, value=None, *, font=None, fill=None, align=None, b=border):
+        cell = ws.cell(row=r, column=c)
+        if isinstance(cell, MergedCell):
+            return cell
+        if value is not None:
+            cell.value = value
+        cell.border = b
+        if font:
+            cell.font = font
+        if fill:
+            cell.fill = fill
+        if align:
+            cell.alignment = align
+        return cell
 
-    for uname in sorted(stations.keys(), key=lambda x: x.lower()):
-        pack = stations[uname]
-        ws.append(_row_for(uname, "day", pack["day"]))
-        ws.append(_row_for(uname, "night", pack["night"]))
-        ws.append(_row_for(uname, "total", pack["total"]))
-        ws.append([])  # пустая строка между станциями
+    # ✅ ARGB colors (FF + RRGGBB)
+    def F(hex6):
+        return PatternFill("solid", fgColor=("FF" + hex6.upper()))
 
-    # Подгон ширины колонок
-    for col in range(1, ws.max_column + 1):
-        ws.column_dimensions[get_column_letter(col)].width = 18
+    fill_red_col   = F("F3D6D6")
+    fill_green_hdr = F("DFF4DF")
+    fill_green2_hdr= F("CFEEDF")
+    fill_yellow_hdr= F("F3E3B2")
+    fill_blue_hdr  = F("D9F2F9")
+    fill_blue2_hdr = F("C7ECF3")
+    fill_gray_hdr  = F("E7EEF7")
+    fill_total_row = F("FFF2CC")
+    fill_title     = F("F5F7FB")
 
-    # Отдаём файл
+    # ------------------- columns order like site -------------------
+    COLS = [
+        ("podano_lc", "LMga berildi"),
+        ("k_podache_so_st", "St’dan berishga"),
+
+        ("vygr_ft", "фт"),
+        ("vygr_cont", "конт."),
+        ("vygr_kr", "кр"),
+        ("vygr_pv", "пв"),
+        ("vygr_proch", "boshqa"),
+        ("vygr_itogo", "jami"),
+        ("vygr_itogo_kon", "jami kon"),
+
+        ("pod_vygr_ft", "фт"),
+        ("pod_vygr_cont", "конт."),
+        ("pod_vygr_kr", "кр"),
+        ("pod_vygr_pv", "пв"),
+        ("pod_vygr_proch", "boshqa"),
+        ("pod_vygr_itogo", "jami"),
+        ("pod_vygr_itogo_kon", "jami kon"),
+
+        ("uborka", "Yig‘ishtirish"),
+
+        ("pogr_ft", "фт"),
+        ("pogr_cont", "конт."),
+        ("pogr_kr", "кр"),
+        ("pogr_pv", "пв"),
+        ("pogr_proch", "boshqa"),
+        ("pogr_itogo_kon", "jami kon"),
+
+        ("pod_pogr_ft", "фт"),
+        ("pod_pogr_cont", "конт."),
+        ("pod_pogr_kr", "кр"),
+        ("pod_pogr_pv", "пв"),
+        ("pod_pogr_proch", "boshqa"),
+        ("pod_pogr_itogo_kon", "jami kon"),
+
+        ("income_daily", "sutkalik daromad"),
+    ]
+
+    col_name = 1
+    col_shift = 2
+    last_col = 2 + len(COLS)
+
+    # ------------------- Title row -------------------
+    r = 1
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=last_col)
+    set_cell(
+        r, 1,
+        f'Оперативная информация (Таблица 1) — {d.strftime("%d.%m.%Y")}',
+        font=bold_big,
+        fill=fill_title,
+        align=center,
+    )
+    ws.row_dimensions[r].height = 24
+
+    # ------------------- Header rows -------------------
+    r1 = 2
+    r2 = 3
+    ws.row_dimensions[r1].height = 34
+    ws.row_dimensions[r2].height = 110
+
+    # LM nomi / Smena merged vertically
+    ws.merge_cells(start_row=r1, start_column=col_name, end_row=r2, end_column=col_name)
+    ws.merge_cells(start_row=r1, start_column=col_shift, end_row=r2, end_column=col_shift)
+    set_cell(r1, col_name, "LM nomi", font=hdr_font, align=center)
+    set_cell(r1, col_shift, "Smena", font=hdr_font, align=center)
+
+    # red columns merged vertically (col 3,4)
+    ws.merge_cells(start_row=r1, start_column=3, end_row=r2, end_column=3)
+    ws.merge_cells(start_row=r1, start_column=4, end_row=r2, end_column=4)
+    set_cell(r1, 3, "LMga berildi", font=hdr_font, fill=fill_red_col, align=vtxt)
+    set_cell(r1, 4, "St’dan berishga", font=hdr_font, fill=fill_red_col, align=vtxt)
+
+    # groups helper (НЕ пишем value в r2, только стили)
+    def merge_group(title, c1, c2, fill):
+        ws.merge_cells(start_row=r1, start_column=c1, end_row=r1, end_column=c2)
+        set_cell(r1, c1, title, font=hdr_font, fill=fill, align=center)
+        for cc in range(c1, c2 + 1):
+            set_cell(r2, cc, font=hdr_font, fill=fill, align=vtxt)
+
+    merge_group("Tushirish", 5, 11, fill_green_hdr)
+    merge_group("Tushirishda", 12, 18, fill_green2_hdr)
+
+    # Уборка merged vertically at col 19
+    ws.merge_cells(start_row=r1, start_column=19, end_row=r2, end_column=19)
+    set_cell(r1, 19, "Yig‘ishtirish", font=hdr_font, fill=fill_yellow_hdr, align=vtxt)
+
+    merge_group("Yuklash", 20, 25, fill_blue_hdr)
+    merge_group("Yuklashda", 26, 31, fill_blue2_hdr)
+
+    # Income merged vertically at col 32
+    ws.merge_cells(start_row=r1, start_column=32, end_row=r2, end_column=32)
+    set_cell(r1, 32, "sutkalik daromad", font=hdr_font, fill=fill_gray_hdr, align=vtxt)
+
+    # Row 3 labels (only columns 5..31) with vertical text
+    # COLS[0..1] already used in col 3..4, so start from COLS[2] -> col 5
+    for excel_col, (key, lbl) in enumerate(COLS[2:], start=5):
+        # choose fill by block range
+        if 5 <= excel_col <= 11:
+            fill = fill_green_hdr
+        elif 12 <= excel_col <= 18:
+            fill = fill_green2_hdr
+        elif 20 <= excel_col <= 25:
+            fill = fill_blue_hdr
+        elif 26 <= excel_col <= 31:
+            fill = fill_blue2_hdr
+        else:
+            fill = None
+        set_cell(r2, excel_col, lbl, font=hdr_font, fill=fill, align=vtxt)
+
+    # Freeze (как sticky): заголовок + 2 колонки
+    ws.freeze_panes = "C4"
+
+    # widths
+    ws.column_dimensions["A"].width = 22
+    ws.column_dimensions["B"].width = 10
+    for cc in range(3, last_col + 1):
+        ws.column_dimensions[get_column_letter(cc)].width = 10
+
+    # ------------------- Data rows -------------------
+    row_idx = 4
+
+    def safe_int(v):
+        try:
+            return int(v or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def write_shift_row(rw, shift_label, data, is_total=False):
+        # shift
+        set_cell(
+            rw, 2, shift_label,
+            font=bold if is_total else None,
+            align=center,
+            fill=fill_total_row if is_total else None
+        )
+
+        col = 3
+        for key, _lbl in COLS:
+            val = data.get(key, 0)
+
+            # k_podache_so_st может быть строкой
+            if key == "k_podache_so_st":
+                out = val if val is not None else ""
+            else:
+                out = safe_int(val)
+
+            set_cell(
+                rw, col, out,
+                font=bold if is_total else None,
+                align=center,
+                fill=fill_total_row if is_total else None
+            )
+            col += 1
+
+        # just to apply border on A too
+        set_cell(rw, 1, None, align=left, fill=fill_total_row if is_total else None)
+
+    for st in station_list:
+        has_night = bool(st["status"])
+        span = 3 if has_night else 2
+
+        # merge station name
+        ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx + span - 1, end_column=1)
+        set_cell(row_idx, 1, st["name"], font=bold, align=left)
+
+        # day
+        write_shift_row(row_idx, "kun", st["day"], is_total=False)
+        row_idx += 1
+
+        # night
+        if has_night:
+            write_shift_row(row_idx, "tun", st["night"], is_total=False)
+            row_idx += 1
+
+        # total
+        write_shift_row(row_idx, "jami", st["total"], is_total=True)
+        row_idx += 1
+
+    # print/view
+    ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+
     buff = io.BytesIO()
     wb.save(buff)
     buff.seek(0)
 
-    filename = f"table1_{d.strftime('%Y-%m-%d')}.xlsx"
+    filename = f"table1_like_site_{d.strftime('%Y-%m-%d')}.xlsx"
     resp = HttpResponse(
         buff.getvalue(),
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
