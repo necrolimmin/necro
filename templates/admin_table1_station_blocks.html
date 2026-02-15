@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load report_extras %}
+
+{% block title %}Админ — {{ station_name }} — блоки (Таблица 1){% endblock %}
+
+{% block content %}
+<style>
+  .panel{
+    background: var(--surface);
+    border:1px solid var(--stroke);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+  }
+  .head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom: 12px;
+  }
+  .title{
+    margin:0;
+    font-weight: 950;
+    color: var(--text);
+    letter-spacing:-.01em;
+  }
+  .muted{ margin:6px 0 0; color: var(--muted); font-size: 13px; }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    text-decoration:none;
+    font-weight: 900;
+    color: var(--text);
+    background: rgba(255,255,255,.55);
+  }
+  html[data-theme="dark"] .btn{ background: rgba(255,255,255,.06); }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .block{
+    border:1px solid var(--stroke);
+    border-radius: 18px;
+    overflow:hidden;
+    background: rgba(255,255,255,.18);
+  }
+  html[data-theme="dark"] .block{ background: rgba(255,255,255,.04); }
+
+  .block-h{
+    padding: 10px 12px;
+    font-weight: 950;
+    border-bottom: 1px solid var(--stroke);
+    background: rgba(255,255,255,.35);
+    color: var(--text);
+  }
+  html[data-theme="dark"] .block-h{ background: rgba(255,255,255,.06); }
+
+  .sc{
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table{
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1400px;
+  }
+  th, td{
+    border:1px solid rgba(15,23,42,.16);
+    padding: 6px 6px;
+    text-align:center;
+    font-size: 12px;
+    color: var(--text);
+    background: transparent;
+  }
+  html[data-theme="dark"] th, html[data-theme="dark"] td{
+    border:1px solid rgba(255,255,255,.16);
+  }
+
+  th{
+    font-weight: 950;
+    background: rgba(255,255,255,.22);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  html[data-theme="dark"] th{ background: rgba(255,255,255,.06); }
+
+  .rowname{
+    text-align:left;
+    font-weight: 950;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--surface);
+  }
+  .shift{
+    font-weight: 950;
+    width: 90px;
+    white-space: nowrap;
+  }
+</style>
+
+<div class="panel">
+  <div class="head">
+    <div>
+      <h2 class="title">Таблица 1 — {{ station_name }} — {{ date|date:"d.m.Y" }} — 3 блока</h2>
+      <p class="muted">Показываем реальные блоки 1/2/3 (day/night/total).</p>
+    </div>
+
+    <a class="btn" href="{% url 'admin_table1_report_view' date|date:'Y-m-d' %}">
+      ← Назад к общему отчёту
+    </a>
+  </div>
+
+  <div class="grid">
+    {% for blk in blocks_ctx %}
+      <div class="block">
+        <div class="block-h">Блок {{ blk.b }}</div>
+        <div class="sc">
+          <table>
+            <thead>
+              <tr>
+                <th class="rowname">Смена</th>
+                {% for k, label in fields %}
+                  <th>{{ label }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td class="rowname shift">День</td>
+                {% for k, label in fields %}
+                  <td>{{ blk.day_obj|data_val:k }}</td>
+                {% endfor %}
+              </tr>
+
+              <tr>
+                <td class="rowname shift">Ночь</td>
+                {% for k, label in fields %}
+                  <td>{{ blk.night_obj|data_val:k }}</td>
+                {% endfor %}
+              </tr>
+
+              <tr>
+                <td class="rowname shift">Итог</td>
+                {% for k, label in fields %}
+                  <td>{{ blk.total_obj|data_val:k }}</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

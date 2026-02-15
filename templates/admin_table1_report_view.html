@@ -89,6 +89,8 @@
   :root{
     --t1a-grid: rgba(15,23,42,.22);
     --t1a-sticky-shadow: rgba(15,23,42,.12);
+    --t1a-col-name: 190px;
+    --t1a-col-shift: 74px;
   }
   html[data-theme="dark"]{
     --t1a-grid: rgba(255,255,255,.22);
@@ -125,35 +127,29 @@
     font-weight:950;
   }
 
-  
-    #t1admin col:nth-child(3),
-    #t1admin col:nth-child(4){
-      background: rgba(240, 149, 149, 0.18);
-    }
-
-    #t1admin col:nth-child(10),
-    #t1admin col:nth-child(11){
-      background: rgba(149, 250, 119, 0.18);
-    }
-
-    #t1admin col:nth-child(17),
-    #t1admin col:nth-child(18){
-      background: rgba(31, 112, 6, 0.445);
-    }
-
-    #t1admin col:nth-child(19){
-      background: rgba(212, 199, 113, 0.89);
-    }
-
-    #t1admin col:nth-child(24),
-    #t1admin col:nth-child(25){
-      background: rgba(229, 246, 250, 0.904);
-    }
-
-    #t1admin col:nth-child(30),
-    #t1admin col:nth-child(31){
-      background: rgba(171, 229, 236, 0.904);
-    }
+  #t1admin col:nth-child(3),
+  #t1admin col:nth-child(4){
+    background: rgba(240, 149, 149, 0.18);
+  }
+  #t1admin col:nth-child(10),
+  #t1admin col:nth-child(11){
+    background: rgba(149, 250, 119, 0.18);
+  }
+  #t1admin col:nth-child(17),
+  #t1admin col:nth-child(18){
+    background: rgba(31, 112, 6, 0.445);
+  }
+  #t1admin col:nth-child(19){
+    background: rgba(212, 199, 113, 0.89);
+  }
+  #t1admin col:nth-child(24),
+  #t1admin col:nth-child(25){
+    background: rgba(229, 246, 250, 0.904);
+  }
+  #t1admin col:nth-child(30),
+  #t1admin col:nth-child(31){
+    background: rgba(171, 229, 236, 0.904);
+  }
 
   .t1a-vtxt{
     writing-mode: vertical-rl;
@@ -163,10 +159,6 @@
     line-height:1.05;
   }
 
-  :root{
-    --t1a-col-name: 190px;
-    --t1a-col-shift: 74px;
-  }
   .t1a-name{
     width:var(--t1a-col-name);
     min-width:var(--t1a-col-name);
@@ -196,17 +188,12 @@
     background: var(--surface);
     box-shadow: 10px 0 16px -14px var(--t1a-sticky-shadow);
   }
-  .t1a-table thead .t1a-stickyA,
-  .t1a-table thead .t1a-stickyB,
-  .t1a-table tbody .t1a-stickyA,
-  .t1a-table tbody .t1a-stickyB{
-    background: var(--surface);
-  }
 
   .g-green{ background: rgba(34,197,94,.12); }
   .g-blue{ background: rgba(79,70,229,.12); }
   .g-yellow{ background: rgba(245,158,11,.14); }
   .g-gray{ background: rgba(100,116,139,.12); }
+
   html[data-theme="dark"] .g-green{ background: rgba(34,197,94,.08); }
   html[data-theme="dark"] .g-blue{ background: rgba(79,70,229,.08); }
   html[data-theme="dark"] .g-yellow{ background: rgba(245,158,11,.10); }
@@ -220,9 +207,6 @@
     background: rgba(255,244,204,.12);
   }
 
-  /* .t1a-table tbody tr:hover td{ background: rgba(159, 155, 243, 0.06); }
-  html[data-theme="dark"] .t1a-table tbody tr:hover td{ background: rgba(99,102,241,.10); } */
-
   .t1a-note{
     margin-top:10px;
     color:var(--muted);
@@ -230,13 +214,17 @@
     line-height:1.45;
   }
 
-  @media (max-width: 980px){
-    .t1a-titlebox h2{ font-size:18px; }
-    :root{ --t1a-col-name: 160px; --t1a-col-shift: 64px; }
-    .t1a-table th,.t1a-table td{ padding:6px 6px; font-size:11.5px; }
-  }
-  @media (max-width: 520px){
-    .t1a-back{ width:100%; }
+  /* ✅ кликабельное название (и вся ячейка) */
+  .t1a-name.is-clickable{ cursor:pointer; }
+  .t1a-stname-link{
+    display:inline-block;
+    position:relative;
+    z-index: 9999;
+    pointer-events:auto;
+    color: var(--text);
+    font-weight: 950;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 </style>
 
@@ -261,9 +249,6 @@
     </a>
   </div>
 
-    
-  </div>
-
   <div class="t1a-wrap">
     <div class="t1a-hdr" data-i18n="t1_admin_header">
       Оперативная информация о работе логистических центров АО "Узтемирйулконтейнер" в сутки —
@@ -273,20 +258,20 @@
     <div class="t1a-scroll">
       <table class="t1a-table" id="t1admin">
         <colgroup>
-          <col style="width:190px;"> {# Наименование ЛЦ #}
-          <col style="width:74px;">  {# Смена #}
-          <col style="width:74px;">  {# Подано на ЛЦ #}
-          <col style="width:74px;">  {# к подаче со ст #}
+          <col style="width:190px;">
+          <col style="width:74px;">
+          <col style="width:74px;">
+          <col style="width:74px;">
 
-          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %}  {# Выгрузка #}
-          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %}  {# Под выгрузкой #}
+          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %}
+          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %}
 
-          <col style="width:74px;"> {# Уборка #}
+          <col style="width:74px;">
 
-          {% for _ in "123456" %}<col style="width:74px;">{% endfor %}  {# Погрузка #}
-          {% for _ in "123456" %}<col style="width:74px;">{% endfor %}  {# Под погрузкой #}
+          {% for _ in "123456" %}<col style="width:74px;">{% endfor %}
+          {% for _ in "123456" %}<col style="width:74px;">{% endfor %}
 
-          <col style="width:86px;"> {# Суточные доходы #}
+          <col style="width:86px;">
         </colgroup>
 
         <thead>
@@ -294,7 +279,7 @@
             <th rowspan="2" class="t1a-name t1a-stickyA" data-i18n="col_lc">Наименование ЛЦ</th>
             <th rowspan="2" class="t1a-shift t1a-stickyB" data-i18n="col_shift">Смена</th>
 
-            <th style="background: rgba(238, 207, 207, 0.18);" rowspan="2"><div class="t1a-vtxt" data-i18n="t1_col_podano" >Подано на ЛЦ</div></th>
+            <th style="background: rgba(238, 207, 207, 0.18);" rowspan="2"><div class="t1a-vtxt" data-i18n="t1_col_podano">Подано на ЛЦ</div></th>
             <th style="background: rgba(238, 207, 207, 0.18);" rowspan="2"><div class="t1a-vtxt" data-i18n="t1_col_kpod">к подаче со ст</div></th>
 
             <th style="background: rgba(149, 250, 119, 0.18);" colspan="7" class="g-green" data-i18n="t1_blk_vygr">Выгрузка</th>
@@ -303,7 +288,7 @@
             <th style="background: rgb(236, 222, 160);" rowspan="2" class="g-yellow"><div class="t1a-vtxt" data-i18n="t1_col_uborka">Уборка</div></th>
 
             <th style="background: rgba(229, 246, 250, 0.904);" colspan="6" class="g-blue" data-i18n="t1_blk_pogr">Погрузка</th>
-            <th style="background: rgba(171, 229, 236, 0.904)" colspan="6" class="g-blue" data-i18n="t1_blk_pod_pogr">Под погрузкой</th>
+            <th style="background: rgba(171, 229, 236, 0.904);" colspan="6" class="g-blue" data-i18n="t1_blk_pod_pogr">Под погрузкой</th>
 
             <th rowspan="2" class="g-gray"><div class="t1a-vtxt" data-i18n="t1_col_income">суточные доходы</div></th>
           </tr>
@@ -343,8 +328,22 @@
 
         <tbody>
           {% for st in stations %}
+
+            {# ✅ ВАЖНО: rowspan = 3 если есть ночь+итог, иначе rowspan=1 (только день) #}
             <tr>
-              <td rowspan="{% if st.status %}3{% else %}2{% endif %}" class="t1a-name t1a-stickyA">{{ st.name }}</td>
+              <td rowspan="{% if st.status %}3{% else %}1{% endif %}"
+                  class="t1a-name t1a-stickyA {% if st.status and st.blocks_url %}is-clickable{% endif %}"
+                  {% if st.status and st.blocks_url %}data-href="{{ st.blocks_url }}"{% endif %}>
+
+                {% if st.status and st.blocks_url %}
+                  <a class="t1a-stname-link" href="{{ st.blocks_url }}" title="Открыть 3 блока станции">
+                    {{ st.name }}
+                  </a>
+                {% else %}
+                  {{ st.name }}
+                {% endif %}
+              </td>
+
               <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
 
               <td>{{ st.day_data|get_item:"podano_lc"|default_if_none:"0" }}</td>
@@ -385,6 +384,7 @@
               <td class="g-gray">{{ st.day_data|get_item:"income_daily"|default_if_none:"0" }}</td>
             </tr>
 
+            {# ✅ Ночь и Итог показываем ТОЛЬКО если status=True #}
             {% if st.status %}
             <tr>
               <td class="t1a-shift t1a-stickyB" data-i18n="shift_night">ночь</td>
@@ -426,7 +426,6 @@
 
               <td class="g-gray">{{ st.night_data|get_item:"income_daily"|default_if_none:"0" }}</td>
             </tr>
-            {% endif %}
 
             <tr class="t1a-total">
               <td class="t1a-shift t1a-stickyB" data-i18n="shift_total">итог</td>
@@ -468,6 +467,7 @@
 
               <td class="g-gray"><b>{{ st.total_data|get_item:"income_daily"|default_if_none:"0" }}</b></td>
             </tr>
+            {% endif %}
 
           {% empty %}
             <tr>
@@ -486,6 +486,20 @@
     </span>
   </div>
 </div>
+
+<script>
+(function(){
+  // ✅ клика по всей ячейке (чтобы как у тебя на скрине работало)
+  document.querySelectorAll('td.t1a-name.is-clickable[data-href]').forEach(td=>{
+    td.addEventListener('click', (e)=>{
+      if (e.target && e.target.closest('a')) return;
+      const url = (td.getAttribute('data-href') || '').trim();
+      if (!url) return;
+      window.location.href = url;
+    });
+  });
+})();
+</script>
 
 <script>
 (function(){
