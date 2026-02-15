@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load report_extras %}
 
-{% block title %}Админ — {{ station_name }} — блоки (Таблица 1){% endblock %}
+{% block title %}Terminal kesimida — {{ station_name }} — блоки (Таблица 1){% endblock %}
 
 {% block content %}
 <style>
   .panel{
-    background: var(--surface);
+    /* background: var(--surface); */
     border:1px solid var(--stroke);
     border-radius: 20px;
     box-shadow: var(--shadow);
@@ -108,24 +108,29 @@
     width: 90px;
     white-space: nowrap;
   }
+
+  td{
+    font-variant-numeric: tabular-nums;
+  }
+
 </style>
 
 <div class="panel">
   <div class="head">
     <div>
-      <h2 class="title">Таблица 1 — {{ station_name }} — {{ date|date:"d.m.Y" }} — 3 блока</h2>
-      <p class="muted">Показываем реальные блоки 1/2/3 (day/night/total).</p>
+      <h3 class="title">{{ station_name }}  —  Jadval №1. Terminallar kesimida — {{ date|date:"d.m.Y" }} </h3>
+      <p class="muted">4 ta Terminalning ish ko'rsatkichlari</p>
     </div>
 
     <a class="btn" href="{% url 'admin_table1_report_view' date|date:'Y-m-d' %}">
-      ← Назад к общему отчёту
+      ← ortga
     </a>
   </div>
 
   <div class="grid">
     {% for blk in blocks_ctx %}
       <div class="block">
-        <div class="block-h">Блок {{ blk.b }}</div>
+        <div class="block-h">Terminal {{ blk.b }}</div>
         <div class="sc">
           <table>
             <thead>
@@ -155,7 +160,7 @@
               <tr>
                 <td class="rowname shift">Итог</td>
                 {% for k, label in fields %}
-                  <td>{{ blk.total_obj|data_val:k }}</td>
+                  <td style="font-weight: 700;">{{ blk.total_obj|data_val:k }}</td>
                 {% endfor %}
               </tr>
             </tbody>
@@ -166,4 +171,29 @@
   </div>
 
 </div>
+
+  <script>
+   (function(){
+      // 1 234 567 ko'rinish (space / nbsp bilan chiqadi)
+      const fmt = new Intl.NumberFormat('ru-RU');
+
+      // Bu sahifadagi barcha jadvallar
+      document.querySelectorAll('.grid table tbody td').forEach(td => {
+        // Chapdagi sticky rowname/shift ustunini tegmaymiz
+        if (td.classList.contains('rowname') || td.classList.contains('shift')) return;
+
+        let s = (td.textContent || '').trim();
+
+        // Faqat butun sonlarni formatlaymiz
+        // (agar sizda -123 bo'lsa ham ishlaydi)
+        if (!/^-?\d+$/.test(s)) return;
+
+        const n = Number(s);
+        if (!Number.isFinite(n)) return;
+
+        td.textContent = fmt.format(n);
+      });
+    })();
+  </script>
+
 {% endblock %}
