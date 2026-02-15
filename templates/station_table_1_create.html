@@ -5,11 +5,7 @@
 
 {% block content %}
 <style>
-  /* =========================
-     Page container (base tokens)
-     ========================= */
   .t1-card{
-    /* background: var(--surface); */
     border: 1px solid var(--stroke);
     border-radius: 20px;
     box-shadow: var(--shadow);
@@ -27,9 +23,6 @@
 
   .t1-muted{ color: var(--muted); font-size: 13px; line-height: 1.45; margin: 0; }
 
-  /* =========================
-     Actions (top controls)
-     ========================= */
   .t1-actions{
     display:flex;
     gap:10px;
@@ -103,14 +96,12 @@
   .t1-btn.secondary:hover{ transform: translateY(-1px); box-shadow: 0 18px 48px rgba(15,23,42,.12); }
   .t1-btn.secondary:active{ transform: translateY(0); }
 
-  /* =========================
-     Table wrapper
-     ========================= */
   .xwrap{
     background: rgba(255,255,255,.30);
     border:1px solid var(--stroke);
     border-radius: 18px;
     overflow: hidden;
+    margin-top: 14px;
   }
   html[data-theme="dark"] .xwrap{ background: rgba(255,255,255,.04); }
 
@@ -133,9 +124,6 @@
   .xscroll::-webkit-scrollbar-thumb{ background: rgba(15,23,42,.22); border-radius: 999px; }
   html[data-theme="dark"] .xscroll::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); }
 
-  /* =========================
-     Table (stronger grid lines)
-     ========================= */
   .xtable{
     border-collapse: separate;
     border-spacing: 0;
@@ -162,13 +150,11 @@
     border-bottom: 1px solid rgba(255,255,255,.18);
   }
 
-  /* outer frame */
   .xtable tr > *:first-child{ border-left: 1px solid rgba(15,23,42,.18); }
   html[data-theme="dark"] .xtable tr > *:first-child{ border-left: 1px solid rgba(255,255,255,.18); }
   .xtable thead tr:first-child > *{ border-top: 1px solid rgba(15,23,42,.18); }
   html[data-theme="dark"] .xtable thead tr:first-child > *{ border-top: 1px solid rgba(255,255,255,.18); }
 
-  /* sticky header */
   .xtable thead th{
     position: sticky;
     top: 0;
@@ -177,20 +163,17 @@
     font-weight: 950;
   }
 
-  /* sticky first column (name) for better UX */
   .xtable .xname,
   .xtable .xshift{
     position: sticky;
     left: 0;
     z-index: 106;
-    /* background: var(--surface); */
     background: #fff;
     text-align: left;
     padding-left: 10px;
     font-weight: 950;
   }
 
-  /* vertical text */
   .vtxt{
     writing-mode: vertical-rl;
     transform: rotate(180deg);
@@ -199,17 +182,14 @@
     letter-spacing: .02em;
   }
 
-  /* group headers backgrounds */
   .g-green{ background: rgba(34,197,94,.10); }
   .g-blue{ background: rgba(79,70,229,.10); }
   .g-gray{ background: rgba(100,116,139,.10); }
   .g-total{ background: rgba(245,158,11,.12); }
 
-  /* shift cells */
   .xshift{ font-weight: 950; }
   .xshift.xbig{ text-align:center; font-weight: 950; font-size: 14px; }
 
-  /* Inputs inside grid */
   .xinput input{
     width: 76px;
     height: 34px;
@@ -234,14 +214,8 @@
   }
   html[data-theme="dark"] .xinput input:focus{ background: rgba(255,255,255,.10); }
 
-  .dash{ font-weight: 950; color: var(--muted); }
-
-  /* input for "k podache so st" slightly wider */
   .kcell input{ width: 90px; }
 
-  /* =========================
-     Responsive
-     ========================= */
   @media (max-width: 980px){
     .t1-card{ padding: 12px; border-radius: 18px; }
     .t1-title{ font-size: 16px; }
@@ -278,6 +252,13 @@
   <p class="t1-muted" data-i18n="t1_help">
     ИТОГ: если поле пустое — берётся День+Ночь. Если введёшь значение — будет использовано твоё.
   </p>
+
+  {% if error %}
+    <div style="margin-top:10px; padding:10px 12px; border-radius:14px; border:1px solid var(--stroke); background: rgba(239,68,68,.10); color: var(--text); font-weight:900;">
+      {{ error }}
+    </div>
+  {% endif %}
+
   <form method="post">
     {% csrf_token %}
 
@@ -297,327 +278,337 @@
         <input class="t1-inp" value="{{ station_name }}" disabled>
       </div>
 
+      {# ✅ “общий” показываем только если таблица одна (иначе путает) #}
+      {% if blocks_ctx|length == 1 %}
+      <div class="t1-field" style="min-width:220px;">
+        <label>k podache so st (общий)</label>
+        <input class="t1-inp" {% if mode == "view" %}disabled{% endif %}
+               name="b1__common__k_podache_so_st"
+               value="{{ blocks_ctx.0.total_obj|data_val:'k_podache_so_st' }}"
+               inputmode="numeric">
+      </div>
+      {% endif %}
+
       {% if mode != "view" %}
-        <button class="t1-btn primary" type="submit">
+        <button class="t1-btn secondary" type="submit" name="save_only" value="1">
+          <span data-i18n="t1_btn_save">Сохранить</span>
+        </button>
+
+        <button class="t1-btn primary" type="submit" name="submit_report" value="1">
           {% if is_new %}
-            <span data-i18n="t1_btn_create">Создать отчёт</span>
+            <span>Создать и отправить</span>
           {% else %}
-            <span data-i18n="t1_btn_save">Сохранить</span>
+            <span>Отправить админу</span>
           {% endif %}
         </button>
       {% endif %}
-      
     </div>
 
-    <div class="xwrap">
-      <div class="xhdr" data-i18n="t1_hdr">
-        Оперативная информация о работе логистических центров АО "Узтемирйулконтейнер" в сутки —
-        {{ date|date:"d.m.Y" }} — к 18:00 час
-      </div>
+    {# ✅ Рисуем 1 или 3 таблицы подряд #}
+    {% for blk in blocks_ctx %}
+      {% with b=blk.b day_obj=blk.day_obj night_obj=blk.night_obj total_obj=blk.total_obj %}
+      {% with k_val=total_obj|data_val:'k_podache_so_st' %}
+      <div class="xwrap">
+        <div class="xhdr" data-i18n="t1_hdr">
+          Оперативная информация о работе логистических центров АО "Узтемирйулконтейнер" в сутки —
+          {{ date|date:"d.m.Y" }} — к 18:00 час
+          {% if blocks_ctx|length > 1 %} — Блок {{ b }}{% endif %}
+        </div>
 
-      <div class="xscroll">
-        <table class="xtable" id="t1">
-          <colgroup>
-            <col style="width:170px;">
-            <col style="width:84px;">
-            <col style="width:64px;">
-            {% for _ in "1234567890123456789012345678901234567890" %}
+        <div class="xscroll">
+          <table class="xtable t1-table" data-block="{{ b }}">
+            <colgroup>
+              <col style="width:170px;">
               <col style="width:84px;">
-            {% endfor %}
-          </colgroup>
+              <col style="width:64px;">
+              {% for _ in "1234567890123456789012345678901234567890" %}
+                <col style="width:84px;">
+              {% endfor %}
+            </colgroup>
 
-          <thead>
-            <tr>
-              <th rowspan="4" class="xname" data-i18n="t1_col_name">Наименование ЛЦ</th>
-              <th rowspan="4" class="xname" data-i18n="t1_col_shift">Смена</th>
-              
-              <th rowspan="2"><div class="vtxt" data-i18n="t1_col_podano">Подано на ЛЦ</div></th>
-              <th rowspan="2"><div class="vtxt" data-i18n="t1_col_kpod">к подаче со ст</div></th>
+            <thead>
+              <tr>
+                <th rowspan="4" class="xname" data-i18n="t1_col_name">Наименование ЛЦ</th>
+                <th rowspan="4" class="xname" data-i18n="t1_col_shift">Смена</th>
 
-              <th colspan="7" class="g-green" data-i18n="t1_blk_vygr">Выгрузка</th>
-              <th colspan="7" class="g-green" data-i18n="t1_blk_pod_vygr">Под выгрузкой</th>
+                <th rowspan="2"><div class="vtxt" data-i18n="t1_col_podano">Подано на ЛЦ</div></th>
+                <th rowspan="2"><div class="vtxt" data-i18n="t1_col_kpod">к подаче со ст</div></th>
 
-              <th rowspan="2"><div class="vtxt" data-i18n="t1_col_uborka">Уборка</div></th>
+                <th colspan="7" class="g-green" data-i18n="t1_blk_vygr">Выгрузка</th>
+                <th colspan="7" class="g-green" data-i18n="t1_blk_pod_vygr">Под выгрузкой</th>
 
-              <th colspan="6" class="g-blue" data-i18n="t1_blk_pogr">Погрузка</th>
-              <th colspan="6" class="g-blue" data-i18n="t1_blk_pod_pogr">Под погрузкой</th>
+                <th rowspan="2"><div class="vtxt" data-i18n="t1_col_uborka">Уборка</div></th>
 
-              <th colspan="2" class="g-gray" data-i18n="t1_blk_sps">Порожние СПС</th>
-              <th rowspan="2" class="g-gray" data-i18n="t1_col_income">суточные доходы</th>
-            </tr>
+                <th colspan="6" class="g-blue" data-i18n="t1_blk_pogr">Погрузка</th>
+                <th colspan="6" class="g-blue" data-i18n="t1_blk_pod_pogr">Под погрузкой</th>
 
-            <tr>
-              <th class="g-green"><div class="vtxt">фт</div></th>
-              <th class="g-green"><div class="vtxt">конт.</div></th>
-              <th class="g-green"><div class="vtxt">кр</div></th>
-              <th class="g-green"><div class="vtxt">пв</div></th>
-              <th class="g-green"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
-              <th class="g-green"><div class="vtxt" data-i18n="t1_auto">Авто</div></th>
-              <th class="g-green"><div class="vtxt">конт.</div></th>
+                <th colspan="2" class="g-gray" data-i18n="t1_blk_sps">Порожние СПС</th>
+                <th rowspan="2" class="g-gray" data-i18n="t1_col_income">суточные доходы</th>
+              </tr>
 
-              <th class="g-green"><div class="vtxt">фт</div></th>
-              <th class="g-green"><div class="vtxt">конт.</div></th>
-              <th class="g-green"><div class="vtxt">кр</div></th>
-              <th class="g-green"><div class="vtxt">пв</div></th>
-              <th class="g-green"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
-              <th class="g-green"><div class="vtxt" data-i18n="t1_auto">Авто</div></th>
-              <th class="g-green"><div class="vtxt">конт.</div></th>
+              <tr>
+                <th class="g-green"><div class="vtxt">фт</div></th>
+                <th class="g-green"><div class="vtxt">конт.</div></th>
+                <th class="g-green"><div class="vtxt">кр</div></th>
+                <th class="g-green"><div class="vtxt">пв</div></th>
+                <th class="g-green"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
+                <th class="g-green"><div class="vtxt" data-i18n="t1_auto">Авто</div></th>
+                <th class="g-green"><div class="vtxt">конт.</div></th>
 
-              <th class="g-blue"><div class="vtxt">фт</div></th>
-              <th class="g-blue"><div class="vtxt">конт.</div></th>
-              <th class="g-blue"><div class="vtxt">кр</div></th>
-              <th class="g-blue"><div class="vtxt">пв</div></th>
-              <th class="g-blue"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
-              <th class="g-blue"><div class="vtxt">конт.</div></th>
+                <th class="g-green"><div class="vtxt">фт</div></th>
+                <th class="g-green"><div class="vtxt">конт.</div></th>
+                <th class="g-green"><div class="vtxt">кр</div></th>
+                <th class="g-green"><div class="vtxt">пв</div></th>
+                <th class="g-green"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
+                <th class="g-green"><div class="vtxt" data-i18n="t1_auto">Авто</div></th>
+                <th class="g-green"><div class="vtxt">конт.</div></th>
 
-              <th class="g-blue"><div class="vtxt">фт</div></th>
-              <th class="g-blue"><div class="vtxt">конт.</div></th>
-              <th class="g-blue"><div class="vtxt">кр</div></th>
-              <th class="g-blue"><div class="vtxt">пв</div></th>
-              <th class="g-blue"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
-              <th class="g-blue"><div class="vtxt">конт.</div></th>
+                <th class="g-blue"><div class="vtxt">фт</div></th>
+                <th class="g-blue"><div class="vtxt">конт.</div></th>
+                <th class="g-blue"><div class="vtxt">кр</div></th>
+                <th class="g-blue"><div class="vtxt">пв</div></th>
+                <th class="g-blue"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
+                <th class="g-blue"><div class="vtxt">конт.</div></th>
 
-              <th class="g-gray"><div class="vtxt">ЛЦ</div></th>
-              <th class="g-gray"><div class="vtxt" data-i18n="t1_station2">СТАНЦИЯ</div></th>
-            </tr>
-          </thead>
+                <th class="g-blue"><div class="vtxt">фт</div></th>
+                <th class="g-blue"><div class="vtxt">конт.</div></th>
+                <th class="g-blue"><div class="vtxt">кр</div></th>
+                <th class="g-blue"><div class="vtxt">пв</div></th>
+                <th class="g-blue"><div class="vtxt" data-i18n="t1_misc">прочее</div></th>
+                <th class="g-blue"><div class="vtxt">конт.</div></th>
 
-          <tbody>
-            <!-- DAY -->
-            <tr data-row="day">
-              <td rowspan="3" class="xshift">{{ station_name }}</td>
-              <td class="xshift"  data-i18n="t1_shift_day">kun</td>
+                <th class="g-gray"><div class="vtxt">ЛЦ</div></th>
+                <th class="g-gray"><div class="vtxt" data-i18n="t1_station2">СТАНЦИЯ</div></th>
+              </tr>
+            </thead>
 
-              <td class="xinput">
-                <input {% if mode == "view" %}disabled{% endif %} name="day__podano_lc"
-                       value="{{ day_obj|data_val:'podano_lc' }}" data-key="podano_lc" inputmode="numeric">
-              </td>
+            <tbody>
+              <!-- DAY -->
+              <tr data-row="day">
+                <td rowspan="{% if status %}3{% else %}2{% endif %}" class="xshift">{{ station_name }}</td>
+                <td class="xshift" data-i18n="t1_shift_day">kun</td>
 
-              <td rowspan="3" class="xinput kcell">
-                <input {% if mode == "view" %}disabled{% endif %}
-                       name="common__k_podache_so_st"
-                       value="{{ common_k }}"
-                       inputmode="numeric">
-              </td>
+                <td class="xinput">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__day__podano_lc"
+                         value="{{ day_obj|data_val:'podano_lc' }}"
+                         data-key="podano_lc" inputmode="numeric">
+                </td>
 
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_ft" value="{{ day_obj|data_val:'vygr_ft' }}" data-key="vygr_ft" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_cont" value="{{ day_obj|data_val:'vygr_cont' }}" data-key="vygr_cont" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_kr" value="{{ day_obj|data_val:'vygr_kr' }}" data-key="vygr_kr" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_pv" value="{{ day_obj|data_val:'vygr_pv' }}" data-key="vygr_pv" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_proch" value="{{ day_obj|data_val:'vygr_proch' }}" data-key="vygr_proch" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_itogo" value="{{ day_obj|data_val:'vygr_itogo' }}" data-key="vygr_itogo" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__vygr_itogo_kon" value="{{ day_obj|data_val:'vygr_itogo_kon' }}" data-key="vygr_itogo_kon" inputmode="numeric"></td>
+                {# ✅ ОДНА центральная ячейка (rowspan) + input, но УНИКАЛЬНЫЙ ДЛЯ КАЖДОГО БЛОКА #}
+                <td rowspan="{% if status %}3{% else %}2{% endif %}" class="xinput kcell">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__common__k_podache_so_st"
+                         value="{{ k_val }}"
+                         inputmode="numeric">
+                </td>
 
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_ft" value="{{ day_obj|data_val:'pod_vygr_ft' }}" data-key="pod_vygr_ft" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_cont" value="{{ day_obj|data_val:'pod_vygr_cont' }}" data-key="pod_vygr_cont" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_kr" value="{{ day_obj|data_val:'pod_vygr_kr' }}" data-key="pod_vygr_kr" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_pv" value="{{ day_obj|data_val:'pod_vygr_pv' }}" data-key="pod_vygr_pv" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_proch" value="{{ day_obj|data_val:'pod_vygr_proch' }}" data-key="pod_vygr_proch" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_itogo" value="{{ day_obj|data_val:'pod_vygr_itogo' }}" data-key="pod_vygr_itogo" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_vygr_itogo_kon" value="{{ day_obj|data_val:'pod_vygr_itogo_kon' }}" data-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_ft" value="{{ day_obj|data_val:'vygr_ft' }}" data-key="vygr_ft" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_cont" value="{{ day_obj|data_val:'vygr_cont' }}" data-key="vygr_cont" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_kr" value="{{ day_obj|data_val:'vygr_kr' }}" data-key="vygr_kr" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_pv" value="{{ day_obj|data_val:'vygr_pv' }}" data-key="vygr_pv" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_proch" value="{{ day_obj|data_val:'vygr_proch' }}" data-key="vygr_proch" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_itogo" value="{{ day_obj|data_val:'vygr_itogo' }}" data-key="vygr_itogo" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_itogo_kon" value="{{ day_obj|data_val:'vygr_itogo_kon' }}" data-key="vygr_itogo_kon" inputmode="numeric"></td>
 
-              <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="day__uborka" value="{{ day_obj|data_val:'uborka' }}" data-key="uborka" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_ft" value="{{ day_obj|data_val:'pod_vygr_ft' }}" data-key="pod_vygr_ft" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_cont" value="{{ day_obj|data_val:'pod_vygr_cont' }}" data-key="pod_vygr_cont" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_kr" value="{{ day_obj|data_val:'pod_vygr_kr' }}" data-key="pod_vygr_kr" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_pv" value="{{ day_obj|data_val:'pod_vygr_pv' }}" data-key="pod_vygr_pv" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_proch" value="{{ day_obj|data_val:'pod_vygr_proch' }}" data-key="pod_vygr_proch" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_itogo" value="{{ day_obj|data_val:'pod_vygr_itogo' }}" data-key="pod_vygr_itogo" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_itogo_kon" value="{{ day_obj|data_val:'pod_vygr_itogo_kon' }}" data-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
 
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pogr_ft" value="{{ day_obj|data_val:'pogr_ft' }}" data-key="pogr_ft" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pogr_cont" value="{{ day_obj|data_val:'pogr_cont' }}" data-key="pogr_cont" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pogr_kr" value="{{ day_obj|data_val:'pogr_kr' }}" data-key="pogr_kr" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pogr_pv" value="{{ day_obj|data_val:'pogr_pv' }}" data-key="pogr_pv" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pogr_proch" value="{{ day_obj|data_val:'pogr_proch' }}" data-key="pogr_proch" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pogr_itogo_kon" value="{{ day_obj|data_val:'pogr_itogo_kon' }}" data-key="pogr_itogo_kon" inputmode="numeric"></td>
+                <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__uborka" value="{{ day_obj|data_val:'uborka' }}" data-key="uborka" inputmode="numeric"></td>
 
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_pogr_ft" value="{{ day_obj|data_val:'pod_pogr_ft' }}" data-key="pod_pogr_ft" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_pogr_cont" value="{{ day_obj|data_val:'pod_pogr_cont' }}" data-key="pod_pogr_cont" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_pogr_kr" value="{{ day_obj|data_val:'pod_pogr_kr' }}" data-key="pod_pogr_kr" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_pogr_pv" value="{{ day_obj|data_val:'pod_pogr_pv' }}" data-key="pod_pogr_pv" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_pogr_proch" value="{{ day_obj|data_val:'pod_pogr_proch' }}" data-key="pod_pogr_proch" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="day__pod_pogr_itogo_kon" value="{{ day_obj|data_val:'pod_pogr_itogo_kon' }}" data-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_ft" value="{{ day_obj|data_val:'pogr_ft' }}" data-key="pogr_ft" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_cont" value="{{ day_obj|data_val:'pogr_cont' }}" data-key="pogr_cont" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_kr" value="{{ day_obj|data_val:'pogr_kr' }}" data-key="pogr_kr" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_pv" value="{{ day_obj|data_val:'pogr_pv' }}" data-key="pogr_pv" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_proch" value="{{ day_obj|data_val:'pogr_proch' }}" data-key="pogr_proch" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_itogo_kon" value="{{ day_obj|data_val:'pogr_itogo_kon' }}" data-key="pogr_itogo_kon" inputmode="numeric"></td>
 
-              <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="day__spc_lc" value="{{ day_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
-              <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="day__spc_station" value="{{ day_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_ft" value="{{ day_obj|data_val:'pod_pogr_ft' }}" data-key="pod_pogr_ft" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_cont" value="{{ day_obj|data_val:'pod_pogr_cont' }}" data-key="pod_pogr_cont" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_kr" value="{{ day_obj|data_val:'pod_pogr_kr' }}" data-key="pod_pogr_kr" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_pv" value="{{ day_obj|data_val:'pod_pogr_pv' }}" data-key="pod_pogr_pv" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_proch" value="{{ day_obj|data_val:'pod_pogr_proch' }}" data-key="pod_pogr_proch" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_itogo_kon" value="{{ day_obj|data_val:'pod_pogr_itogo_kon' }}" data-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
 
-            <td class="xinput g-gray">
-              <input {% if mode == "view" %}disabled{% endif %}
-                    name="day__income_daily"
-                    value="{{ day_obj|data_val:'income_daily' }}"
-                    data-key="income_daily"
-                    inputmode="numeric">
-            </td>
+                <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__spc_lc" value="{{ day_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
+                <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__spc_station" value="{{ day_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-          </tr>
-          
-          {% if status %}
-          <!-- NIGHT -->
-          <tr data-row="night">
-            <td class="xshift" rowspan="1" data-i18n="t1_shift_night">tun</td>
-            <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="night__podano_lc" value="{{ night_obj|data_val:'podano_lc' }}" data-key="podano_lc"></td>
+                <td class="xinput g-gray">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__day__income_daily"
+                         value="{{ day_obj|data_val:'income_daily' }}"
+                         data-key="income_daily"
+                         inputmode="numeric">
+                </td>
+              </tr>
 
-              
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_ft" value="{{ night_obj|data_val:'vygr_ft' }}" data-key="vygr_ft" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_cont" value="{{ night_obj|data_val:'vygr_cont' }}" data-key="vygr_cont" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_kr" value="{{ night_obj|data_val:'vygr_kr' }}" data-key="vygr_kr" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_pv" value="{{ night_obj|data_val:'vygr_pv' }}" data-key="vygr_pv" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_proch" value="{{ night_obj|data_val:'vygr_proch' }}" data-key="vygr_proch" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_itogo" value="{{ night_obj|data_val:'vygr_itogo' }}" data-key="vygr_itogo" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__vygr_itogo_kon" value="{{ night_obj|data_val:'vygr_itogo_kon' }}" data-key="vygr_itogo_kon" inputmode="numeric"></td>
+              {% if status %}
+              <!-- NIGHT -->
+              <tr data-row="night">
+                <td class="xshift" data-i18n="t1_shift_night">tun</td>
 
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_ft" value="{{ night_obj|data_val:'pod_vygr_ft' }}" data-key="pod_vygr_ft" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_cont" value="{{ night_obj|data_val:'pod_vygr_cont' }}" data-key="pod_vygr_cont" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_kr" value="{{ night_obj|data_val:'pod_vygr_kr' }}" data-key="pod_vygr_kr" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_pv" value="{{ night_obj|data_val:'pod_vygr_pv' }}" data-key="pod_vygr_pv" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_proch" value="{{ night_obj|data_val:'pod_vygr_proch' }}" data-key="pod_vygr_proch" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_itogo" value="{{ night_obj|data_val:'pod_vygr_itogo' }}" data-key="pod_vygr_itogo" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_vygr_itogo_kon" value="{{ night_obj|data_val:'pod_vygr_itogo_kon' }}" data-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
+                <td class="xinput">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__night__podano_lc"
+                         value="{{ night_obj|data_val:'podano_lc' }}"
+                         data-key="podano_lc" inputmode="numeric">
+                </td>
 
-              <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="night__uborka" value="{{ night_obj|data_val:'uborka' }}" data-key="uborka" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_ft" value="{{ night_obj|data_val:'vygr_ft' }}" data-key="vygr_ft" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_cont" value="{{ night_obj|data_val:'vygr_cont' }}" data-key="vygr_cont" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_kr" value="{{ night_obj|data_val:'vygr_kr' }}" data-key="vygr_kr" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_pv" value="{{ night_obj|data_val:'vygr_pv' }}" data-key="vygr_pv" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_proch" value="{{ night_obj|data_val:'vygr_proch' }}" data-key="vygr_proch" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_itogo" value="{{ night_obj|data_val:'vygr_itogo' }}" data-key="vygr_itogo" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__vygr_itogo_kon" value="{{ night_obj|data_val:'vygr_itogo_kon' }}" data-key="vygr_itogo_kon" inputmode="numeric"></td>
 
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pogr_ft" value="{{ night_obj|data_val:'pogr_ft' }}" data-key="pogr_ft" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pogr_cont" value="{{ night_obj|data_val:'pogr_cont' }}" data-key="pogr_cont" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pogr_kr" value="{{ night_obj|data_val:'pogr_kr' }}" data-key="pogr_kr" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pogr_pv" value="{{ night_obj|data_val:'pogr_pv' }}" data-key="pogr_pv" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pogr_proch" value="{{ night_obj|data_val:'pogr_proch' }}" data-key="pogr_proch" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pogr_itogo_kon" value="{{ night_obj|data_val:'pogr_itogo_kon' }}" data-key="pogr_itogo_kon" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_ft" value="{{ night_obj|data_val:'pod_vygr_ft' }}" data-key="pod_vygr_ft" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_cont" value="{{ night_obj|data_val:'pod_vygr_cont' }}" data-key="pod_vygr_cont" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_kr" value="{{ night_obj|data_val:'pod_vygr_kr' }}" data-key="pod_vygr_kr" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_pv" value="{{ night_obj|data_val:'pod_vygr_pv' }}" data-key="pod_vygr_pv" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_proch" value="{{ night_obj|data_val:'pod_vygr_proch' }}" data-key="pod_vygr_proch" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_itogo" value="{{ night_obj|data_val:'pod_vygr_itogo' }}" data-key="pod_vygr_itogo" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_vygr_itogo_kon" value="{{ night_obj|data_val:'pod_vygr_itogo_kon' }}" data-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
 
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_pogr_ft" value="{{ night_obj|data_val:'pod_pogr_ft' }}" data-key="pod_pogr_ft" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_pogr_cont" value="{{ night_obj|data_val:'pod_pogr_cont' }}" data-key="pod_pogr_cont" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_pogr_kr" value="{{ night_obj|data_val:'pod_pogr_kr' }}" data-key="pod_pogr_kr" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_pogr_pv" value="{{ night_obj|data_val:'pod_pogr_pv' }}" data-key="pod_pogr_pv" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_pogr_proch" value="{{ night_obj|data_val:'pod_pogr_proch' }}" data-key="pod_pogr_proch" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="night__pod_pogr_itogo_kon" value="{{ night_obj|data_val:'pod_pogr_itogo_kon' }}" data-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
+                <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__uborka" value="{{ night_obj|data_val:'uborka' }}" data-key="uborka" inputmode="numeric"></td>
 
-              <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="night__spc_lc" value="{{ night_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
-              <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="night__spc_station" value="{{ night_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pogr_ft" value="{{ night_obj|data_val:'pogr_ft' }}" data-key="pogr_ft" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pogr_cont" value="{{ night_obj|data_val:'pogr_cont' }}" data-key="pogr_cont" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pogr_kr" value="{{ night_obj|data_val:'pogr_kr' }}" data-key="pogr_kr" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pogr_pv" value="{{ night_obj|data_val:'pogr_pv' }}" data-key="pogr_pv" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pogr_proch" value="{{ night_obj|data_val:'pogr_proch' }}" data-key="pogr_proch" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pogr_itogo_kon" value="{{ night_obj|data_val:'pogr_itogo_kon' }}" data-key="pogr_itogo_kon" inputmode="numeric"></td>
 
-              <td class="xinput g-gray">
-                <input {% if mode == "view" %}disabled{% endif %}
-                      name="night__income_daily"
-                      value="{{ night_obj|data_val:'income_daily' }}"
-                      data-key="income_daily"
-                      inputmode="numeric">
-              </td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_pogr_ft" value="{{ night_obj|data_val:'pod_pogr_ft' }}" data-key="pod_pogr_ft" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_pogr_cont" value="{{ night_obj|data_val:'pod_pogr_cont' }}" data-key="pod_pogr_cont" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_pogr_kr" value="{{ night_obj|data_val:'pod_pogr_kr' }}" data-key="pod_pogr_kr" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_pogr_pv" value="{{ night_obj|data_val:'pod_pogr_pv' }}" data-key="pod_pogr_pv" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_pogr_proch" value="{{ night_obj|data_val:'pod_pogr_proch' }}" data-key="pod_pogr_proch" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__pod_pogr_itogo_kon" value="{{ night_obj|data_val:'pod_pogr_itogo_kon' }}" data-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
 
-            </tr>
+                <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__spc_lc" value="{{ night_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
+                <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__spc_station" value="{{ night_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-            <!-- TOTAL -->
-            <tr class="g-total" data-row="total">
-              <td rowspan="1" colspan="" class="xshift xbig" data-i18n="t1_total">ИТОГ</td>
-              
-
-            <td class="xinput">
-              <input {% if mode == "view" %}disabled{% endif %}
-                     name="total__podano_lc"
-                     value="{{ total_obj|data_val:'podano_lc' }}"
-                     data-total-key="podano_lc"
-                     placeholder="">
-            </td>
-            
-            {# колонка "к подаче со ст" уже занята rowspan=3 — тут td НЕ ДОЛЖНО быть #}
-
-
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_ft" value="{{ total_obj|data_val:'vygr_ft' }}" data-total-key="vygr_ft" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_cont" value="{{ total_obj|data_val:'vygr_cont' }}" data-total-key="vygr_cont" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_kr" value="{{ total_obj|data_val:'vygr_kr' }}" data-total-key="vygr_kr" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_pv" value="{{ total_obj|data_val:'vygr_pv' }}" data-total-key="vygr_pv" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_proch" value="{{ total_obj|data_val:'vygr_proch' }}" data-total-key="vygr_proch" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_itogo" value="{{ total_obj|data_val:'vygr_itogo' }}" data-total-key="vygr_itogo" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__vygr_itogo_kon" value="{{ total_obj|data_val:'vygr_itogo_kon' }}" data-total-key="vygr_itogo_kon" placeholder="" inputmode="numeric"></td>
-
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_ft" value="{{ total_obj|data_val:'pod_vygr_ft' }}" data-total-key="pod_vygr_ft" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_cont" value="{{ total_obj|data_val:'pod_vygr_cont' }}" data-total-key="pod_vygr_cont" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_kr" value="{{ total_obj|data_val:'pod_vygr_kr' }}" data-total-key="pod_vygr_kr" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_pv" value="{{ total_obj|data_val:'pod_vygr_pv' }}" data-total-key="pod_vygr_pv" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_proch" value="{{ total_obj|data_val:'pod_vygr_proch' }}" data-total-key="pod_vygr_proch" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_itogo" value="{{ total_obj|data_val:'pod_vygr_itogo' }}" data-total-key="pod_vygr_itogo" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_vygr_itogo_kon" value="{{ total_obj|data_val:'pod_vygr_itogo_kon' }}" data-total-key="pod_vygr_itogo_kon" placeholder="" inputmode="numeric"></td>
-
-              <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="total__uborka" value="{{ total_obj|data_val:'uborka' }}" data-total-key="uborka" placeholder="" inputmode="numeric"></td>
-
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pogr_ft" value="{{ total_obj|data_val:'pogr_ft' }}" data-total-key="pogr_ft" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pogr_cont" value="{{ total_obj|data_val:'pogr_cont' }}" data-total-key="pogr_cont" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pogr_kr" value="{{ total_obj|data_val:'pogr_kr' }}" data-total-key="pogr_kr" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pogr_pv" value="{{ total_obj|data_val:'pogr_pv' }}" data-total-key="pogr_pv" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pogr_proch" value="{{ total_obj|data_val:'pogr_proch' }}" data-total-key="pogr_proch" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pogr_itogo_kon" value="{{ total_obj|data_val:'pogr_itogo_kon' }}" data-total-key="pogr_itogo_kon" placeholder="" inputmode="numeric"></td>
-
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_pogr_ft" value="{{ total_obj|data_val:'pod_pogr_ft' }}" data-total-key="pod_pogr_ft" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_pogr_cont" value="{{ total_obj|data_val:'pod_pogr_cont' }}" data-total-key="pod_pogr_cont" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_pogr_kr" value="{{ total_obj|data_val:'pod_pogr_kr' }}" data-total-key="pod_pogr_kr" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_pogr_pv" value="{{ total_obj|data_val:'pod_pogr_pv' }}" data-total-key="pod_pogr_pv" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_pogr_proch" value="{{ total_obj|data_val:'pod_pogr_proch' }}" data-total-key="pod_pogr_proch" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="total__pod_pogr_itogo_kon" value="{{ total_obj|data_val:'pod_pogr_itogo_kon' }}" data-total-key="pod_pogr_itogo_kon" placeholder="" inputmode="numeric"></td>
-
-              <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="total__spc_lc" value="{{ total_obj|data_val:'spc_lc' }}" data-total-key="spc_lc" placeholder="" inputmode="numeric"></td>
-              <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="total__spc_station" value="{{ total_obj|data_val:'spc_station' }}" data-total-key="spc_station" placeholder="" inputmode="numeric"></td>
-            
-              <td class="xinput g-gray">
-                <input {% if mode == "view" %}disabled{% endif %}
-                       name="total__income_daily"
-                       value="{{ total_obj|data_val:'income_daily' }}"
-                       data-total-key="income_daily"
-                       placeholder=""
-                       inputmode="numeric">
-              </td>
+                <td class="xinput g-gray">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__night__income_daily"
+                         value="{{ night_obj|data_val:'income_daily' }}"
+                         data-key="income_daily"
+                         inputmode="numeric">
+                </td>
+              </tr>
               {% endif %}
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
+              <!-- TOTAL -->
+              <tr class="g-total" data-row="total">
+                <td class="xshift xbig" data-i18n="t1_total">ИТОГ</td>
+
+                <td class="xinput">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__total__podano_lc"
+                         value="{{ total_obj|data_val:'podano_lc' }}"
+                         data-total-key="podano_lc"
+                         inputmode="numeric">
+                </td>
+
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_ft" value="{{ total_obj|data_val:'vygr_ft' }}" data-total-key="vygr_ft" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_cont" value="{{ total_obj|data_val:'vygr_cont' }}" data-total-key="vygr_cont" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_kr" value="{{ total_obj|data_val:'vygr_kr' }}" data-total-key="vygr_kr" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_pv" value="{{ total_obj|data_val:'vygr_pv' }}" data-total-key="vygr_pv" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_proch" value="{{ total_obj|data_val:'vygr_proch' }}" data-total-key="vygr_proch" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_itogo" value="{{ total_obj|data_val:'vygr_itogo' }}" data-total-key="vygr_itogo" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__vygr_itogo_kon" value="{{ total_obj|data_val:'vygr_itogo_kon' }}" data-total-key="vygr_itogo_kon" inputmode="numeric"></td>
+
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_ft" value="{{ total_obj|data_val:'pod_vygr_ft' }}" data-total-key="pod_vygr_ft" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_cont" value="{{ total_obj|data_val:'pod_vygr_cont' }}" data-total-key="pod_vygr_cont" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_kr" value="{{ total_obj|data_val:'pod_vygr_kr' }}" data-total-key="pod_vygr_kr" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_pv" value="{{ total_obj|data_val:'pod_vygr_pv' }}" data-total-key="pod_vygr_pv" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_proch" value="{{ total_obj|data_val:'pod_vygr_proch' }}" data-total-key="pod_vygr_proch" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_itogo" value="{{ total_obj|data_val:'pod_vygr_itogo' }}" data-total-key="pod_vygr_itogo" inputmode="numeric"></td>
+                <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_vygr_itogo_kon" value="{{ total_obj|data_val:'pod_vygr_itogo_kon' }}" data-total-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
+
+                <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__uborka" value="{{ total_obj|data_val:'uborka' }}" data-total-key="uborka" inputmode="numeric"></td>
+
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pogr_ft" value="{{ total_obj|data_val:'pogr_ft' }}" data-total-key="pogr_ft" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pogr_cont" value="{{ total_obj|data_val:'pogr_cont' }}" data-total-key="pogr_cont" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pogr_kr" value="{{ total_obj|data_val:'pogr_kr' }}" data-total-key="pogr_kr" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pogr_pv" value="{{ total_obj|data_val:'pogr_pv' }}" data-total-key="pogr_pv" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pogr_proch" value="{{ total_obj|data_val:'pogr_proch' }}" data-total-key="pogr_proch" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pogr_itogo_kon" value="{{ total_obj|data_val:'pogr_itogo_kon' }}" data-total-key="pogr_itogo_kon" inputmode="numeric"></td>
+
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_pogr_ft" value="{{ total_obj|data_val:'pod_pogr_ft' }}" data-total-key="pod_pogr_ft" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_pogr_cont" value="{{ total_obj|data_val:'pod_pogr_cont' }}" data-total-key="pod_pogr_cont" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_pogr_kr" value="{{ total_obj|data_val:'pod_pogr_kr' }}" data-total-key="pod_pogr_kr" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_pogr_pv" value="{{ total_obj|data_val:'pod_pogr_pv' }}" data-total-key="pod_pogr_pv" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_pogr_proch" value="{{ total_obj|data_val:'pod_pogr_proch' }}" data-total-key="pod_pogr_proch" inputmode="numeric"></td>
+                <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__pod_pogr_itogo_kon" value="{{ total_obj|data_val:'pod_pogr_itogo_kon' }}" data-total-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
+
+                <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__spc_lc" value="{{ total_obj|data_val:'spc_lc' }}" data-total-key="spc_lc" inputmode="numeric"></td>
+                <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__spc_station" value="{{ total_obj|data_val:'spc_station' }}" data-total-key="spc_station" inputmode="numeric"></td>
+
+                <td class="xinput g-gray">
+                  <input {% if mode == "view" %}disabled{% endif %}
+                         name="b{{ b }}__total__income_daily"
+                         value="{{ total_obj|data_val:'income_daily' }}"
+                         data-total-key="income_daily"
+                         inputmode="numeric">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endwith %}
+      {% endwith %}
+    {% endfor %}
   </form>
 </div>
 
 <script>
-/* =========================
-   Auto-calc placeholders (unchanged logic)
-   ========================= */
 (function(){
-  const table = document.getElementById("t1");
-  if(!table) return;
+  document.querySelectorAll(".t1-table").forEach((table)=>{
+    const dayRow = table.querySelector('tr[data-row="day"]');
+    const nightRow = table.querySelector('tr[data-row="night"]'); // может быть null
+    const totalInputs = table.querySelectorAll('input[data-total-key]');
 
-  const dayRow = table.querySelector('tr[data-row="day"]');
-  const nightRow = table.querySelector('tr[data-row="night"]');
-  const totalInputs = table.querySelectorAll('input[data-total-key]');
-
-  function val(row, key){
-    if(!row) return 0;
-    const inp = row.querySelector('input[data-key="'+key+'"]');
-    if(!inp) return 0;
-    const n = parseInt((inp.value||"0").replace(/\s+/g,''), 10);
-    return isNaN(n) ? 0 : n;
-  }
-
-  function calcAuto(){
-    let incomeAuto = 0;
-
-    totalInputs.forEach(inp=>{
-      const key = inp.getAttribute("data-total-key");
-      if(key === "income_daily") return;
-
-      const auto = val(dayRow, key) + val(nightRow, key);
-      inp.placeholder = auto;
-      incomeAuto += auto;
-    });
-
-    const incomeInp = table.querySelector('input[data-total-key="income_daily"]');
-    if(incomeInp && !incomeInp.value){
-      incomeInp.placeholder = incomeAuto;
+    function val(row, key){
+      if(!row) return 0;
+      const inp = row.querySelector('input[data-key="'+key+'"]');
+      if(!inp) return 0;
+      const n = parseInt((inp.value||"0").replace(/\s+/g,''), 10);
+      return isNaN(n) ? 0 : n;
     }
-  }
 
-  table.addEventListener("input", (e)=>{
-    if(e.target && e.target.matches('tr[data-row="day"] input, tr[data-row="night"] input')){
-      calcAuto();
+    function calcAuto(){
+      let incomeAuto = 0;
+
+      totalInputs.forEach(inp=>{
+        const key = inp.getAttribute("data-total-key");
+        if(key === "income_daily") return;
+
+        const auto = val(dayRow, key) + val(nightRow, key);
+        inp.placeholder = auto;
+        incomeAuto += auto;
+      });
+
+      const incomeInp = table.querySelector('input[data-total-key="income_daily"]');
+      if(incomeInp && !incomeInp.value){
+        incomeInp.placeholder = incomeAuto;
+      }
     }
+
+    table.addEventListener("input", calcAuto);
+    calcAuto();
   });
-
-  calcAuto();
 })();
+</script>
 
-/* =========================
-   Local i18n that follows base lang button
-   - base.js sets localStorage('lang') and html[data-lang]
-   - we update only THIS page strings
-   ========================= */
+<script>
 (function(){
   const dict = {
     ru: {
@@ -646,6 +637,8 @@
       t1_auto: "Авто",
       t1_station2: "СТАНЦИЯ",
       t1_total: "ИТОГ",
+      t1_shift_day: "kun",
+      t1_shift_night: "tun",
     },
     uz: {
       t1_title: "Hisobot №1 —",
@@ -673,6 +666,8 @@
       t1_auto: "Avto",
       t1_station2: "STANSIYA",
       t1_total: "JAMI",
+      t1_shift_day: "kun",
+      t1_shift_night: "tun",
     }
   };
 
@@ -689,23 +684,15 @@
       const k = el.getAttribute('data-i18n');
       if (t[k] !== undefined) el.textContent = t[k];
     });
-
-    // back button also exists in base dict, but we keep it here stable
   }
 
-  // Initial apply
   applyLocalLang();
 
-  // React to lang button click (from base)
   const langBtn = document.getElementById('langBtn');
   if(langBtn){
-    langBtn.addEventListener('click', () => {
-      // base.js updates localStorage immediately; we update after that
-      setTimeout(applyLocalLang, 0);
-    });
+    langBtn.addEventListener('click', () => setTimeout(applyLocalLang, 0));
   }
 
-  // React if storage changes (another tab)
   window.addEventListener('storage', (e)=>{
     if(e.key === 'lang') applyLocalLang();
   });

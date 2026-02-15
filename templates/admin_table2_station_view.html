@@ -4,7 +4,6 @@
 
 {% block content %}
 <style>
-  /* ===== Page header ===== */
   .page-hdr{
     max-width: 1050px;
     margin: 0 auto 12px;
@@ -22,7 +21,6 @@
     color:var(--text,#0f172a);
   }
 
-  /* ===== Back button wrapper ===== */
   .page-actions{
     max-width: 1050px;
     margin: 0 auto 10px;
@@ -32,10 +30,9 @@
     flex-wrap:wrap;
   }
 
-  /* ===== MAIN WRAP (centered) ===== */
   .wrap2{
     width: min(1050px, 100%);
-    margin: 0 auto 20px;          /* ✅ center */
+    margin: 0 auto 20px;
     padding: 12px;
     border-radius: 18px;
     border: 1px solid var(--stroke, rgba(15,23,42,.12));
@@ -44,7 +41,6 @@
     backdrop-filter: blur(12px);
   }
 
-  /* Title inside wrap */
   .wrap-title{
     font-weight:800;
     margin-bottom:10px;
@@ -52,10 +48,9 @@
     font-size:13px;
   }
 
-  /* ===== TABLE CONTAINER (scroll, but structure stays) ===== */
   .t2box{
     width:100%;
-    overflow:auto;                 /* ✅ responsive: horizontal scroll */
+    overflow:auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 14px;
     border: 1px solid rgba(15,23,42,.10);
@@ -66,11 +61,10 @@
     background: rgba(255,255,255,.04);
   }
 
-  /* ===== Table itself (structure unchanged) ===== */
   .t2{
     border-collapse:collapse;
     width:100%;
-    min-width:980px;               /* ✅ keeps structure */
+    min-width:980px;
     table-layout:fixed;
   }
   .t2 th,.t2 td{
@@ -112,7 +106,6 @@
   .danger{color:#b91c1c;font-weight:800}
   html[data-theme="dark"] .danger{ color:#fb7185; }
 
-  /* inputs (disabled) */
   .t2 input{
     width:100%;
     height:30px;
@@ -130,64 +123,52 @@
     background: rgba(15,23,42,.55);
     color: rgba(226,232,240,.95);
   }
-  .t2 input:disabled{ opacity:1; } /* ✅ disable bo‘lsa ham o‘qiladi */
+  .t2 input:disabled{ opacity:1; }
 
-  /* spacing between bottom blocks */
   .mt10{ margin-top:10px; }
-.boshi{display: flex;}
-  /* ===== Back button (page-level) ===== */
-.btnBack{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  height:42px;
-  padding:0 14px;
-  border-radius:14px;
-  border:1px solid var(--stroke, rgba(15,23,42,.12));
-  background: rgba(255,255,255,.55);
-  color: var(--text,#0f172a);
-  text-decoration:none;
-  font-weight:850;
-  box-shadow: 0 10px 26px rgba(15,23,42,.10);
-  transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
-  backdrop-filter: blur(10px);
-}
-.btnBack:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 16px 40px rgba(15,23,42,.14);
-  filter: brightness(1.02);
-}
-.btnBack:active{ transform: translateY(0); }
+  .boshi{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;}
 
-.btnBack .ico{
-  width:18px;height:18px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:10px;
-  border:1px solid var(--stroke, rgba(15,23,42,.12));
-  background: rgba(255,255,255,.70);
-}
+  .btnBack{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    height:42px;
+    padding:0 14px;
+    border-radius:14px;
+    border:1px solid var(--stroke, rgba(15,23,42,.12));
+    background: rgba(255,255,255,.55);
+    color: var(--text,#0f172a);
+    text-decoration:none;
+    font-weight:850;
+    box-shadow: 0 10px 26px rgba(15,23,42,.10);
+    transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+    backdrop-filter: blur(10px);
+  }
+  .btnBack:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 16px 40px rgba(15,23,42,.14);
+    filter: brightness(1.02);
+  }
+  .btnBack:active{ transform: translateY(0); }
 
-/* Dark mode */
-html[data-theme="dark"] .btnBack{
-  background: rgba(255,255,255,.06);
-  box-shadow: 0 14px 44px rgba(0,0,0,.45);
-}
-html[data-theme="dark"] .btnBack .ico{
-  background: rgba(255,255,255,.08);
-}
-
-
-  /* Mobile tweaks (structure NOT changed, only spacing/typography) */
-  @media (max-width: 520px){
-    .wrap2{ padding:10px; border-radius:16px; }
-    .page-hdr h2{ font-size:16px; }
-    .t2 th,.t2 td{ font-size:11.5px; padding:6px 6px; }
-    .t2 input{ height:28px; border-radius:9px; }
+  .btnBack .ico{
+    width:18px;height:18px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    border:1px solid var(--stroke, rgba(15,23,42,.12));
+    background: rgba(255,255,255,.70);
+  }
+  html[data-theme="dark"] .btnBack{
+    background: rgba(255,255,255,.06);
+    box-shadow: 0 14px 44px rgba(0,0,0,.45);
+  }
+  html[data-theme="dark"] .btnBack .ico{
+    background: rgba(255,255,255,.08);
   }
 </style>
- 
+
 <div class="boshi">
   <div class="page-actions">
     <a href="{% url 'admin_table2_station_pick' date_str=date|date:'Y-m-d' %}" class="btnBack">
@@ -199,7 +180,6 @@ html[data-theme="dark"] .btnBack .ico{
   <div class="page-hdr">
     <h2>Umumiy Jadval ({{ date|date:"d.m.Y" }})</h2>
   </div>
-
 </div>
 
 <div class="wrap2">
@@ -207,7 +187,7 @@ html[data-theme="dark"] .btnBack .ico{
     ЛЦ: {{ obj.station_user.username }} | Дата: {{ date|date:"d.m.Y" }}
   </div>
 
-  <!-- MAIN TABLE (scroll container) -->
+  <!-- MAIN TABLE -->
   <div class="t2box">
     <table class="t2">
       <colgroup>
@@ -293,34 +273,51 @@ html[data-theme="dark"] .btnBack .ico{
     </table>
   </div>
 
-  <!-- Bottom blocks (also keep structure, with same scroll behavior) -->
+  <!-- Bottom block: 4 columns (КТК / Тонн / Доход), но у ПОГРУЖЕНО доход пустой -->
   <div class="t2box mt10">
-    <table class="t2">
+    <table class="t2" style="min-width:860px;">
       <colgroup>
         <col>
         <col style="width:140px;">
         <col style="width:140px;">
+        <col style="width:140px;">
       </colgroup>
+
+      <thead>
+        <tr><th colspan="4" class="secTitle"></th></tr>
+        <tr>
+          <th></th>
+          <th class="center bold">КТК</th>
+          <th class="center bold">Тонн/Объём</th>
+          <th class="center bold">Доход</th>
+        </tr>
+      </thead>
+
       <tbody>
         <tr>
           <td class="bold">Выгружено ваг.</td>
           <td class="center"><input value="{{ obj|data_val:bottom.vygr_wag_ktk }}" disabled></td>
           <td class="center"><input value="{{ obj|data_val:bottom.vygr_tonn }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.vygr_income }}" disabled></td>
         </tr>
         <tr>
           <td class="bold">Погружено ваг.</td>
           <td class="center"><input value="{{ obj|data_val:bottom.pogr_wag_ktk }}" disabled></td>
           <td class="center"><input value="{{ obj|data_val:bottom.pogr_tonn }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.pogr_income }}" disabled></td>
         </tr>
         <tr>
           <td class="danger">Груз на своих осях (ваг)</td>
           <td class="center"><input value="{{ obj|data_val:bottom.os_wag_ktk }}" disabled></td>
           <td class="center"><input value="{{ obj|data_val:bottom.os_tonn }}" disabled></td>
+          <td class="center"><input value="{{ obj|data_val:bottom.os_income }}" disabled></td>
         </tr>
+
         <tr>
           <td rowspan="2" class="bold">ПОГРУЖЕНО (наименование груза)</td>
           <td rowspan="2" class="center bold">Объём</td>
           <td class="center"><input value="{{ obj|data_val:bottom.cargo_name }}" disabled></td>
+          <td rowspan="2" class="center"><input value="" disabled style="opacity:.6"></td>
         </tr>
         <tr>
           <td class="center"><input value="{{ obj|data_val:bottom.cargo_volume }}" disabled></td>
@@ -329,6 +326,7 @@ html[data-theme="dark"] .btnBack .ico{
     </table>
   </div>
 
+  <!-- KP block -->
   <div class="t2box mt10">
     <table class="t2">
       <colgroup>

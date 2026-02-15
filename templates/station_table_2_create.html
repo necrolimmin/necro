@@ -1,3 +1,4 @@
+{# templates/station_table_2_create.html #}
 {% extends "base.html" %}
 {% load report_extras %}
 
@@ -7,9 +8,6 @@
 
 {% block content %}
 <style>
-  /* =========================
-     Scoped tokens (doesn't break base.html)
-     ========================= */
   .t2-page{
     --bg: #f6f8ff;
     --panel: rgba(255,255,255,.85);
@@ -27,7 +25,6 @@
     padding: 18px 12px 28px;
   }
 
-  /* Dark mode (works when base sets data-theme="dark" or prefers-color-scheme) */
   [data-theme="dark"] .t2-page,
   .dark .t2-page{
     --bg: #070b18;
@@ -60,18 +57,8 @@
     }
   }
 
-  /* =========================
-     Layout
-     ========================= */
-  .t2-shell{
-    max-width: 1120px;
-    margin: 0 auto;           /* center! */
-  }
-
+  .t2-shell{ max-width: 1120px; margin: 0 auto; }
   .t2-card{
-    /* background: radial-gradient(1200px 380px at 20% -10%, rgba(37,99,235,.10), transparent 55%),
-                radial-gradient(900px 320px at 90% 0%, rgba(59,130,246,.10), transparent 55%),
-                var(--panel); */
     border: 1px solid var(--stroke);
     border-radius: 18px;
     box-shadow: var(--shadow);
@@ -102,9 +89,6 @@
     font-weight: 600;
   }
 
-  /* =========================
-     Controls
-     ========================= */
   .t2-controls{
     display:flex;
     gap:10px;
@@ -114,7 +98,6 @@
     margin: 12px 0 12px;
     padding: 10px;
     border-radius: 14px;
-    /* background: var(--panel2); */
     border: 1px solid var(--stroke);
     box-shadow: var(--shadow2);
   }
@@ -134,7 +117,6 @@
     padding: 0 12px;
     border-radius: 12px;
     border: 1px solid var(--stroke2);
-    /* background: rgba(255,255,255,.8); */
     color: #0f172a;
     font-weight: 800;
     outline: none;
@@ -150,17 +132,9 @@
     border-color: rgba(37,99,235,.55);
     box-shadow: 0 0 0 4px rgba(37,99,235,.18);
   }
-  .t2-input[disabled]{
-    opacity: .85;
-    cursor: not-allowed;
-  }
+  .t2-input[disabled]{ opacity: .85; cursor: not-allowed; }
 
-  .t2-actions{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:flex-end;
-  }
+  .t2-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
   .t2-btn{
     height: 42px;
     padding: 0 14px;
@@ -193,19 +167,12 @@
     border-color: rgba(37,99,235,.65);
     color: #fff;
   }
-  .t2-btn.primary:hover{
-    border-color: rgba(96,165,250,.75);
-    box-shadow: 0 14px 28px rgba(37,99,235,.25);
-  }
 
-  /* =========================
-     Tables
-     ========================= */
   .t2-wrap{
     background: var(--panel2);
     border: 1px solid var(--stroke);
     border-radius: 16px;
-    overflow: auto;                 /* responsive horizontal scroll */
+    overflow: auto;
     padding: 10px;
     -webkit-overflow-scrolling: touch;
   }
@@ -241,23 +208,6 @@
     background: rgba(96,165,250,.10);
   }
 
-  /* sticky header for big table */
-  .t2-table thead th{
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--panel2);
-  }
-  .t2-table thead tr:first-child th{
-    top: 0;
-  }
-  .t2-table thead tr:nth-child(2) th{
-    top: 34px; /* approx height of first header row */
-  }
-  .t2-table thead tr:nth-child(3) th{
-    top: 68px; /* approx height of first+second row */
-  }
-
   .t2-cell-input{
     width: 100%;
     height: 32px;
@@ -270,17 +220,12 @@
     background: rgba(255,255,255,.85);
     color:#0f172a;
     outline:none;
-    transition: box-shadow .15s ease, border-color .15s ease;
   }
   [data-theme="dark"] .t2-cell-input,
   .dark .t2-cell-input,
   :root:not([data-theme="light"]) .t2-cell-input{
     background: rgba(2,6,23,.28);
     color: var(--text);
-  }
-  .t2-cell-input:focus{
-    border-color: rgba(37,99,235,.55);
-    box-shadow: 0 0 0 3px rgba(37,99,235,.18);
   }
   .t2-cell-input[disabled]{ opacity:.85; cursor:not-allowed; }
 
@@ -290,13 +235,7 @@
     padding: 8px 8px;
     background: rgba(148,163,184,.12);
   }
-  [data-theme="dark"] .t2-secTitle,
-  .dark .t2-secTitle,
-  :root:not([data-theme="light"]) .t2-secTitle{
-    background: rgba(148,163,184,.10);
-  }
 
-  /* Mobile tightening */
   @media (max-width: 640px){
     .t2-controls{ justify-content:stretch; }
     .t2-field{ min-width: 100%; }
@@ -383,7 +322,6 @@
                     <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
                     <td class="t2-center"><input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
                   </tr>
-
                   {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
                     {% if n2 == 9 %}
                       <tr>
@@ -428,33 +366,55 @@
             </tbody>
           </table>
 
-          <!-- bottom blocks -->
-          <table class="t2-table" style="margin-top:10px; min-width: 740px;">
-            <colgroup><col><col style="width:140px;"><col style="width:140px;"></colgroup>
-            <thead><tr><th colspan="3" class="t2-secTitle"></th></tr></thead>
+          <!-- ✅ bottom blocks with "Доход" column (НО cargo_income НЕТ) -->
+          <table class="t2-table" style="margin-top:10px; min-width: 860px;">
+            <colgroup>
+              <col>
+              <col style="width:140px;">
+              <col style="width:140px;">
+              <col style="width:140px;">
+            </colgroup>
+
+            <thead>
+              <tr>
+                <th colspan="4" class="t2-secTitle"></th>
+              </tr>
+              <tr>
+                <th></th>
+                <th class="t2-center t2-bold">КТК</th>
+                <th class="t2-center t2-bold">Тонн/Объём</th>
+                <th class="t2-center t2-bold">Доход</th>
+              </tr>
+            </thead>
+
             <tbody>
               <tr>
                 <td class="t2-bold">Выгружено ваг.</td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.vygr_wag_ktk }}" value="{{ obj|data_val:bottom.vygr_wag_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.vygr_tonn }}" value="{{ obj|data_val:bottom.vygr_tonn }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.vygr_income }}" value="{{ obj|data_val:bottom.vygr_income }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
               <tr>
                 <td class="t2-bold">Погружено ваг.</td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.pogr_wag_ktk }}" value="{{ obj|data_val:bottom.pogr_wag_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.pogr_tonn }}" value="{{ obj|data_val:bottom.pogr_tonn }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.pogr_income }}" value="{{ obj|data_val:bottom.pogr_income }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
               <tr>
                 <td class="t2-danger">Груз на своих осях (ваг)</td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.os_wag_ktk }}" value="{{ obj|data_val:bottom.os_wag_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.os_tonn }}" value="{{ obj|data_val:bottom.os_tonn }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.os_income }}" value="{{ obj|data_val:bottom.os_income }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
+              <!-- ✅ ПОГРУЖЕНО: доход НЕ нужен, последняя колонка пустая -->
               <tr>
                 <td rowspan="2" class="t2-bold">ПОГРУЖЕНО (наименование груза)</td>
                 <td rowspan="2" class="t2-center t2-bold">Объём</td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.cargo_name }}" value="{{ obj|data_val:bottom.cargo_name }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                <td rowspan="2" class="t2-center"><input class="t2-cell-input" value="" disabled style="opacity:.6"></td>
               </tr>
               <tr>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.cargo_volume }}" value="{{ obj|data_val:bottom.cargo_volume }}" {% if mode == 'view' %}disabled{% endif %}></td>
@@ -502,6 +462,7 @@
               </tr>
             </tbody>
           </table>
+
         </div>
       </form>
     </div>

@@ -34,6 +34,10 @@ urlpatterns = [
     path('admin-panel/report-2/', admin_report_2, name='admin_report_2'),
 
     path('admin-panel/station/promote/<int:pk>/' , promote_station , name="promote_station"),
+    path("admin/table1/<date_str>/excel/", admin_table1_export_excel, name="admin_table1_export_excel"),
+    path("admin/table1/<str:date_str>/station/<int:user_id>/blocks/",admin_table1_station_blocks,name="admin_table1_station_blocks",
+),
+
 
     
 ]

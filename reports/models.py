@@ -15,8 +15,14 @@ class StationDailyTable1(models.Model):
     data = models.JSONField(default=dict)
     submitted_at = models.DateTimeField(auto_now=True)
 
+
+    block = models.PositiveSmallIntegerField(default=1)
+
+    data = models.JSONField(default=dict, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
-        unique_together = ('station_user', 'date', 'shift')
+        unique_together = ('station_user', 'date', 'shift',"block")
 
     def __str__(self):
         return f'{self.station_user.username} {self.date} {self.shift}'
