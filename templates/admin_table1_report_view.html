@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load report_extras %}
 
-{% block title %}Админ — Таблица 1 за {{ date|date:"d.m.Y" }}{% endblock %}
+{% block title %}Admin jadvali 1 {{ date|date:"d.m.Y" }}{% endblock %}
 
 {% block content %}
 <style>
@@ -158,7 +158,7 @@
     font-weight: 900;
     line-height:1.05;
   }
-
+ 
   .t1a-name{
     width:var(--t1a-col-name);
     min-width:var(--t1a-col-name);
@@ -188,7 +188,7 @@
     background: var(--surface);
     box-shadow: 10px 0 16px -14px var(--t1a-sticky-shadow);
   }
-
+ 
   .g-green{ background: rgba(34,197,94,.12); }
   .g-blue{ background: rgba(79,70,229,.12); }
   .g-yellow{ background: rgba(245,158,11,.14); }
@@ -206,7 +206,7 @@
   html[data-theme="dark"] .t1a-total td{
     background: rgba(255,244,204,.12);
   }
-
+ 
   .t1a-note{
     margin-top:10px;
     color:var(--muted);
@@ -226,6 +226,38 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+
+ .t1a-table td{
+  font-variant-numeric: tabular-nums;
+  }
+  .t1a-table tbody td{
+    text-align: right;
+  }
+  .t1a-table tbody td.t1a-name,
+  .t1a-table tbody td.t1a-shift{
+    text-align: left;
+  }
+  .t1a-scroll{
+    overflow: auto;                 /* gorizontal + vertikal */
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+
+    /* ✅ vertikal scroll uchun balandlik */
+    max-height: calc(100vh - 260px); /* xohlasangiz 60vh / 70vh qilib ham qo'yasiz */
+  }
+  .t1a-table thead th{
+    position: sticky;
+    top: 0;
+    z-index: 60;          /* header hamma narsadan ustun turadi */
+    background: var(--surface);
+  }
+  /* Header ichidagi LM nomi va Smena: yuqoriga ham, chapga ham sticky bo'lsin */
+  .t1a-table thead th.t1a-stickyA,
+  .t1a-table thead th.t1a-stickyB{
+    z-index: 120; /* eng ustun: header+left kesishmasi */
+  }
+
+
 </style>
 
 <div class="t1a-panel">
@@ -426,7 +458,7 @@
 
               <td class="g-gray">{{ st.night_data|get_item:"income_daily"|default_if_none:"0" }}</td>
             </tr>
-
+ 
             <tr class="t1a-total">
               <td class="t1a-shift t1a-stickyB" data-i18n="shift_total">итог</td>
 
@@ -577,4 +609,32 @@
   mo.observe(document.documentElement, { attributes:true, attributeFilter:["data-lang"] });
 })();
 </script>
+
+<script>
+(function(){
+  // 1) Raqamlarni 1 234 567 ko'rinishga keltiradi (ru-RU odatda space/nbsp qo'yadi)
+  const fmt = new Intl.NumberFormat('ru-RU'); // xohlasangiz 'uz-UZ' ham bo'ladi
+
+  // 2) Jadval ichidagi hamma td/th larni tekshirib chiqamiz (header emas, faqat body)
+  const table = document.getElementById('t1admin');
+  if (!table) return;
+
+  table.querySelectorAll('tbody td').forEach(td => {
+    // sticky nom/smena ustunlarini tegmaymiz
+    if (td.classList.contains('t1a-name') || td.classList.contains('t1a-shift')) return;
+
+    let s = (td.textContent || '').trim();
+
+    // bo'sh / 0 / oddiy matnlarni o'tkazib yuborish uchun:
+    // faqat butun sonlar (123456) yoki manfiy (-123) bo'lsa formatlaymiz
+    if (!/^-?\d+$/.test(s)) return;
+
+    const n = Number(s);
+    if (!Number.isFinite(n)) return;
+
+    td.textContent = fmt.format(n);
+  });
+})();
+</script>
+
 {% endblock %}
