@@ -36,13 +36,13 @@
       {% if user.is_authenticated %}
 
       <!-- LEFT: logo -->
-      <div class="brand">
+      <a class="brand"  href="{% url 'admin_settings' %}">
         <img class="brand-logo" src="{% static 'images/UTKlogo.png' %}" alt="Logo">
         <div class="brand-name">
           <b data-i18n="brand">O‘ztemiryo‘lkonteyner AJ</b>
           <span data-i18n="subtitle">Konteyner operatsiyalar platformasi</span>
         </div>
-      </div>
+      </a>
 
       <!-- CENTER: navigation (mobile: collapsible) -->
       <div class="nav-wrap" id="navWrap">

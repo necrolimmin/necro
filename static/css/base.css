@@ -119,8 +119,10 @@ img{ max-width:100%; }
   grid-area:left;
   display:flex;
   align-items:center;
+  text-decoration: none;
   gap: 12px;
   min-width: 260px;
+  cursor: pointer;
 }
 .brand-logo{
   width:42px; height:42px;

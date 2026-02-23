@@ -2,50 +2,124 @@
 {% load static %}
 {% load humanize %}
 
-{% load report_extras %}
-
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <style>
-  /* =========================
-     DASHBOARD (works with html[data-theme="dark"] and language switch)
-  ========================= */
-  .db{
-    max-width:1280px;
-    margin:0 auto;
-    padding:0 12px 18px;
-    box-sizing:border-box;
+  /* =========================================================
+     Modern Dashboard (Responsive + Dark mode friendly)
+     Uses your base.html tokens:
+       --surface --stroke --shadow --text --muted --accent (if exists)
+  ========================================================= */
+
+  :root{
+    --db-radius: 22px;
+    --db-radius-sm: 16px;
+    --db-pad: 14px;
+    --db-gap: 12px;
+
+    --glass: rgba(255,255,255,.40);
+    --glass2: rgba(255,255,255,.22);
+    --glass-dark: rgba(255,255,255,.06);
+
+    --ring: rgba(37,99,235,.22);
+    --ring2: rgba(16,185,129,.18);
+
+    --shadow2: 0 18px 50px rgba(15,23,42,.10);
+    --shadow3: 0 12px 30px rgba(15,23,42,.08);
+
+    --good: rgba(16,185,129,.95);
+    --warn: rgba(245,158,11,.95);
+    --bad: rgba(239,68,68,.95);
+    --info: rgba(59,130,246,.95);
+  }
+  html[data-theme="dark"]{
+    --glass: rgba(255,255,255,.08);
+    --glass2: rgba(255,255,255,.05);
+    --shadow2: 0 20px 60px rgba(0,0,0,.45);
+    --shadow3: 0 14px 40px rgba(0,0,0,.38);
   }
 
-  .db-head{
+  .dbx{
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 10px 12px 18px;
+    box-sizing: border-box;
+  }
+
+  /* ---- header ---- */
+  .dbx-head{
     display:flex;
-    align-items:flex-end;
+    align-items:flex-start;
     justify-content:space-between;
     gap:12px;
     flex-wrap:wrap;
-    margin:6px 0 14px;
+    margin: 6px 0 12px;
   }
-
-  .db-title{
+  .dbx-title{
     margin:0;
     font-size:22px;
-    font-weight:950;
+    font-weight:1000;
     letter-spacing:-.02em;
     color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
-  .db-sub{
-    margin:6px 0 0;
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.4;
+  .dbx-title-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 6px 10px;
+    border:1px solid var(--stroke);
+    border-radius: 999px;
+    background: var(--glass2);
+    box-shadow: var(--shadow3);
+    font-size:12px;
+    font-weight:950;
+    color: var(--text);
+    white-space:nowrap;
+  }
+  .dbx-sub{
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: 740px;
   }
 
-  .db-actions{
+  /* ---- controls ---- */
+  .controls{
     display:flex;
     gap:10px;
     flex-wrap:wrap;
-    align-items:center;
+    align-items:flex-end;
+    justify-content:flex-end;
+  }
+  .ctrl{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width: 180px;
+  }
+  .ctrl label{
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--muted);
+  }
+  .inpx{
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    background: var(--glass);
+    color: var(--text);
+    padding: 0 12px;
+    outline: none;
+    box-shadow: var(--shadow3);
+  }
+  .inpx:focus{
+    box-shadow: 0 0 0 4px var(--ring), var(--shadow3);
+    border-color: rgba(37,99,235,.45);
   }
 
   .btnx{
@@ -57,543 +131,878 @@
     padding:0 14px;
     border-radius:14px;
     border:1px solid var(--stroke);
-    background:rgba(255,255,255,.70);
-    color:var(--text);
-    font-weight:950;
+    background: var(--glass);
+    color: var(--text);
+    font-weight: 950;
     text-decoration:none;
     cursor:pointer;
     user-select:none;
-    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease, background .12s ease;
-    box-shadow:0 10px 22px rgba(15,23,42,.10);
+    transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+    box-shadow: var(--shadow3);
     white-space:nowrap;
   }
-  html[data-theme="dark"] .btnx{
-    background:rgba(255,255,255,.08);
-    box-shadow:0 14px 30px rgba(0,0,0,.35);
-  }
-  .btnx:hover{ transform:translateY(-1px); filter:saturate(1.05); }
-  .btnx:active{ transform:translateY(0); }
+  .btnx:hover{ transform: translateY(-1px); filter: saturate(1.05); }
+  .btnx:active{ transform: translateY(0); }
 
   .btnx.primary{
     color:#fff;
-    border-color:rgba(37,99,235,.35);
-    background:linear-gradient(135deg, rgba(37,99,235,.96), rgba(16,185,129,.92));
-    box-shadow:0 14px 28px rgba(37,99,235,.18);
+    border-color: rgba(37,99,235,.35);
+    background: linear-gradient(135deg, rgba(37,99,235,.98), rgba(16,185,129,.92));
+    box-shadow: 0 18px 40px rgba(37,99,235,.16);
   }
   html[data-theme="dark"] .btnx.primary{
-    border-color:rgba(99,102,241,.40);
-    box-shadow:0 16px 36px rgba(0,0,0,.45);
+    box-shadow: 0 20px 55px rgba(0,0,0,.45);
   }
 
-  /* =========================
-     GRID
-  ========================= */
+  .btnx.ghost{
+    background: transparent;
+    border-style: dashed;
+  }
+
+  /* ---- layout grids ---- */
   .grid-kpi{
     display:grid;
-    grid-template-columns:repeat(4, minmax(0, 1fr));
-    gap:12px;
-    margin-bottom:12px;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: var(--db-gap);
+    margin-top: 10px;
+    margin-bottom: 12px;
   }
   @media (max-width: 1100px){
-    .grid-kpi{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .grid-kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   }
-  @media (max-width: 560px){
-    .grid-kpi{ grid-template-columns:1fr; }
-    .db-actions .btnx{ width:100%; }
+  @media (max-width: 600px){
+    .grid-kpi{ grid-template-columns: 1fr; }
+    .ctrl{ min-width: 100%; }
+    .btnx{ width: 100%; }
+    .controls{ width:100%; justify-content:stretch; }
   }
 
-  .grid-main{
+  .grid-top{
     display:grid;
-    grid-template-columns:1.25fr .75fr;
-    gap:12px;
-    align-items:start;
-    margin-bottom:12px;
+    grid-template-columns: 1.15fr .85fr;
+    gap: var(--db-gap);
+    margin-bottom: 12px;
+    align-items: start;
   }
   @media (max-width: 980px){
-    .grid-main{ grid-template-columns:1fr; }
+    .grid-top{ grid-template-columns: 1fr; }
+  }
+
+  .grid-mid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--db-gap);
+    margin-bottom: 12px;
+    align-items: start;
+  }
+  @media (max-width: 980px){
+    .grid-mid{ grid-template-columns: 1fr; }
   }
 
   .grid-bottom{
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-    align-items:start;
-  }
-  @media (max-width: 980px){
-    .grid-bottom{ grid-template-columns:1fr; }
+    grid-template-columns: 1fr;
+    gap: var(--db-gap);
+    align-items: start;
   }
 
-  /* =========================
-     CARD
-  ========================= */
-  .cardx{
-    background:var(--surface);
-    border:1px solid var(--stroke);
-    border-radius:20px;
-    box-shadow:var(--shadow);
-    padding:14px;
-    backdrop-filter: blur(14px);
-    overflow:hidden;
+  /* ---- cards ---- */
+  .card{
+    border-radius: var(--db-radius);
+    border: 1px solid var(--stroke);
+    background: var(--surface);
+    box-shadow: var(--shadow2);
+    padding: var(--db-pad);
+    overflow: hidden;
+    position: relative;
   }
-  .cardx-h{
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background:
+      radial-gradient(600px 260px at 10% 0%, rgba(37,99,235,.14), transparent 55%),
+      radial-gradient(520px 260px at 90% 0%, rgba(16,185,129,.12), transparent 55%);
+    pointer-events:none;
+  }
+  html[data-theme="dark"] .card::before{
+    background:
+      radial-gradient(600px 260px at 10% 0%, rgba(99,102,241,.18), transparent 55%),
+      radial-gradient(520px 260px at 90% 0%, rgba(16,185,129,.10), transparent 55%);
+  }
+
+  .card > *{ position: relative; }
+
+  .card-h{
     display:flex;
-    justify-content:space-between;
-    gap:10px;
     align-items:flex-start;
-    flex-wrap:wrap;
-    margin-bottom:10px;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
   }
-  .cardx-title{
+  .card-title{
     margin:0;
-    font-size:14px;
-    font-weight:950;
-    color:var(--text);
+    font-size: 14px;
+    font-weight: 1000;
     letter-spacing:-.01em;
+    color: var(--text);
   }
-  .cardx-sub{
-    margin-top:6px;
-    color:var(--muted);
-    font-size:12.5px;
-    line-height:1.35;
+  .card-sub{
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.35;
   }
 
-  /* =========================
-     KPI CARD
-  ========================= */
+  /* ---- kpi card ---- */
   .kpi{
     display:flex;
     justify-content:space-between;
-    gap:10px;
+    gap: 10px;
     align-items:flex-start;
-    min-height:84px;
+    min-height: 88px;
   }
-  .kpi .val{
-    font-size:24px;
-    font-weight:1000;
+  .kpi-left .val{
+    font-size: 26px;
+    font-weight: 1100;
     letter-spacing:-.02em;
-    color:var(--text);
-    margin-top:6px;
+    color: var(--text);
+    margin-top: 8px;
   }
-  .kpi .meta{
-    color:var(--muted);
-    font-size:12.5px;
-    margin-top:6px;
-    line-height:1.35;
+  .kpi-left .meta{
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.3;
   }
-  .kpi .chip{
+
+  .kpi-icon{
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    border: 1px solid var(--stroke);
+    background: var(--glass2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: var(--shadow3);
+    font-size: 24px;
+  }
+
+  .chip{
     display:inline-flex;
     align-items:center;
-    gap:6px;
-    padding:6px 10px;
-    border-radius:999px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.35);
-    font-size:12px;
-    font-weight:900;
-    color:var(--text);
-    white-space:nowrap;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--stroke);
+    background: var(--glass2);
+    font-size: 12px;
+    font-weight: 950;
+    color: var(--text);
+    white-space: nowrap;
   }
-  html[data-theme="dark"] .kpi .chip{ background:rgba(255,255,255,.06); }
+  .dot{ width:8px; height:8px; border-radius: 999px; background: var(--good); }
+  .dot.warn{ background: var(--warn); }
+  .dot.bad{ background: var(--bad); }
+  .dot.info{ background: var(--info); }
 
-  .dot{width:8px;height:8px;border-radius:999px;background:rgba(16,185,129,.95)}
-  .dot.warn{background:rgba(245,158,11,.95)}
-  .dot.bad{background:rgba(239,68,68,.95)}
-
-  /* =========================
-     CHART AREA
-  ========================= */
+  /* ---- charts ---- */
   .chart{
-    width:100%;
-    height:320px;
-    position:relative;
+    height: 340px;
+    width: 100%;
+    position: relative;
+  }
+  @media (max-width: 600px){
+    .chart{ height: 280px; }
+  }
+  .chart.sm{ height: 220px; }
+
+  /* ---- income entry panel ---- */
+  .income-wrap{
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: 12px;
+    align-items: start;
+  }
+  @media (max-width: 980px){
+    .income-wrap{ grid-template-columns: 1fr; }
+  }
+
+  .form-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   @media (max-width: 560px){
-    .chart{ height:260px; }
+    .form-grid{ grid-template-columns: 1fr; }
+  }
+  .form-row{
+    display:flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-row label{
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--muted);
+  }
+  .help{
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.35;
   }
 
-  /* =========================
-     TABLE
-  ========================= */
+  /* ---- table ---- */
   .table-wrap{
     border:1px solid var(--stroke);
-    border-radius:16px;
+    border-radius: var(--db-radius-sm);
     overflow:hidden;
-    background:rgba(255,255,255,.25);
+    background: var(--glass2);
   }
-  html[data-theme="dark"] .table-wrap{ background:rgba(255,255,255,.04); }
+  .scroll-x{ overflow:auto; }
+  .scroll-x::-webkit-scrollbar{ height:10px; }
+  .scroll-x::-webkit-scrollbar-thumb{ background: rgba(15,23,42,.18); border-radius:999px; }
+  html[data-theme="dark"] .scroll-x::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.14); }
 
   .tbl{
     width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-    min-width:760px;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 820px;
   }
   .tbl th, .tbl td{
-    padding:10px 10px;
-    border-bottom:1px solid var(--stroke);
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--stroke);
     text-align:left;
-    font-size:12.8px;
-    color:var(--text);
+    font-size: 12.8px;
+    color: var(--text);
   }
   .tbl th{
-    font-weight:950;
-    position:sticky;
+    font-weight: 1000;
+    position: sticky;
     top:0;
     z-index:1;
-    background:rgba(255,255,255,.55);
+    background: rgba(255,255,255,.55);
   }
-  html[data-theme="dark"] .tbl th{ background:rgba(255,255,255,.06); }
+  html[data-theme="dark"] .tbl th{ background: rgba(255,255,255,.06); }
 
-  .tbl tr:hover td{ background:rgba(2,132,199,.05); }
-  html[data-theme="dark"] .tbl tr:hover td{ background:rgba(99,102,241,.10); }
+  .tbl tr:hover td{ background: rgba(2,132,199,.06); }
+  html[data-theme="dark"] .tbl tr:hover td{ background: rgba(99,102,241,.10); }
 
-  .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
-  .right{text-align:right}
-  .scroll-x{overflow:auto}
-  .scroll-x::-webkit-scrollbar{height:10px}
-  .scroll-x::-webkit-scrollbar-thumb{background:rgba(15,23,42,.18);border-radius:999px}
-  html[data-theme="dark"] .scroll-x::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14)}
+  .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+  .right{ text-align:right; }
+
+  /* small footer note */
+  .note{
+    margin-top:10px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
 </style>
 
-<div class="db">
+<div class="dbx">
 
-  <div class="db-head">
+  <!-- ================= HEADER ================= -->
+  <div class="dbx-head">
     <div>
-      <h1 class="db-title" data-i18n="db_title">Dashboard</h1>
-      <div class="db-sub">
-        <span data-i18n="db_sub">Kunlik operativ ko‘rsatkichlar, kun/tun kesimi va oxirgi hisobotlar</span>
+      <h1 class="dbx-title">
+        <span>📊</span>
+        <span>Operativ Dashboard</span>
+        <span class="dbx-title-badge"><span class="dot info"></span><span class="mono" id="rangeBadge">—</span></span>
+      </h1>
+      <div class="dbx-sub">
+        Ortish/Tushirish, daromadlar dinamikasi, Logistika sentrlari kesimidagi umumiy ko‘rsatkichlar.
+        
       </div>
     </div>
 
-    <div class="db-actions">
-      <a class="btnx" href="{% url 'station_table_1_list' %}">
-        <span>📄</span><span data-i18n="go_t1">Table-1</span>
-      </a>
-      <a class="btnx" href="{% url 'station_table_2_list' %}">
-        <span>📄</span><span data-i18n="go_t2">Table-2</span>
-      </a>
-      <a class="btnx primary" href="#">
-        <span>⟳</span><span data-i18n="refresh">Yangilash</span>
-      </a>
+    <div class="controls">
+      <div class="ctrl">
+        <label>Dan</label>
+        <input id="dateFrom" class="inpx" type="date">
+      </div>
+      <div class="ctrl">
+        <label>Gacha</label>
+        <input id="dateTo" class="inpx" type="date">
+      </div>
+      <button id="btnApply" class="btnx primary" type="button">
+        <span>✅</span><span>Apply</span>
+      </button>
+      
     </div>
   </div>
 
-  <!-- KPI -->
+  <!-- ================= KPI CARDS (like your 2nd image but modern) ================= -->
   <div class="grid-kpi">
-    <div class="cardx">
+
+    <div class="card">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_reports_today">Bugungi hisobotlar</div>
-          <div class="val mono">{{ kpi.reports_today|default:"0" }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_reports_today_sub">Table-1 + Table-2 bo‘yicha</span>
-          </div>
+        <div class="kpi-left">
+          <div class="card-title">Ortish / Pogruzka</div>
+          <div class="val mono" id="kpiOrtish">33 415</div>
+          <div class="meta">Vagon </div>
         </div>
-        <div class="chip"><span class="dot"></span><span data-i18n="live">Live</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div class="chip"><span class="dot"></span><span>joriy</span></div>
+          <div class="kpi-icon">🚂</div>
+        </div>
       </div>
     </div>
 
-    <div class="cardx">
+    <div class="card">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_income_today">Suточный доход</div>
-          <div class="val mono">{{ kpi.income_today|default:"0"|intcomma }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_income_today_sub">Bugun yig‘ilgan daromad</span>
-          </div>
+        <div class="kpi-left">
+          <div class="card-title">Tushirish / Vigruzka</div>
+          <div class="val mono" id="kpiTushirish">27 794</div>
+          <div class="meta">Vagon </div>
         </div>
-        <div class="chip"><span class="dot warn"></span><span data-i18n="today">Today</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div class="chip"><span class="dot warn"></span><span>joriy</span></div>
+          <div class="kpi-icon">📦</div>
+        </div>
       </div>
     </div>
 
-    <div class="cardx">
+    <div class="card">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_active_stations">Faol stansiyalar</div>
-          <div class="val mono">{{ kpi.active_stations|default:"0" }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_active_stations_sub">Hisobot topshirganlar</span>
-          </div>
+        <div class="kpi-left">
+          <div class="card-title">Uborka / Tozalash</div>
+          <div class="val mono" id="kpiPostupl">15 245</div>
+          <div class="meta">Vagon</div>
         </div>
-        <div class="chip"><span class="dot"></span><span data-i18n="ok">OK</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div class="chip"><span class="dot info"></span><span> OK</span></div>
+          <div class="kpi-icon">💳</div>
+        </div>
       </div>
     </div>
 
-    <div class="cardx">
+    <div class="card">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_missing">Topshirmaganlar</div>
-          <div class="val mono">{{ kpi.missing_stations|default:"0" }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_missing_sub">Bugun yo‘q bo‘lganlar</span>
-          </div>
+        <div class="kpi-left">
+          <div class="card-title">Daromad / Narabotka</div>
+          <div class="val mono" id="kpiDaromad">10,7 mlrd</div>
+          <div class="meta">So‘m</div>
         </div>
-        <div class="chip"><span class="dot bad"></span><span data-i18n="attention">Attention</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div class="chip"><span class="dot"></span><span>Finance</span></div>
+          <div class="kpi-icon">💰</div>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <!-- MAIN: big chart + side chart -->
-  <div class="grid-main">
-    <div class="cardx">
-      <div class="cardx-h">
+  <!-- ================= TOP SECTION ================= -->
+  <div class="grid-top">
+
+    <!-- (1) Income entry + mini "trading-like" chart -->
+    <div class="card">
+      <div class="card-h">
         <div>
-          <h3 class="cardx-title" data-i18n="ch_income_30">Daromad dinamikasi (30 kun)</h3>
-          <div class="cardx-sub" data-i18n="ch_income_30_sub">Kunlik daromad trendi</div>
+          <h3 class="card-title">Kunlik daromad kiritish</h3>
+          <div class="card-sub">
+            Daromadni kiritasiz, pastda mini dinamikasi chiziladi.
+          </div>
         </div>
-        <div class="chip mono">{{ kpi.range_label|default:"30d" }}</div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Income Desk</span></div>
+      </div>
+
+      <div class="income-wrap">
+        <div class="chart sm">
+          <canvas id="chIncomeMini"></canvas>
+        </div>
+
+        <!-- Demo form: backend keyin POST/API ulaydi -->
+        <div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Sana</label>
+              <input id="incomeDate" class="inpx" type="date">
+            </div>
+            <div class="form-row">
+              <label>Summa (so‘m)</label>
+              <input id="incomeAmount" class="inpx" type="number" placeholder="Masalan: 150000000">
+            </div>
+            <div class="form-row" style="grid-column: 1 / -1;">
+              <label>Izoh (ixtiyoriy)</label>
+              <input id="incomeNote" class="inpx" type="text" placeholder="Masalan: Qo‘shimcha xizmatlar, penya, ...">
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+            <button id="btnAddIncome" class="btnx primary" type="button">
+              <span>➕</span><span>Kiritish</span>
+            </button>
+            <button id="btnResetIncome" class="btnx" type="button">
+              <span>🧹</span><span>Tozalash</span>
+            </button>
+          </div>
+
+          <div class="note">
+            Hozircha demo: “Kiritish” bosilganda jadval/mini chart yangilanadi.
+           
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- (4) Structure bar chart (like your 4th image) -->
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Daromad - filiallar kesimida</h3>
+          <div class="card-sub">so'm hisobida olingan</div>
+        </div>
+        <div class="chip"><span class="dot warn"></span><span class="mono">Daromad</span></div>
       </div>
       <div class="chart">
-        <canvas id="chIncome"></canvas>
+        <canvas id="chStructure"></canvas>
       </div>
     </div>
 
-    <div class="cardx">
-      <div class="cardx-h">
+    
+
+  </div>
+
+  <!-- ================= MID SECTION ================= -->
+  <div class="grid-mid">
+
+    <!-- (3) Monthly line chart (like your 3rd image) -->
+    <div class="card">
+      <div class="card-h">
         <div>
-          <h3 class="cardx-title" data-i18n="ch_day_night">Kun/Tun kesimi</h3>
-          <div class="cardx-sub" data-i18n="ch_day_night_sub">Top-5 stansiya (bugun)</div>
+          <h3 class="card-title">Oylar bo‘yicha umumiy dinamika</h3>
+          <div class="card-sub">Ortish (yashil) va Tushirish (qizil) </div>
         </div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Monthly</span></div>
       </div>
-      <div class="chart" style="height:320px">
+      <div class="chart">
+        <canvas id="chMonthly"></canvas>
+      </div>
+    </div>
+
+    <!-- (2) Day/Night (Top-5) -->
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Tushirishda va Ortishda </h3>
+          <div class="card-sub">Tanlangan oraliq bo‘yicha ortishda/tushirishda ma'lumotlarining filiallari kesimida tahlili </div>
+        </div>
+        <div class="chip"><span class="dot"></span><span class="mono">Stacked</span></div>
+      </div>
+      <div class="chart">
         <canvas id="chDayNight"></canvas>
       </div>
     </div>
+
   </div>
 
-  <!-- BOTTOM: recent + pie -->
+  <!-- ================= BOTTOM SECTION ================= -->
   <div class="grid-bottom">
-    <div class="cardx">
-      <div class="cardx-h">
+
+    <!-- (5) Stations wide chart (like your 5th image) -->
+    <div class="card">
+      <div class="card-h">
         <div>
-          <h3 class="cardx-title" data-i18n="recent_reports">Oxirgi hisobotlar</h3>
-          <div class="cardx-sub" data-i18n="recent_reports_sub">So‘nggi 15 ta yozuv</div>
+          <h3 class="card-title">Filiallar kesimida Ortish va Tushirish umumiy grafik</h3>
+          <div class="card-sub"> Ortish (ko‘k), Tushirish (pushti) </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <div class="chip"><span class="dot info"></span><span class="mono">Stations</span></div>
+          <button id="btnSortStations" class="btnx" type="button"><span>⇅</span><span>Sort</span></button>
+        </div>
+      </div>
+      <div class="chart" style="height: 560px;">
+        <canvas id="chStations"></canvas>
+      </div>
+    </div>
+
+    <!-- recent activity table (extra modern add-on) -->
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Oxirgi faoliyat (demo)</h3>
+          <div class="card-sub">Buni ustida ishlaymiz</div>
         </div>
         <a class="btnx" href="{% url 'admin_table1_reports' %}">
-          <span>🔎</span><span data-i18n="open_admin">Admin</span>
+          <span>🔎</span><span>Admin</span>
         </a>
       </div>
 
       <div class="table-wrap">
         <div class="scroll-x">
-          <table class="tbl">
+          <table class="tbl" id="recentTable">
             <thead>
               <tr>
-                <th data-i18n="th_date">Sana</th>
-                <th data-i18n="th_station">Stansiya</th>
-                <th data-i18n="th_type">Tur</th>
-                <th class="right" data-i18n="th_income">Daromad</th>
+                <th>Sana</th>
+                <th>Stansiya</th>
+                <th>Tur</th>
+                <th class="right">Summa</th>
+                <th>Holat</th>
               </tr>
             </thead>
             <tbody>
-              {% for r in recent %}
-                <tr>
-                  <td class="mono">{{ r.date }}</td>
-                  <td><b>{{ r.station }}</b></td>
-                  <td class="mono">{{ r.kind }}</td>
-                  <td class="right mono">{{ r.income|default:0|intcomma }}</td>
-                </tr>
-              {% empty %}
-                <tr><td colspan="4" class="mono" style="color:var(--muted)" data-i18n="no_data">Ma’lumot yo‘q</td></tr>
-              {% endfor %}
+              <!-- JS will fill demo rows -->
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <div class="cardx">
-      <div class="cardx-h">
-        <div>
-          <h3 class="cardx-title" data-i18n="ch_structure">Ko‘rsatkichlar tarkibi</h3>
-          <div class="cardx-sub" data-i18n="ch_structure_sub">Bugun (Table-1 asosiy bloklar)</div>
-        </div>
-      </div>
-      <div class="chart" style="height:360px">
-        <canvas id="chStructure"></canvas>
-      </div>
-    </div>
   </div>
 
 </div>
 
-<!-- ===== JSON from backend ===== -->
+<!-- ================= DATA HOOKS =================
+
+-->
 {{ dash_json|json_script:"dash-json" }}
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
 (function(){
-  // ---------- read data ----------
-  const rawEl = document.getElementById("dash-json");
-  let D = {};
-  try{ D = JSON.parse(rawEl.textContent || "{}"); }catch(e){ D = {}; }
+  // ------------------------------------------------------------
+  // 1) Read server-provided JSON (optional). If empty => DEMO
+  // ------------------------------------------------------------
+  const raw = document.getElementById("dash-json");
+  let DASH = {};
+  try { DASH = JSON.parse(raw.textContent || "{}"); } catch(e){ DASH = {}; }
 
-  // expected structure (you will provide):
-  // D = {
-  //   lang: "uz"|"ru",
-  //   income30: { labels:[...], values:[...] },
-  //   dayNightTop: { labels:[...], day:[...], night:[...] },
-  //   structure: { labels:[...], values:[...] }
-  // }
+  // Demo fallback
+  const DEMO = {
+    range: { from: null, to: null },
 
-  // ---------- charts ----------
-  const ctxIncome = document.getElementById("chIncome");
-  const ctxDN = document.getElementById("chDayNight");
-  const ctxStruct = document.getElementById("chStructure");
-
-  const incomeLabels = (D.income30 && D.income30.labels) || [];
-  const incomeValues = (D.income30 && D.income30.values) || [];
-
-  const dnLabels = (D.dayNightTop && D.dayNightTop.labels) || [];
-  const dnDay = (D.dayNightTop && D.dayNightTop.day) || [];
-  const dnNight = (D.dayNightTop && D.dayNightTop.night) || [];
-
-  const stLabels = (D.structure && D.structure.labels) || [];
-  const stValues = (D.structure && D.structure.values) || [];
-
-  if(ctxIncome){
-    new Chart(ctxIncome, {
-      type:"line",
-      data:{
-        labels: incomeLabels,
-        datasets:[{
-          label:"Income",
-          data: incomeValues,
-          tension:.35,
-          fill:true
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{ display:false },
-          tooltip:{ mode:"index", intersect:false }
-        },
-        scales:{
-          x:{ grid:{ display:false } },
-          y:{ beginAtZero:true, ticks:{ precision:0 } }
-        }
-      }
-    });
-  }
-
-  if(ctxDN){
-    new Chart(ctxDN, {
-      type:"bar",
-      data:{
-        labels: dnLabels,
-        datasets:[
-          { label:"Day", data: dnDay, stack:"s" },
-          { label:"Night", data: dnNight, stack:"s" }
-        ]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ position:"bottom" } },
-        scales:{
-          x:{ stacked:true, grid:{ display:false } },
-          y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } }
-        }
-      }
-    });
-  }
-
-  if(ctxStruct){
-    new Chart(ctxStruct, {
-      type:"doughnut",
-      data:{
-        labels: stLabels,
-        datasets:[{ data: stValues }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ position:"bottom" } },
-        cutout:"62%"
-      }
-    });
-  }
-
-  // ---------- i18n (page-level) ----------
-  // Uses the same localStorage keys you were using previously.
-  const dict = {
-    uz:{
-      db_title:"Dashboard",
-      db_sub:"Kunlik operativ ko‘rsatkichlar, kun/tun kesimi va oxirgi hisobotlar",
-      go_t1:"Table-1",
-      go_t2:"Table-2",
-      refresh:"Yangilash",
-      kpi_reports_today:"Bugungi hisobotlar",
-      kpi_reports_today_sub:"Table-1 + Table-2 bo‘yicha",
-      kpi_income_today:"Suточный доход",
-      kpi_income_today_sub:"Bugun yig‘ilgan daromad",
-      kpi_active_stations:"Faol stansiyalar",
-      kpi_active_stations_sub:"Hisobot topshirganlar",
-      kpi_missing:"Topshirmaganlar",
-      kpi_missing_sub:"Bugun yo‘q bo‘lganlar",
-      live:"Live", today:"Today", ok:"OK", attention:"Attention",
-      ch_income_30:"Daromad dinamikasi (30 kun)",
-      ch_income_30_sub:"Kunlik daromad trendi",
-      ch_day_night:"Kun/Tun kesimi",
-      ch_day_night_sub:"Top-5 stansiya (bugun)",
-      recent_reports:"Oxirgi hisobotlar",
-      recent_reports_sub:"So‘nggi 15 ta yozuv",
-      open_admin:"Admin",
-      th_date:"Sana",
-      th_station:"Stansiya",
-      th_type:"Tur",
-      th_income:"Daromad",
-      no_data:"Ma’lumot yo‘q",
-      ch_structure:"Ko‘rsatkichlar tarkibi",
-      ch_structure_sub:"Bugun (Table-1 asosiy bloklar)"
+    kpi: {
+      ortish_vagon: 33415,
+      tushirish_vagon: 27794,
+      postupl_mlrd: 8.5,
+      daromad_mlrd: 10.7
     },
-    ru:{
-      db_title:"Дашборд",
-      db_sub:"Оперативные показатели, разрез день/ночь и последние отчёты",
-      go_t1:"Таблица-1",
-      go_t2:"Таблица-2",
-      refresh:"Обновить",
-      kpi_reports_today:"Отчёты за сегодня",
-      kpi_reports_today_sub:"Таблица-1 + Таблица-2",
-      kpi_income_today:"Суточный доход",
-      kpi_income_today_sub:"Доход за сегодня",
-      kpi_active_stations:"Активные станции",
-      kpi_active_stations_sub:"Сдавшие отчёт",
-      kpi_missing:"Не сдали",
-      kpi_missing_sub:"Отсутствующие сегодня",
-      live:"Live", today:"Today", ok:"OK", attention:"Внимание",
-      ch_income_30:"Динамика дохода (30 дней)",
-      ch_income_30_sub:"Тренд по дням",
-      ch_day_night:"День/Ночь",
-      ch_day_night_sub:"Топ-5 станций (сегодня)",
-      recent_reports:"Последние отчёты",
-      recent_reports_sub:"Последние 15 записей",
-      open_admin:"Админ",
-      th_date:"Дата",
-      th_station:"Станция",
-      th_type:"Тип",
-      th_income:"Доход",
-      no_data:"Нет данных",
-      ch_structure:"Структура показателей",
-      ch_structure_sub:"Сегодня (основные блоки Табл.1)"
-    }
+
+    incomeMini: {
+      labels: ["07:20","07:40","08:00","08:20","08:40","09:00","09:20","09:40","10:00","10:20","10:40"],
+      values: [44100,44500,44300,44800,44650,45100,44920,45800,45600,45448,45520]
+    },
+
+    dayNightTop: {
+      labels: ["Angren","Sergeli","Toshkent","Chuqursoy","Boytog"],
+      day:   [22000,18000,17000,15000,12000],
+      night: [26000,15000,38000,52000,24000]
+    },
+
+    monthly: {
+      labels: ["August","September","October","November","December","January","February"],
+      ortish:    [12000,54000,55000,51000,59000,60000,33415],
+      tushirish: [ 9000,35000,40000,34000,40000,44000,27794]
+    },
+
+    structure: {
+      labels: ["Angren","Sergeli","Chuqursoy","Toshkent","Tuy-tepa", "Qarshi"],
+      values: [1600000, 880000, 334150, 277940, 1100000, 120980]
+    },
+
+    stations: {
+      labels: ["Angren","Bekobod","Boytog","Chuqursoy","Keles","Obliq","O'zodlik","Sergeli","Toshkent","Uzbekiston"],
+      ortish: [104333, 18254, 35551, 31123,  4001, 19059, 37546, 34406, 17249,  8017],
+      tushirish:[26481, 25021,  11992, 52600,  5175, 15824, 34526, 51953, 38671, 13841]
+    },
+
+    recent: [
+      {date:"2026-02-20", station:"Toshkent", type:"Income", amount: 125000000, status:"OK"},
+      {date:"2026-02-20", station:"Angren", type:"Ortish", amount: 2200, status:"OK"},
+      {date:"2026-02-19", station:"Sergeli", type:"Tushirish", amount: 1900, status:"Warning"},
+      {date:"2026-02-19", station:"Chuqursoy", type:"Income", amount: 98000000, status:"OK"},
+      {date:"2026-02-18", station:"Bekobod", type:"Income", amount: 64000000, status:"Attention"},
+    ]
   };
 
-  const saved = localStorage.getItem("lang") || localStorage.getItem("ui_lang") || D.lang || "uz";
-  const lang = (saved === "ru") ? "ru" : "uz";
+  // Merge (server overrides demo)
+  const D = Object.keys(DASH).length ? DASH : DEMO;
 
-  document.querySelectorAll("[data-i18n]").forEach(el=>{
-    const key = el.getAttribute("data-i18n");
-    if(dict[lang] && dict[lang][key]) el.textContent = dict[lang][key];
+  // ------------------------------------------------------------
+  // 2) Date range controls (front only; backend later)
+  // ------------------------------------------------------------
+  const $from = document.getElementById("dateFrom");
+  const $to = document.getElementById("dateTo");
+  const $badge = document.getElementById("rangeBadge");
+
+  function fmtRange(a,b){
+    if(!a && !b) return "All time (demo)";
+    if(a && !b) return a + " → …";
+    if(!a && b) return "… → " + b;
+    return a + " → " + b;
+  }
+
+  // Default dates (last 30 days)
+  const today = new Date();
+  const dTo = new Date(today);
+  const dFrom = new Date(today); dFrom.setDate(dFrom.getDate() - 30);
+  const iso = (x)=> x.toISOString().slice(0,10);
+
+  $from.value = D.range?.from || iso(dFrom);
+  $to.value = D.range?.to || iso(dTo);
+  $badge.textContent = fmtRange($from.value, $to.value);
+
+  document.getElementById("btnApply").addEventListener("click", ()=>{
+    $badge.textContent = fmtRange($from.value, $to.value);
+    // Backend ulaganda shu joy: fetch('/api/dashboard?from=...&to=...') kabi bo'ladi.
   });
 
-  // IMPORTANT:
-  // base.html language button bosilganda "custom event" yoq bo'lmasa ham,
-  // bu dashboard har safar ochilganda localStorage'dan o'qib yangilanadi.
+  // ------------------------------------------------------------
+  // 3) KPI fill
+  // ------------------------------------------------------------
+  const spaced = (n)=> (n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  document.getElementById("kpiOrtish").textContent = spaced(D.kpi.ortish_vagon);
+  document.getElementById("kpiTushirish").textContent = spaced(D.kpi.tushirish_vagon);
+  document.getElementById("kpiPostupl").textContent = (D.kpi.postupl_mlrd + "").replace(".", ",") + " mlrd";
+  document.getElementById("kpiDaromad").textContent = (D.kpi.daromad_mlrd + "").replace(".", ",") + " mlrd";
+
+  // ------------------------------------------------------------
+  // 4) Charts helpers
+  // ------------------------------------------------------------
+  function chartDefaults(){
+    Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#111827';
+  }
+
+  function gridColor(){
+    // subtle grid based on theme
+    return document.documentElement.getAttribute("data-theme")==="dark"
+      ? "rgba(255,255,255,.08)"
+      : "rgba(15,23,42,.08)";
+  }
+
+  chartDefaults();
+
+  // ------------------------------------------------------------
+  // (A) Mini income chart (trading-like line)
+  // ------------------------------------------------------------
+  const chIncomeMini = new Chart(document.getElementById("chIncomeMini"), {
+    type: "line",
+    data: {
+      labels: D.incomeMini.labels,
+      datasets: [{
+        label: "Income index (demo)",
+        data: D.incomeMini.values,
+        tension: 0.35,
+        fill: true,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: "index", intersect: false }
+      },
+      scales: {
+        x: { grid: { display:false } },
+        y: { grid: { color: gridColor() }, ticks: { precision: 0 } }
+      }
+    }
+  });
+
+  // ------------------------------------------------------------
+  // (B) Day/Night stacked bar (Top-5)
+  // ------------------------------------------------------------
+  const chDayNight = new Chart(document.getElementById("chDayNight"), {
+    type: "bar",
+    data: {
+      labels: D.dayNightTop.labels,
+      datasets: [
+        { label: "Podpagruzka", data: D.dayNightTop.day, stack: "s", borderWidth: 0 },
+        { label: "Podvigruzka", data: D.dayNightTop.night, stack: "s", borderWidth: 0 }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins: { legend: { position: "bottom" } },
+      scales: {
+        x: { stacked:true, grid: { display:false } },
+        y: { stacked:true, beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+      }
+    }
+  });
+
+  // ------------------------------------------------------------
+  // (C) Monthly line chart (Ortish/Tushirish)
+  // ------------------------------------------------------------
+  const chMonthly = new Chart(document.getElementById("chMonthly"), {
+    type: "line",
+    data: {
+      labels: D.monthly.labels,
+      datasets: [
+        { label: "Ortish", data: D.monthly.ortish, tension: 0.32, borderWidth: 2, pointRadius: 3 },
+        { label: "Tushirish", data: D.monthly.tushirish, tension: 0.32, borderWidth: 2, pointRadius: 3 }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins: { legend: { position: "top" } },
+      scales: {
+        x: { grid: { display:false } },
+        y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+      }
+    }
+  });
+
+  // ------------------------------------------------------------
+  // (D) Structure bar
+  // ------------------------------------------------------------
+  const chStructure = new Chart(document.getElementById("chStructure"), {
+    type: "bar",
+    data: {
+      labels: D.structure.labels,
+      datasets: [{ label: "Ma'lumot", data: D.structure.values, borderWidth: 0 }]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins: { legend: { position: "top" } },
+      scales: {
+        x: { grid: { display:false } },
+        y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+      }
+    }
+  });
+
+  // ------------------------------------------------------------
+  // (E) Stations horizontal stacked
+  // ------------------------------------------------------------
+  let stationsSorted = false;
+  let chStations;
+
+  function buildStationsData(sorted){
+    const labels = [...D.stations.labels];
+    const ort = [...D.stations.ortish];
+    const tus = [...D.stations.tushirish];
+
+    if(sorted){
+      const idx = labels.map((_,i)=>i)
+        .sort((a,b)=> (ort[b]+tus[b]) - (ort[a]+tus[a]));
+      return {
+        labels: idx.map(i=>labels[i]),
+        ortish: idx.map(i=>ort[i]),
+        tushirish: idx.map(i=>tus[i]),
+      };
+    }
+    return { labels, ortish: ort, tushirish: tus };
+  }
+
+  function renderStations(sorted){
+    const X = buildStationsData(sorted);
+
+    if(chStations) chStations.destroy();
+    chStations = new Chart(document.getElementById("chStations"), {
+      type: "bar",
+      data: {
+        labels: X.labels,
+        datasets: [
+          { label: "Ortish", data: X.ortish, stack:"s", borderWidth:0 },
+          { label: "Tushirish", data: X.tushirish, stack:"s", borderWidth:0 }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { legend: { position: "top" } },
+        scales: {
+          x: { stacked:true, grid: { color: gridColor() }, ticks: { precision:0 } },
+          y: { stacked:true, grid: { display:false } }
+        }
+      }
+    });
+  }
+
+  renderStations(false);
+
+  document.getElementById("btnSortStations").addEventListener("click", ()=>{
+    stationsSorted = !stationsSorted;
+    renderStations(stationsSorted);
+  });
+
+  // ------------------------------------------------------------
+  // 5) Recent table demo fill
+  // ------------------------------------------------------------
+  const tbody = document.querySelector("#recentTable tbody");
+  const badge = (s)=>{
+    if(s==="OK") return '<span class="chip"><span class="dot"></span><span>OK</span></span>';
+    if(s==="Warning") return '<span class="chip"><span class="dot warn"></span><span>Warning</span></span>';
+    return '<span class="chip"><span class="dot bad"></span><span>Attention</span></span>';
+  }
+  const money = (n)=> (n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+  tbody.innerHTML = (D.recent || []).map(r=>`
+    <tr>
+      <td class="mono">${r.date}</td>
+      <td><b>${r.station}</b></td>
+      <td class="mono">${r.type}</td>
+      <td class="right mono">${money(r.amount)}</td>
+      <td>${badge(r.status)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="5" class="mono" style="color:var(--muted)">Ma'lumot yo‘q</td></tr>`;
+
+  // ------------------------------------------------------------
+  // 6) Income entry demo behavior (client-side only)
+  // ------------------------------------------------------------
+  const $incomeDate = document.getElementById("incomeDate");
+  const $incomeAmount = document.getElementById("incomeAmount");
+  const $incomeNote = document.getElementById("incomeNote");
+
+  $incomeDate.value = iso(new Date());
+
+  document.getElementById("btnResetIncome").addEventListener("click", ()=>{
+    $incomeAmount.value = "";
+    $incomeNote.value = "";
+    $incomeDate.value = iso(new Date());
+  });
+
+  document.getElementById("btnAddIncome").addEventListener("click", ()=>{
+    const date = $incomeDate.value;
+    const amount = Number($incomeAmount.value || 0);
+    const note = ($incomeNote.value || "").trim();
+
+    if(!date || !amount){
+      alert("Sana va summa kiriting.");
+      return;
+    }
+
+    // Add to recent table (demo)
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="mono">${date}</td>
+      <td><b>Tashkilot</b></td>
+      <td class="mono">Income</td>
+      <td class="right mono">${money(amount)}</td>
+      <td><span class="chip"><span class="dot info"></span><span>New</span></span></td>
+    `;
+    tbody.prepend(row);
+
+    // Update mini chart (demo): push last point
+    chIncomeMini.data.labels.push(new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}));
+    const last = chIncomeMini.data.datasets[0].data.slice(-1)[0] || 45000;
+    chIncomeMini.data.datasets[0].data.push(last + Math.round((Math.random()-0.5)*200));
+    if(chIncomeMini.data.labels.length > 14){
+      chIncomeMini.data.labels.shift();
+      chIncomeMini.data.datasets[0].data.shift();
+    }
+    chIncomeMini.update();
+
+    // Clear fields
+    $incomeAmount.value = "";
+    $incomeNote.value = "";
+  });
+
 })();
 </script>
 {% endblock %}
