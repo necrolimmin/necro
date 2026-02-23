@@ -6,12 +6,6 @@
 
 {% block content %}
 <style>
-  /* =========================================================
-     Modern Dashboard (Responsive + Dark mode friendly)
-     Uses your base.html tokens:
-       --surface --stroke --shadow --text --muted --accent (if exists)
-  ========================================================= */
-
   :root{
     --db-radius: 22px;
     --db-radius-sm: 16px;
@@ -167,6 +161,7 @@
     margin-top: 10px;
     margin-bottom: 12px;
   }
+  
   @media (max-width: 1100px){
     .grid-kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   }
@@ -232,7 +227,7 @@
   }
 
   .card > *{ position: relative; }
-
+  
   .card-h{
     display:flex;
     align-items:flex-start;
@@ -324,7 +319,7 @@
   @media (max-width: 600px){
     .chart{ height: 280px; }
   }
-  .chart.sm{ height: 220px; }
+  .chart.sm{ max-height: 315px; }
 
   /* ---- income entry panel ---- */
   .income-wrap{
@@ -411,32 +406,32 @@
 
   .income-wrap.onecol{
   display:block;
-}
-.income-wrap.onecol .chart{
-  width:100%;
-}
+  }
+  .income-wrap.onecol .chart{
+    width:100%;
+  }
 
-.chart{
-  border-radius: 18px;
-  overflow:hidden;
-}
-.chart canvas{
-  filter: drop-shadow(0 18px 35px rgba(15,23,42,.18));
-}
-html[data-theme="dark"] .chart canvas{
-  filter: drop-shadow(0 22px 45px rgba(0,0,0,.55));
-}
+  .chart{
+    border-radius: 18px;
+    overflow:hidden;
+  }
+  .chart canvas{
+    filter: drop-shadow(0 18px 35px rgba(15,23,42,.18));
+  }
+  html[data-theme="dark"] .chart canvas{
+    filter: drop-shadow(0 22px 45px rgba(0,0,0,.55));
+  }
 
-/* trading panel (dark) */
-.chart-trade{
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.10);
-  /* background: linear-gradient(180deg, rgba(2,6,23,.96), rgba(15,23,42,.92)); */
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.06),
-    0 22px 60px rgba(0,0,0,.25);
-  padding: 10px;
-}
+  /* trading panel (dark) */
+  .chart-trade{
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.10);
+    /* background: linear-gradient(180deg, rgba(2,6,23,.96), rgba(15,23,42,.92)); */
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.06),
+      0 22px 60px rgba(0,0,0,.25);
+    padding: 10px;
+  }
 </style>
 
 <div class="dbx">
@@ -539,7 +534,7 @@ html[data-theme="dark"] .chart canvas{
         <div class="kpi-left">
           <div class="card-title">Tushirishda / Podvigruzka</div>
           <div class="val mono" id="kpiPodvigruzka">10 321 </div>
-          <div class="meta">So‘m</div>
+          <div class="meta">Vagon</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
           <div class="chip"><span class="dot warn"></span><span>load</span></div>
@@ -586,14 +581,14 @@ html[data-theme="dark"] .chart canvas{
       </div>
 
       <div class="income-wrap onecol">
-  <div class="chart sm chart-trade">
-    <canvas id="chIncomeMini"></canvas>
-  </div>
+        <div class="chart sm chart-trade">
+          <canvas id="chIncomeMini"></canvas>
+        </div>
 
-  <div class="note">
-    Hozircha demo: Backend ulangani yo‘q.
-  </div>
-</div>
+        <div class="note">
+          Hozircha demo: Backend ulangani yo‘q.
+        </div>
+      </div>
     </div>
 
     <!-- (4) Structure bar chart (like your 4th image) -->
@@ -711,388 +706,291 @@ html[data-theme="dark"] .chart canvas{
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
-(function(){
-  // ============================================================
-  // 0) Read server-provided JSON
-  // ============================================================
-  const raw = document.getElementById("dash-json");
-  let DASH = {};
-  try { DASH = JSON.parse(raw?.textContent || "{}"); } catch(e){ DASH = {}; }
+  (function(){
+    // ============================================================
+    // 0) Read server-provided JSON
+    // ============================================================
+    const raw = document.getElementById("dash-json");
+    let DASH = {};
+    try { DASH = JSON.parse(raw?.textContent || "{}"); } catch(e){ DASH = {}; }
 
-  // ============================================================
-  // 1) DEMO fallback (works even if backend missing)
-  // ============================================================
-  const DEMO = {
-    range: { from: null, to: null },
+    // ============================================================
+    // 1) DEMO fallback (works even if backend missing)
+    // ============================================================
+    const DEMO = {
+      range: { from: null, to: null },
 
-    kpi: {
-      ortish_vagon: 33415,
-      tushirish_vagon: 27794,
-      podpogruzka_vagon: 8520,
-      podvigruzka_vagon: 6140
-    },
+      kpi: {
+        ortish_vagon: 33415,
+        tushirish_vagon: 27794,
+        podpogruzka_vagon: 8520,
+        podvigruzka_vagon: 6140
+      },
 
-    // trader-like daily line
-    incomeMini: {
-      labels: ["10.02.25","11.02.25","12.02.25","13.02.25","14.02.25","15.02.25","16.02.25","17.02.25","18.02.25","19.02.25","20.02.25"],
-      values: [44100,44500,44300,44800,44650,45100,44920,45800,45600,45448,45520]
-    },
+      // trader-like daily line
+      incomeMini: {
+        labels: ["10.02.25","11.02.25","12.02.25","13.02.25","14.02.25","15.02.25","16.02.25","17.02.25","18.02.25","19.02.25","20.02.25"],
+        values: [44100,44500,44300,44800,44650,45100,44920,45800,45600,45448,45520]
+      },
 
-    dayNightTop: {
-      labels: ["Angren","Sergeli","Toshkent","Chuqursoy","Boytog"],
-      day:   [22000,18000,17000,15000,12000],
-      night: [26000,15000,38000,52000,24000]
-    },
+      dayNightTop: {
+        labels: ["Angren","Sergeli","Toshkent","Chuqursoy","Boytog"],
+        day:   [22000,18000,17000,15000,12000],
+        night: [26000,15000,38000,52000,24000]
+      },
 
-    monthly: {
-      labels: ["August","September","October","November","December","January","February"],
-      ortish:    [12000,54000,55000,51000,59000,60000,33415],
-      tushirish: [ 9000,35000,40000,34000,40000,44000,27794]
-    },
+      monthly: {
+        labels: ["August","September","October","November","December","January","February"],
+        ortish:    [12000,54000,55000,51000,59000,60000,33415],
+        tushirish: [ 9000,35000,40000,34000,40000,44000,27794]
+      },
 
-    structure: {
-      labels: ["Angren","Sergeli","Chuqursoy","Toshkent","Tuy-tepa","Qarshi"],
-      values: [1600000, 880000, 334150, 277940, 1100000, 120980]
-    },
+      structure: {
+        labels: ["Angren","Sergeli","Chuqursoy","Toshkent","Tuy-tepa","Qarshi"],
+        values: [1600000, 880000, 334150, 277940, 1100000, 120980]
+      },
 
-    stations: {
-      labels: ["Angren","Bekobod","Boytog","Chuqursoy","Keles","Obliq","O'zodlik","Sergeli","Toshkent","Uzbekiston"],
-      ortish: [104333, 18254, 35551, 31123,  4001, 19059, 37546, 34406, 17249,  8017],
-      tushirish:[26481, 25021, 11992, 52600,  5175, 15824, 34526, 51953, 38671, 13841]
-    },
+      stations: {
+        labels: ["Angren","Bekobod","Boytog","Chuqursoy","Keles","Obliq","O'zodlik","Sergeli","Toshkent","Uzbekiston"],
+        ortish: [104333, 18254, 35551, 31123,  4001, 19059, 37546, 34406, 17249,  8017],
+        tushirish:[26481, 25021, 11992, 52600,  5175, 15824, 34526, 51953, 38671, 13841]
+      },
 
-    recent: [
-      {date:"2026-02-20", station:"Toshkent", type:"Income", amount: 125000000, status:"OK"},
-      {date:"2026-02-20", station:"Angren", type:"Ortish", amount: 2200, status:"OK"},
-      {date:"2026-02-19", station:"Sergeli", type:"Tushirish", amount: 1900, status:"Warning"},
-      {date:"2026-02-19", station:"Chuqursoy", type:"Income", amount: 98000000, status:"OK"},
-      {date:"2026-02-18", station:"Bekobod", type:"Income", amount: 64000000, status:"Attention"}
-    ]
-  };
+      recent: [
+        {date:"2026-02-20", station:"Toshkent", type:"Income", amount: 125000000, status:"OK"},
+        {date:"2026-02-20", station:"Angren", type:"Ortish", amount: 2200, status:"OK"},
+        {date:"2026-02-19", station:"Sergeli", type:"Tushirish", amount: 1900, status:"Warning"},
+        {date:"2026-02-19", station:"Chuqursoy", type:"Income", amount: 98000000, status:"OK"},
+        {date:"2026-02-18", station:"Bekobod", type:"Income", amount: 64000000, status:"Attention"}
+      ]
+    };
 
-  // ============================================================
-  // 2) Deep merge: DEMO is base, server overrides
-  // ============================================================
-  function deepMerge(base, extra){
-    if(!extra || typeof extra !== "object") return base;
-    const out = Array.isArray(base) ? [...base] : {...base};
-    for(const k of Object.keys(extra)){
-      const bv = base?.[k];
-      const ev = extra[k];
-      if(ev && typeof ev === "object" && !Array.isArray(ev)){
-        out[k] = deepMerge(bv || {}, ev);
-      } else {
-        out[k] = ev;
+    // ============================================================
+    // 2) Deep merge: DEMO is base, server overrides
+    // ============================================================
+    function deepMerge(base, extra){
+      if(!extra || typeof extra !== "object") return base;
+      const out = Array.isArray(base) ? [...base] : {...base};
+      for(const k of Object.keys(extra)){
+        const bv = base?.[k];
+        const ev = extra[k];
+        if(ev && typeof ev === "object" && !Array.isArray(ev)){
+          out[k] = deepMerge(bv || {}, ev);
+        } else {
+          out[k] = ev;
+        }
       }
+      return out;
     }
-    return out;
-  }
-  const D = deepMerge(DEMO, DASH);
+    const D = deepMerge(DEMO, DASH);
 
-  // ============================================================
-  // 3) Helpers
-  // ============================================================
-  const spaced = (n)=> (n ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  const money = (n)=> (n ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    // ============================================================
+    // 3) Helpers
+    // ============================================================
+    const spaced = (n)=> (n ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const money = (n)=> (n ?? 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
-  const isDark = ()=> document.documentElement.getAttribute("data-theme")==="dark";
+    const isDark = ()=> document.documentElement.getAttribute("data-theme")==="dark";
 
-  function gridColor(){
-    return isDark() ? "rgba(255,255,255,.10)" : "rgba(15,23,42,.10)";
-  }
+    function gridColor(){
+      return isDark() ? "rgba(255,255,255,.10)" : "rgba(15,23,42,.10)";
+    }
 
-  // ============================================================
-  // 4) Date range UI
-  // ============================================================
-  const $from = document.getElementById("dateFrom");
-  const $to = document.getElementById("dateTo");
-  const $badge = document.getElementById("rangeBadge");
-  const iso = (x)=> x.toISOString().slice(0,10);
+    // ============================================================
+    // 4) Date range UI
+    // ============================================================
+    const $from = document.getElementById("dateFrom");
+    const $to = document.getElementById("dateTo");
+    const $badge = document.getElementById("rangeBadge");
+    const iso = (x)=> x.toISOString().slice(0,10);
 
-  function fmtRange(a,b){
-    if(!a && !b) return "All time";
-    if(a && !b) return a + " → …";
-    if(!a && b) return "… → " + b;
-    return a + " → " + b;
-  }
+    function fmtRange(a,b){
+      if(!a && !b) return "All time";
+      if(a && !b) return a + " → …";
+      if(!a && b) return "… → " + b;
+      return a + " → " + b;
+    }
 
-  if($from && $to && $badge){
-    const today = new Date();
-    const dTo = new Date(today);
-    const dFrom = new Date(today); dFrom.setDate(dFrom.getDate() - 30);
+    if($from && $to && $badge){
+      const today = new Date();
+      const dTo = new Date(today);
+      const dFrom = new Date(today); dFrom.setDate(dFrom.getDate() - 30);
 
-    $from.value = D.range?.from || iso(dFrom);
-    $to.value = D.range?.to || iso(dTo);
-    $badge.textContent = fmtRange($from.value, $to.value);
-
-    const btnApply = document.getElementById("btnApply");
-    btnApply?.addEventListener("click", ()=>{
+      $from.value = D.range?.from || iso(dFrom);
+      $to.value = D.range?.to || iso(dTo);
       $badge.textContent = fmtRange($from.value, $to.value);
-      // Backend ulaganda: fetch('/api/dashboard?from='+$from.value+'&to='+$to.value)
-    });
-  }
 
-  // ============================================================
-  // 5) KPI fill (4 vagon)
-  // ============================================================
-  const kpi = D.kpi || {};
-  const elOrt = document.getElementById("kpiOrtish");
-  const elTush = document.getElementById("kpiTushirish");
-  const elPodOrt = document.getElementById("kpiPodpogruzka");
-  const elPodTush = document.getElementById("kpiPodvigruzka");
-
-  if(elOrt) elOrt.textContent = spaced(kpi.ortish_vagon);
-  if(elTush) elTush.textContent = spaced(kpi.tushirish_vagon);
-  if(elPodOrt) elPodOrt.textContent = spaced(kpi.podpogruzka_vagon);
-  if(elPodTush) elPodTush.textContent = spaced(kpi.podvigruzka_vagon);
-
-  // ============================================================
-  // 6) Chart.js defaults + 3D shadow plugin
-  // ============================================================
-  if(typeof Chart === "undefined"){
-    console.error("Chart.js not loaded");
-    return;
-  }
-
-  Chart.defaults.font.family =
-    'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
-  Chart.defaults.color =
-    getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#111827';
-
-  const shadowPlugin = {
-    id: "shadowPlugin",
-    beforeDatasetsDraw(chart, args, opts) {
-      const { ctx } = chart;
-      ctx.save();
-      ctx.shadowColor = opts?.shadowColor || (isDark() ? "rgba(0,0,0,.60)" : "rgba(15,23,42,.18)");
-      ctx.shadowBlur  = opts?.shadowBlur ?? 18;
-      ctx.shadowOffsetX = opts?.shadowOffsetX ?? 0;
-      ctx.shadowOffsetY = opts?.shadowOffsetY ?? 10;
-    },
-    afterDatasetsDraw(chart) {
-      chart.ctx.restore();
+      const btnApply = document.getElementById("btnApply");
+      btnApply?.addEventListener("click", ()=>{
+        $badge.textContent = fmtRange($from.value, $to.value);
+        // Backend ulaganda: fetch('/api/dashboard?from='+$from.value+'&to='+$to.value)
+      });
     }
-  };
-  Chart.register(shadowPlugin);
 
-  function safeChart(make){
-    try { return make(); }
-    catch(e){ console.error("Chart error:", e); return null; }
-  }
+    // ============================================================
+    // 5) KPI fill (4 vagon)
+    // ============================================================
+    const kpi = D.kpi || {};
+    const elOrt = document.getElementById("kpiOrtish");
+    const elTush = document.getElementById("kpiTushirish");
+    const elPodOrt = document.getElementById("kpiPodpogruzka");
+    const elPodTush = document.getElementById("kpiPodvigruzka");
 
-  // ============================================================
-  // 7) (A) Trader income chart: green up / red down segments
-  // ============================================================
-  const upColor = "rgba(34,197,94,0.98)";
-  const downColor = "rgba(239,68,68,0.98)";
+    if(elOrt) elOrt.textContent = spaced(kpi.ortish_vagon);
+    if(elTush) elTush.textContent = spaced(kpi.tushirish_vagon);
+    if(elPodOrt) elPodOrt.textContent = spaced(kpi.podpogruzka_vagon);
+    if(elPodTush) elPodTush.textContent = spaced(kpi.podvigruzka_vagon);
 
-  const chIncomeMini = safeChart(()=> new Chart(document.getElementById("chIncomeMini"), {
-    type: "line",
-    data: {
-      labels: D.incomeMini.labels,
-      datasets: [{
-        label: "Daromad",
-        data: D.incomeMini.values,
-        tension: 0.22,
-        pointRadius: 0,
-        borderWidth: 2,
-        segment: {
-          borderColor: (ctx) => {
-            const y0 = ctx.p0.parsed.y;
-            const y1 = ctx.p1.parsed.y;
-            return (y1 >= y0) ? upColor : downColor;
+    // ============================================================
+    // 6) Chart.js defaults + 3D shadow plugin
+    // ============================================================
+    if(typeof Chart === "undefined"){
+      console.error("Chart.js not loaded");
+      return;
+    }
+
+    Chart.defaults.font.family =
+      'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    Chart.defaults.color =
+      getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#111827';
+
+    const shadowPlugin = {
+      id: "shadowPlugin",
+      beforeDatasetsDraw(chart, args, opts) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.shadowColor = opts?.shadowColor || (isDark() ? "rgba(0,0,0,.60)" : "rgba(15,23,42,.18)");
+        ctx.shadowBlur  = opts?.shadowBlur ?? 18;
+        ctx.shadowOffsetX = opts?.shadowOffsetX ?? 0;
+        ctx.shadowOffsetY = opts?.shadowOffsetY ?? 10;
+      },
+      afterDatasetsDraw(chart) {
+        chart.ctx.restore();
+      }
+    };
+    Chart.register(shadowPlugin);
+
+    function safeChart(make){
+      try { return make(); }
+      catch(e){ console.error("Chart error:", e); return null; }
+    }
+
+    // ============================================================
+    // 7) (A) Trader income chart: green up / red down segments
+    // ============================================================
+    const upColor = "rgba(34,197,94,0.98)";
+    const downColor = "rgba(239,68,68,0.98)";
+
+    const chIncomeMini = safeChart(()=> new Chart(document.getElementById("chIncomeMini"), {
+      type: "line",
+      data: {
+        labels: D.incomeMini.labels,
+        datasets: [{
+          label: "Daromad",
+          data: D.incomeMini.values,
+          tension: 0.22,
+          pointRadius: 0,
+          borderWidth: 2,
+          segment: {
+            borderColor: (ctx) => {
+              const y0 = ctx.p0.parsed.y;
+              const y1 = ctx.p1.parsed.y;
+              return (y1 >= y0) ? upColor : downColor;
+            },
           },
-        },
-        fill: true,
-        backgroundColor: "rgba(56,189,248,0.10)"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        shadowPlugin: { shadowBlur: 22, shadowOffsetY: 10 },
-        legend: { display: false },
-        tooltip: { mode: "index", intersect: false }
+          fill: true,
+          backgroundColor: "rgba(56,189,248,0.10)"
+        }]
       },
-      scales: {
-        x: {
-          grid: { color: isDark() ? "rgba(255,255,255,.06)" : "rgba(15,23,42,.06)" }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          shadowPlugin: { shadowBlur: 22, shadowOffsetY: 10 },
+          legend: { display: false },
+          tooltip: { mode: "index", intersect: false }
         },
-        y: {
-          grid: { color: isDark() ? "rgba(255,255,255,.08)" : "rgba(15,23,42,.08)" },
-          ticks: { precision: 0 }
+        scales: {
+          x: {
+            grid: { color: isDark() ? "rgba(255,255,255,.06)" : "rgba(15,23,42,.06)" }
+          },
+          y: {
+            grid: { color: isDark() ? "rgba(255,255,255,.08)" : "rgba(15,23,42,.08)" },
+            ticks: { precision: 0 }
+          }
         }
       }
-    }
-  }));
+    }));
 
-  // ============================================================
-  // 8) (B) Day/Night stacked bar (modern rounded)
-  // ============================================================
-  const chDayNight = safeChart(()=> new Chart(document.getElementById("chDayNight"), {
-    type: "bar",
-    data: {
-      labels: D.dayNightTop.labels,
-      datasets: [
-        {
-          label: "Podpogruzka",
-          data: D.dayNightTop.day,
-          stack: "s",
-          borderWidth: 0,
-          borderRadius: 12,
-          barThickness: 18,
-          maxBarThickness: 22
-        },
-        {
-          label: "Podvigruzka",
-          data: D.dayNightTop.night,
-          stack: "s",
-          borderWidth: 0,
-          borderRadius: 12,
-          barThickness: 18,
-          maxBarThickness: 22
-        }
-      ]
-    },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins: {
-        shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 },
-        legend: { position: "bottom" }
-      },
-      scales: {
-        x: { stacked:true, grid: { display:false } },
-        y: { stacked:true, beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
-      }
-    }
-  }));
-
-  // ============================================================
-  // 9) (C) Monthly line chart (modern + shadow)
-  // ============================================================
-  const chMonthly = safeChart(()=> new Chart(document.getElementById("chMonthly"), {
-    type: "line",
-    data: {
-      labels: D.monthly.labels,
-      datasets: [
-        {
-          label: "Ortish",
-          data: D.monthly.ortish,
-          tension: 0.30,
-          borderWidth: 2,
-          pointRadius: 3,
-          fill: false
-        },
-        {
-          label: "Tushirish",
-          data: D.monthly.tushirish,
-          tension: 0.30,
-          borderWidth: 2,
-          pointRadius: 3,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins: {
-        shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 },
-        legend: { position: "top" }
-      },
-      scales: {
-        x: { grid: { display:false } },
-        y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
-      }
-    }
-  }));
-
-  // ============================================================
-  // 10) (D) Structure bar (modern rounded)
-  // ============================================================
-  const chStructure = safeChart(()=> new Chart(document.getElementById("chStructure"), {
-    type: "bar",
-    data: {
-      labels: D.structure.labels,
-      datasets: [{
-        label: "Daromad",
-        data: D.structure.values,
-        borderWidth: 0,
-        borderRadius: 12,
-        barThickness: 18,
-        maxBarThickness: 22
-      }]
-    },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins: {
-        shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 },
-        legend: { position: "top" }
-      },
-      scales: {
-        x: { grid: { display:false } },
-        y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
-      }
-    }
-  }));
-
-  // ============================================================
-  // 11) (E) Stations horizontal stacked + sort
-  // ============================================================
-  let stationsSorted = false;
-  let chStations = null;
-
-  function buildStationsData(sorted){
-    const labels = [...D.stations.labels];
-    const ort = [...D.stations.ortish];
-    const tus = [...D.stations.tushirish];
-
-    if(sorted){
-      const idx = labels.map((_,i)=>i)
-        .sort((a,b)=> (ort[b]+tus[b]) - (ort[a]+tus[a]));
-      return {
-        labels: idx.map(i=>labels[i]),
-        ortish: idx.map(i=>ort[i]),
-        tushirish: idx.map(i=>tus[i]),
-      };
-    }
-    return { labels, ortish: ort, tushirish: tus };
-  }
-
-  function renderStations(sorted){
-    const X = buildStationsData(sorted);
-    if(chStations) chStations.destroy();
-
-    chStations = safeChart(()=> new Chart(document.getElementById("chStations"), {
+    // ============================================================
+    // 8) (B) Day/Night stacked bar (modern rounded)
+    // ============================================================
+    const chDayNight = safeChart(()=> new Chart(document.getElementById("chDayNight"), {
       type: "bar",
       data: {
-        labels: X.labels,
+        labels: D.dayNightTop.labels,
         datasets: [
           {
-            label: "Ortish",
-            data: X.ortish,
-            stack:"s",
-            borderWidth:0,
+            label: "Podpogruzka",
+            data: D.dayNightTop.day,
+            stack: "s",
+            borderWidth: 0,
             borderRadius: 12,
-            barThickness: 16,
-            maxBarThickness: 20
+            barThickness: 18,
+            maxBarThickness: 22
           },
           {
-            label: "Tushirish",
-            data: X.tushirish,
-            stack:"s",
-            borderWidth:0,
+            label: "Podvigruzka",
+            data: D.dayNightTop.night,
+            stack: "s",
+            borderWidth: 0,
             borderRadius: 12,
-            barThickness: 16,
-            maxBarThickness: 20
+            barThickness: 18,
+            maxBarThickness: 22
           }
         ]
       },
       options: {
-        indexAxis: "y",
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: {
+          shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 },
+          legend: { position: "bottom" }
+        },
+        scales: {
+          x: { stacked:true, grid: { display:false } },
+          y: { stacked:true, beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+
+    // ============================================================
+    // 9) (C) Monthly line chart (modern + shadow)
+    // ============================================================
+    const chMonthly = safeChart(()=> new Chart(document.getElementById("chMonthly"), {
+      type: "line",
+      data: {
+        labels: D.monthly.labels,
+        datasets: [
+          {
+            label: "Ortish",
+            data: D.monthly.ortish,
+            tension: 0.30,
+            borderWidth: 2,
+            pointRadius: 3,
+            fill: false
+          },
+          {
+            label: "Tushirish",
+            data: D.monthly.tushirish,
+            tension: 0.30,
+            borderWidth: 2,
+            pointRadius: 3,
+            fill: false
+          }
+        ]
+      },
+      options: {
         responsive:true,
         maintainAspectRatio:false,
         plugins: {
@@ -1100,42 +998,139 @@ html[data-theme="dark"] .chart canvas{
           legend: { position: "top" }
         },
         scales: {
-          x: { stacked:true, grid: { color: gridColor() }, ticks: { precision:0 } },
-          y: { stacked:true, grid: { display:false } }
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
         }
       }
     }));
-  }
 
-  renderStations(false);
+    // ============================================================
+    // 10) (D) Structure bar (modern rounded)
+    // ============================================================
+    const chStructure = safeChart(()=> new Chart(document.getElementById("chStructure"), {
+      type: "bar",
+      data: {
+        labels: D.structure.labels,
+        datasets: [{
+          label: "Daromad",
+          data: D.structure.values,
+          borderWidth: 0,
+          borderRadius: 12,
+          barThickness: 18,
+          maxBarThickness: 22
+        }]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: {
+          shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 },
+          legend: { position: "top" }
+        },
+        scales: {
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
 
-  document.getElementById("btnSortStations")?.addEventListener("click", ()=>{
-    stationsSorted = !stationsSorted;
-    renderStations(stationsSorted);
-  });
+    // ============================================================
+    // 11) (E) Stations horizontal stacked + sort
+    // ============================================================
+    let stationsSorted = false;
+    let chStations = null;
 
-  // ============================================================
-  // 12) Recent table fill
-  // ============================================================
-  const tbody = document.querySelector("#recentTable tbody");
-  if(tbody){
-    const badge = (s)=>{
-      if(s==="OK") return '<span class="chip"><span class="dot"></span><span>OK</span></span>';
-      if(s==="Warning") return '<span class="chip"><span class="dot warn"></span><span>Warning</span></span>';
-      return '<span class="chip"><span class="dot bad"></span><span>Attention</span></span>';
-    };
+    function buildStationsData(sorted){
+      const labels = [...D.stations.labels];
+      const ort = [...D.stations.ortish];
+      const tus = [...D.stations.tushirish];
 
-    tbody.innerHTML = (D.recent || []).map(r=>`
-      <tr>
-        <td class="mono">${r.date}</td>
-        <td><b>${r.station}</b></td>
-        <td class="mono">${r.type}</td>
-        <td class="right mono">${money(r.amount)}</td>
-        <td>${badge(r.status)}</td>
-      </tr>
-    `).join("") || `<tr><td colspan="5" class="mono" style="color:var(--muted)">Ma'lumot yo‘q</td></tr>`;
-  }
+      if(sorted){
+        const idx = labels.map((_,i)=>i)
+          .sort((a,b)=> (ort[b]+tus[b]) - (ort[a]+tus[a]));
+        return {
+          labels: idx.map(i=>labels[i]),
+          ortish: idx.map(i=>ort[i]),
+          tushirish: idx.map(i=>tus[i]),
+        };
+      }
+      return { labels, ortish: ort, tushirish: tus };
+    }
 
-})();
+    function renderStations(sorted){
+      const X = buildStationsData(sorted);
+      if(chStations) chStations.destroy();
+
+      chStations = safeChart(()=> new Chart(document.getElementById("chStations"), {
+        type: "bar",
+        data: {
+          labels: X.labels,
+          datasets: [
+            {
+              label: "Ortish",
+              data: X.ortish,
+              stack:"s",
+              borderWidth:0,
+              borderRadius: 12,
+              barThickness: 16,
+              maxBarThickness: 20
+            },
+            {
+              label: "Tushirish",
+              data: X.tushirish,
+              stack:"s",
+              borderWidth:0,
+              borderRadius: 12,
+              barThickness: 16,
+              maxBarThickness: 20
+            }
+          ]
+        },
+        options: {
+          indexAxis: "y",
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins: {
+            shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 },
+            legend: { position: "top" }
+          },
+          scales: {
+            x: { stacked:true, grid: { color: gridColor() }, ticks: { precision:0 } },
+            y: { stacked:true, grid: { display:false } }
+          }
+        }
+      }));
+    }
+
+    renderStations(false);
+
+    document.getElementById("btnSortStations")?.addEventListener("click", ()=>{
+      stationsSorted = !stationsSorted;
+      renderStations(stationsSorted);
+    });
+
+    // ============================================================
+    // 12) Recent table fill
+    // ============================================================
+    const tbody = document.querySelector("#recentTable tbody");
+    if(tbody){
+      const badge = (s)=>{
+        if(s==="OK") return '<span class="chip"><span class="dot"></span><span>OK</span></span>';
+        if(s==="Warning") return '<span class="chip"><span class="dot warn"></span><span>Warning</span></span>';
+        return '<span class="chip"><span class="dot bad"></span><span>Attention</span></span>';
+      };
+
+      tbody.innerHTML = (D.recent || []).map(r=>`
+        <tr>
+          <td class="mono">${r.date}</td>
+          <td><b>${r.station}</b></td>
+          <td class="mono">${r.type}</td>
+          <td class="right mono">${money(r.amount)}</td>
+          <td>${badge(r.status)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="5" class="mono" style="color:var(--muted)">Ma'lumot yo‘q</td></tr>`;
+    }
+
+  })();
 </script>
 {% endblock %}
