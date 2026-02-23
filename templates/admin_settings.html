@@ -290,6 +290,13 @@
     font-size: 24px;
   }
 
+  .kpi-icon svg{
+  transition: transform .25s ease;
+  }
+  .card-3d:hover .kpi-icon svg{
+    transform: translateY(1px) scale(1.06);
+  }
+
   .chip{
     display:inline-flex;
     align-items:center;
@@ -446,7 +453,7 @@
           <div class="meta">Vagon </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot"></span><span>joriy</span></div>
+          <div class="chip"><span class="dot"></span><span>ok</span></div>
           <div class="kpi-icon">🚂</div>
         </div>
       </div>
@@ -460,7 +467,7 @@
           <div class="meta">Vagon </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot warn"></span><span>joriy</span></div>
+          <div class="chip"><span class="dot "></span><span>ok</span></div>
           <div class="kpi-icon">📦</div>
         </div>
       </div>
@@ -469,13 +476,31 @@
     <div class="card">
       <div class="kpi">
         <div class="kpi-left">
-          <div class="card-title">Uborka / Tozalash</div>
-          <div class="val mono" id="kpiPostupl">15 245</div>
+          <div class="card-title">Ortishda / Podpogruzka</div>
+          <div class="val mono" id="kpiPodpogruzka">15 245</div>
           <div class="meta">Vagon</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot info"></span><span> OK</span></div>
-          <div class="kpi-icon">💳</div>
+          <div class="chip"><span class="dot warn"></span><span> load</span></div>
+          <div class="kpi-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+
+              <!-- container body -->
+              <rect x="3" y="8" width="18" height="10" rx="2" fill="#3B82F6"/>
+
+              <!-- container ribs -->
+              <path d="M7 8V18M11 8V18M15 8V18M19 8V18"
+                    stroke="rgba(255,255,255,.65)" stroke-width="1"/>
+
+              <!-- upload arrow (UP) -->
+              <path d="M12 20V13" stroke="#16A34A" stroke-width="2.2"
+                    stroke-linecap="round"/>
+              <path d="M9.5 15.5L12 13L14.5 15.5"
+                    stroke="#16A34A" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -483,13 +508,33 @@
     <div class="card">
       <div class="kpi">
         <div class="kpi-left">
-          <div class="card-title">Daromad / Narabotka</div>
-          <div class="val mono" id="kpiDaromad">10,7 mlrd</div>
+          <div class="card-title">Tushirishda / Podvigruzka</div>
+          <div class="val mono" id="kpiPodvigruzka">10 321 </div>
           <div class="meta">So‘m</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot"></span><span>Finance</span></div>
-          <div class="kpi-icon">💰</div>
+          <div class="chip"><span class="dot warn"></span><span>load</span></div>
+          <div class="kpi-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+
+              <!-- wagon -->
+              <rect x="3" y="8" width="18" height="7" rx="2"
+                    fill="#3B82F6"/>
+
+              <!-- wheels -->
+              <circle cx="7" cy="18" r="1.6" fill="#111827"/>
+              <circle cx="17" cy="18" r="1.6" fill="#111827"/>
+
+              <!-- unloading arrow down -->
+              <path d="M12 3V10" stroke="#16A34A" stroke-width="2.2"
+                    stroke-linecap="round"/>
+              <path d="M9.5 7.5L12 10L14.5 7.5"
+                    stroke="#16A34A" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -503,12 +548,12 @@
     <div class="card">
       <div class="card-h">
         <div>
-          <h3 class="card-title">Kunlik daromad kiritish</h3>
+          <h3 class="card-title">Daromad tahlili</h3>
           <div class="card-sub">
-            Daromadni kiritasiz, pastda mini dinamikasi chiziladi.
+            Korxonaning sanalar kesimida daromad tahlili
           </div>
         </div>
-        <div class="chip"><span class="dot info"></span><span class="mono">Income Desk</span></div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Daromad burchagi</span></div>
       </div>
 
       <div class="income-wrap">
@@ -516,36 +561,17 @@
           <canvas id="chIncomeMini"></canvas>
         </div>
 
-        <!-- Demo form: backend keyin POST/API ulaydi -->
+        <!-- Lazizbek!! backenddan keyin POST/API ulaysiz -->
         <div>
           <div class="form-grid">
-            <div class="form-row">
-              <label>Sana</label>
-              <input id="incomeDate" class="inpx" type="date">
-            </div>
-            <div class="form-row">
-              <label>Summa (so‘m)</label>
-              <input id="incomeAmount" class="inpx" type="number" placeholder="Masalan: 150000000">
-            </div>
-            <div class="form-row" style="grid-column: 1 / -1;">
-              <label>Izoh (ixtiyoriy)</label>
-              <input id="incomeNote" class="inpx" type="text" placeholder="Masalan: Qo‘shimcha xizmatlar, penya, ...">
-            </div>
-          </div>
-
-          <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
-            <button id="btnAddIncome" class="btnx primary" type="button">
-              <span>➕</span><span>Kiritish</span>
-            </button>
-            <button id="btnResetIncome" class="btnx" type="button">
-              <span>🧹</span><span>Tozalash</span>
-            </button>
-          </div>
+            
 
           <div class="note">
-            Hozircha demo: “Kiritish” bosilganda jadval/mini chart yangilanadi.
+            Hozircha demo: Backend ulangani yuq.
            
           </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -678,14 +704,14 @@
     range: { from: null, to: null },
 
     kpi: {
-      ortish_vagon: 33415,
+      ortish_vagon: 3341556,
       tushirish_vagon: 27794,
-      postupl_mlrd: 8.5,
-      daromad_mlrd: 10.7
+      podpogruzka_vagon: 10341,
+      podvigruzka_vagon: 57001265
     },
 
     incomeMini: {
-      labels: ["07:20","07:40","08:00","08:20","08:40","09:00","09:20","09:40","10:00","10:20","10:40"],
+      labels: ["10.02.25","11.02.25","12.02.25","13.02.25","14.02.25","15.02.25","16.02.25","17.02.25","18.02.25","19.02.25","20.02.25"],
       values: [44100,44500,44300,44800,44650,45100,44920,45800,45600,45448,45520]
     },
 
@@ -759,8 +785,9 @@
   const spaced = (n)=> (n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   document.getElementById("kpiOrtish").textContent = spaced(D.kpi.ortish_vagon);
   document.getElementById("kpiTushirish").textContent = spaced(D.kpi.tushirish_vagon);
-  document.getElementById("kpiPostupl").textContent = (D.kpi.postupl_mlrd + "").replace(".", ",") + " mlrd";
-  document.getElementById("kpiDaromad").textContent = (D.kpi.daromad_mlrd + "").replace(".", ",") + " mlrd";
+  document.getElementById("kpiPodpogruzka").textContent = spaced(D.kpi.podpogruzka_vagon);
+  document.getElementById("kpiPodvigruzka").textContent = spaced(D.kpi.podvigruzka_vagon);
+  
 
   // ------------------------------------------------------------
   // 4) Charts helpers
@@ -862,7 +889,7 @@
     type: "bar",
     data: {
       labels: D.structure.labels,
-      datasets: [{ label: "Ma'lumot", data: D.structure.values, borderWidth: 0 }]
+      datasets: [{ label: "Daromad", data: D.structure.values, borderWidth: 0 }]
     },
     options: {
       responsive:true,
@@ -952,56 +979,8 @@
     </tr>
   `).join("") || `<tr><td colspan="5" class="mono" style="color:var(--muted)">Ma'lumot yo‘q</td></tr>`;
 
-  // ------------------------------------------------------------
-  // 6) Income entry demo behavior (client-side only)
-  // ------------------------------------------------------------
-  const $incomeDate = document.getElementById("incomeDate");
-  const $incomeAmount = document.getElementById("incomeAmount");
-  const $incomeNote = document.getElementById("incomeNote");
-
-  $incomeDate.value = iso(new Date());
-
-  document.getElementById("btnResetIncome").addEventListener("click", ()=>{
-    $incomeAmount.value = "";
-    $incomeNote.value = "";
-    $incomeDate.value = iso(new Date());
-  });
-
-  document.getElementById("btnAddIncome").addEventListener("click", ()=>{
-    const date = $incomeDate.value;
-    const amount = Number($incomeAmount.value || 0);
-    const note = ($incomeNote.value || "").trim();
-
-    if(!date || !amount){
-      alert("Sana va summa kiriting.");
-      return;
-    }
-
-    // Add to recent table (demo)
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td class="mono">${date}</td>
-      <td><b>Tashkilot</b></td>
-      <td class="mono">Income</td>
-      <td class="right mono">${money(amount)}</td>
-      <td><span class="chip"><span class="dot info"></span><span>New</span></span></td>
-    `;
-    tbody.prepend(row);
-
-    // Update mini chart (demo): push last point
-    chIncomeMini.data.labels.push(new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}));
-    const last = chIncomeMini.data.datasets[0].data.slice(-1)[0] || 45000;
-    chIncomeMini.data.datasets[0].data.push(last + Math.round((Math.random()-0.5)*200));
-    if(chIncomeMini.data.labels.length > 14){
-      chIncomeMini.data.labels.shift();
-      chIncomeMini.data.datasets[0].data.shift();
-    }
-    chIncomeMini.update();
-
-    // Clear fields
-    $incomeAmount.value = "";
-    $incomeNote.value = "";
-  });
+ 
+  
 
 })();
 </script>
