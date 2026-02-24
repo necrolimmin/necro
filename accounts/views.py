@@ -20,11 +20,29 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 
 class AppLoginView(LoginView):
-    template_name = 'login.html'  # без папок
+    template_name = "login.html"
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        sp = getattr(self.request.user, "station_profile", None)
+        if sp:
+            sp.status_online = True
+            sp.last_seen = timezone.now()
+            sp.save(update_fields=["status_online", "last_seen"])
+
+        return response
+    
 class AppLogoutView(LogoutView):
     pass
 
+@login_required
+def station_heartbeat(request):
+    sp = getattr(request.user, "station_profile", None)
+    if sp:
+        sp.last_seen = timezone.now()
+        sp.save(update_fields=["last_seen"])
+    return JsonResponse({"ok": True})
 
 def router(request):
     if request.user.is_staff or request.user.is_superuser:
@@ -339,26 +357,43 @@ def admin_settings_stacked_top5_json(request):
     })
 
 def admin_settings_online_users_json(request):
+
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({"detail": "forbidden"}, status=403)
 
-    # show only station users that have StationProfile
+    ONLINE_WINDOW = 90  # seconds
+    now = timezone.now()
+
     users = (
         User.objects.filter(station_profile__isnull=False)
         .select_related("station_profile")
-        .only("id", "username", "last_login",
-              "station_profile__station_name", "station_profile__status")
+        .only(
+            "id", "username", "last_login",
+            "station_profile__station_name",
+            "station_profile__last_seen"
+        )
     )
 
     out = []
+
     for u in users:
         sp = u.station_profile
+
+        online = (
+            sp.last_seen and
+            (now - sp.last_seen).total_seconds() < ONLINE_WINDOW
+        )
+
         out.append({
             "name": sp.station_name or u.username,
-            "department": "-",  # you don’t have department here
-            "last_login": u.last_login.strftime("%Y-%m-%d %H:%M") if u.last_login else "-",
-            "online": bool(sp.status),  # <- your field
+            "department": "-",
+            "last_login": (
+                u.last_login.strftime("%Y-%m-%d %H:%M")
+                if u.last_login else "-"
+            ),
+            "online": online,
         })
 
     out.sort(key=lambda x: x["name"].lower())
+
     return JsonResponse({"online_users": out})
