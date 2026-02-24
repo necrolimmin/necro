@@ -24,17 +24,23 @@ class AppLoginView(LoginView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-
         sp = getattr(self.request.user, "station_profile", None)
         if sp:
-            sp.status_online = True
+            sp.status = True
             sp.last_seen = timezone.now()
-            sp.save(update_fields=["status_online", "last_seen"])
-
+            sp.save(update_fields=["status", "last_seen"])
         return response
-    
+
+
 class AppLogoutView(LogoutView):
-    pass
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            sp = getattr(request.user, "station_profile", None)
+            if sp:
+                sp.status = False
+                sp.save(update_fields=["status"])
+        return super().dispatch(request, *args, **kwargs)
+
 
 @login_required
 def station_heartbeat(request):
@@ -355,9 +361,7 @@ def admin_settings_stacked_top5_json(request):
             "night": night,
         }
     })
-
 def admin_settings_online_users_json(request):
-
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({"detail": "forbidden"}, status=403)
 
@@ -375,25 +379,25 @@ def admin_settings_online_users_json(request):
     )
 
     out = []
-
     for u in users:
         sp = u.station_profile
 
-        online = (
-            sp.last_seen and
-            (now - sp.last_seen).total_seconds() < ONLINE_WINDOW
-        )
+        last_seen = sp.last_seen
+        if last_seen and timezone.is_naive(last_seen):
+            last_seen = timezone.make_aware(last_seen, timezone.get_current_timezone())
+
+        online = bool(last_seen and (now - last_seen).total_seconds() < ONLINE_WINDOW)
+
+        last_login_str = "-"
+        if u.last_login:
+            last_login_str = timezone.localtime(u.last_login).strftime("%Y-%m-%d %H:%M")
 
         out.append({
             "name": sp.station_name or u.username,
             "department": "-",
-            "last_login": (
-                u.last_login.strftime("%Y-%m-%d %H:%M")
-                if u.last_login else "-"
-            ),
+            "last_login": last_login_str,
             "online": online,
         })
 
     out.sort(key=lambda x: x["name"].lower())
-
     return JsonResponse({"online_users": out})
