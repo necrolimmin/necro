@@ -9,6 +9,9 @@ class StationProfile(models.Model):
     plain_password = models.CharField(max_length=128, blank=True, default="")
     
     status=models.BooleanField(default=False)
+    status_online = models.BooleanField(default=False)  # optional, can keep
+
+    last_seen = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.station_name

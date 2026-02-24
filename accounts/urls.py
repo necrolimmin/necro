@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AppLoginView, AppLogoutView, admin_settings_monthly_json, admin_settings_online_users_json, admin_settings_stacked_top5_json, admin_settings_stations_json, router, admin_stations, admin_settings, station_settings,admin_station_delete
+from .views import AppLoginView, AppLogoutView, admin_settings_monthly_json, admin_settings_online_users_json, admin_settings_stacked_top5_json, admin_settings_stations_json, router, admin_stations, admin_settings, station_heartbeat, station_settings,admin_station_delete
 from .views import logout_get
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     path("admin/settings/stations.json", admin_settings_stations_json, name="admin_settings_stations_json"),
     path("admin/settings/stacked-top5.json", admin_settings_stacked_top5_json, name="admin_settings_stacked_top5_json"),
     path("admin/settings/online-users.json", admin_settings_online_users_json, name="admin_settings_online_users_json"),
+    path("heartbeat/", station_heartbeat, name="station_heartbeat"),
 ]

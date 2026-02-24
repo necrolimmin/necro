@@ -356,4 +356,7 @@
   q && q.addEventListener("input", applyFilter);
 })();
 </script>
+<script>
+setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
+</script>
 {% endblock %}
