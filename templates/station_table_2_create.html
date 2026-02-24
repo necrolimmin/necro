@@ -468,4 +468,7 @@
     </div>
   </div>
 </div>
+<script>
+setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
+</script>
 {% endblock %}
