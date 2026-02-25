@@ -1014,11 +1014,19 @@ def admin_table1_report_view(request, date_str):
         })
 
     station_list.sort(key=lambda x: (x["name"] or "").lower())
+    grand_total = {k: 0 for k in FIELDS}
+
+    for st in station_list:
+        # station_list already contains correct station ВСЕГО in st["sum_total"]
+        _sum_into(grand_total, st.get("sum_total") or {})
+
+    grand_total = _apply_itogo_rules(grand_total)
 
     return render(request, "admin_table1_report_view.html", {
         "date": d,
         "stations": station_list,
         "fields": TABLE1_FIELDS,
+        "grand_total": grand_total,
     })
 
 # =========================
