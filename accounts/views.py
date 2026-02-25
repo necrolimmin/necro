@@ -1,6 +1,7 @@
 import calendar
 from collections import defaultdict
 from django.http import JsonResponse
+from django.urls import reverse_lazy
 from django.utils import timezone
 from datetime import date, timedelta
 
@@ -21,25 +22,40 @@ from django.views.decorators.http import require_POST
 
 class AppLoginView(LoginView):
     template_name = "login.html"
+    redirect_authenticated_user = True   # ⭐ IMPORTANT
+
+    def get_success_url(self):
+        return reverse_lazy("admin_settings")  # your homepage url name
 
     def form_valid(self, form):
         response = super().form_valid(form)
+
         sp = getattr(self.request.user, "station_profile", None)
         if sp:
             sp.status_online = True
             sp.last_seen = timezone.now()
             sp.save(update_fields=["status_online", "last_seen"])
+
         return response
 
 
 class AppLogoutView(LogoutView):
+
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            sp = getattr(request.user, "station_profile", None)
-            if sp:
-                sp.status_online = False
-                sp.save(update_fields=["status_online"])
+        # ❌ not logged in → cannot logout
+        if not request.user.is_authenticated:
+            return redirect("login")   # or "home"
+
+        # logged user → update status
+        sp = getattr(request.user, "station_profile", None)
+        if sp:
+            sp.status_online = False
+            sp.save(update_fields=["status_online"])
+
         return super().dispatch(request, *args, **kwargs)
+
+    def get_next_page(self):
+        return reverse_lazy("login")   # where to go after logout
 
 
 @login_required
