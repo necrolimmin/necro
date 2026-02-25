@@ -883,15 +883,18 @@ def _station_display_name(user):
 
     return getattr(user, "username", str(user))
 
-
 @staff_required
 def admin_table1_report_view(request, date_str):
     """
-    ОБНОВЛЕНО ДЛЯ ТЕРМИНАЛОВ:
-      - показываем станции, которые отправили (submitted_at != NULL) по ЛЮБОМУ terminal (block)
-      - внутри станции строим список terminals: block=1..N
-      - для каждой terminal: day/night/total (ночь только если status=True)
-      - добавляем "station_total" (ВСЕГО) — сумма по всем терминалам (day/night/total)
+    ADMIN TABLE #1 (TERMINALS / BLOCKS)
+
+    ✅ Shows ONLY stations that submitted something for this date (any shift, any block).
+    ✅ For each station:
+        - builds terminals list (block=1..N)
+        - per terminal: day_data + night_data (night only if station.status=True)
+        - DOES NOT add totals row for day/night
+        - adds ONLY station "ВСЕГО" row = SUM(all terminals day + night)
+          (works even if you do NOT store shift="total" rows)
     """
     d = _parse_date(date_str)
 
@@ -903,67 +906,96 @@ def admin_table1_report_view(request, date_str):
         .order_by("username")
     )
 
+    # Fields that exist in your table1 JSON (keys)
+    FIELDS = [
+        "podano_lc", "k_podache_so_st",
+        "vygr_ft", "vygr_cont", "vygr_kr", "vygr_pv", "vygr_proch", "vygr_itogo", "vygr_itogo_kon",
+        "pod_vygr_ft", "pod_vygr_cont", "pod_vygr_kr", "pod_vygr_pv", "pod_vygr_proch", "pod_vygr_itogo", "pod_vygr_itogo_kon",
+        "uborka",
+        "pogr_ft", "pogr_cont", "pogr_kr", "pogr_pv", "pogr_proch", "pogr_itogo_kon",
+        "pod_pogr_ft", "pod_pogr_cont", "pod_pogr_kr", "pod_pogr_pv", "pod_pogr_proch", "pod_pogr_itogo_kon",
+        "income_daily",
+    ]
+
+    def _to_int(v):
+        if v in (None, "", "—", "-", "–"):
+            return 0
+        if isinstance(v, str):
+            v = v.replace("\xa0", "").replace(" ", "").replace(",", "")
+        try:
+            return int(float(v))
+        except Exception:
+            return 0
+
+    def _sum_into(dst: dict, src: dict):
+        # sums only known fields, ignores other keys (like terminal_name key)
+        for k in FIELDS:
+            dst[k] = dst.get(k, 0) + _to_int(src.get(k, 0))
+
     station_list = []
+
     for u in users:
         try:
             sp = StationProfile.objects.select_related("user").get(user=u)
         except StationProfile.DoesNotExist:
             continue
 
+        has_night = bool(sp.status)
+
+        # ✅ FIX: consider station "sent" if ANY record for date is submitted
         sent = StationDailyTable1.objects.filter(
             station_user=u,
             date=d,
-            shift="total",
             submitted_at__isnull=False,
         ).exists()
         if not sent:
             continue
 
-        has_night = bool(sp.status)
-
-        # реальные терминалы (block) по этой дате
+        # real terminal blocks for this station/date
         blocks = _terminal_blocks_for_station_date(u, d, force_new=False)
 
         terminals = []
         for b in blocks:
             day_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="day", block=b).first()
             night_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="night", block=b).first()
-            total_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="total", block=b).first()
 
-            day_data_raw = (day_obj.data or {}) if day_obj else {}
-            night_data_raw = (night_obj.data or {}) if night_obj else {}
-            total_data_raw = (total_obj.data or {}) if total_obj else {}
+            day_raw = (day_obj.data or {}) if day_obj else {}
+            night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
 
-            day_data = _apply_itogo_rules(day_data_raw)
-            night_data = _apply_itogo_rules(night_data_raw) if has_night else {}
-            total_data = _apply_itogo_rules(total_data_raw) if has_night else {}
+            day_data = _apply_itogo_rules(day_raw)
+            night_data = _apply_itogo_rules(night_raw) if has_night else {}
 
-            # income_daily если есть итог
+            # terminal "total_data" (not required by your template, but useful)
+            total_data = {}
             if has_night:
-                day_income = _int0(day_data.get("income_daily"))
-                night_income = _int0(night_data.get("income_daily"))
-                total_data["income_daily"] = day_income + night_income
+                total_data = {k: 0 for k in FIELDS}
+                _sum_into(total_data, day_data)
+                _sum_into(total_data, night_data)
+                total_data = _apply_itogo_rules(total_data)
 
-            term_name = (total_data_raw or {}).get(TERMINAL_NAME_KEY) or (day_data_raw or {}).get(TERMINAL_NAME_KEY) or ""
+            term_name = (
+                (day_raw or {}).get(TERMINAL_NAME_KEY)
+                or (night_raw or {}).get(TERMINAL_NAME_KEY)
+                or ""
+            )
 
             terminals.append({
                 "block": b,
                 "terminal_name": term_name,
                 "day_data": day_data,
                 "night_data": night_data,
-                "total_data": total_data,
+                "total_data": total_data,  # not used in template now
             })
 
-        # ВСЕГО по станции (сумма всех терминалов)
-        # берём “сумму по shift” через _get_table1_shift_data_for_admin, он суммирует по всем block
-        sum_day = _apply_itogo_rules(_get_table1_shift_data_for_admin(u, d, "day") or {})
-        sum_night = _apply_itogo_rules(_get_table1_shift_data_for_admin(u, d, "night") or {}) if has_night else {}
-        sum_total = _apply_itogo_rules(_get_table1_shift_data_for_admin(u, d, "total") or {}) if has_night else {}
+        # ✅ FIX: station ВСЕГО must be calculated from real terminal day+night data
+        sum_total = {k: 0 for k in FIELDS}
+        for t in terminals:
+            _sum_into(sum_total, t["day_data"])
+            if has_night:
+                _sum_into(sum_total, t["night_data"])
+        sum_total = _apply_itogo_rules(sum_total)
 
-        if has_night:
-            sum_total["income_daily"] = _int0(sum_day.get("income_daily")) + _int0(sum_night.get("income_daily"))
-
-        # ссылка на детализацию (если у тебя была)
+        # station blocks link (keep your old behavior)
         blocks_url = ""
         if has_night:
             blocks_url = reverse(
@@ -978,9 +1010,7 @@ def admin_table1_report_view(request, date_str):
             "status": has_night,
             "blocks_url": blocks_url,
             "terminals": terminals,
-            "sum_day": sum_day,
-            "sum_night": sum_night,
-            "sum_total": sum_total,
+            "sum_total": sum_total,  # ✅ ONLY THIS TOTAL ROW (ВСЕГО)
         })
 
     station_list.sort(key=lambda x: (x["name"] or "").lower())
@@ -990,7 +1020,6 @@ def admin_table1_report_view(request, date_str):
         "stations": station_list,
         "fields": TABLE1_FIELDS,
     })
-
 
 # =========================
 # ADMIN: TABLE 2 (как было)

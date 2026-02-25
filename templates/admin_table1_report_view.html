@@ -232,19 +232,12 @@
     line-height:1.45;
   }
 
-  .t1a-table td{
-    font-variant-numeric: tabular-nums;
-  }
-  .t1a-table tbody td{
-    text-align: right;
-  }
+  .t1a-table td{ font-variant-numeric: tabular-nums; }
+  .t1a-table tbody td{ text-align: right; }
   .t1a-table tbody td.t1a-name,
   .t1a-table tbody td.t1a-shift,
-  .t1a-table tbody td.t1a-term{
-    text-align: left;
-  }
+  .t1a-table tbody td.t1a-term{ text-align: left; }
 
-  /* кликабельность станции */
   td.t1a-name.is-clickable{ cursor:pointer; }
   .t1a-stname-link{
     color: inherit;
@@ -252,14 +245,12 @@
     text-underline-offset: 2px;
   }
 
-  /* ===== Multiline cells (как Excel список) ===== */
+  /* ===== Multiline cells ===== */
   td.t1a-multi{
     padding:0 !important;
     vertical-align:top !important;
   }
-  .t1a-lines{
-    display:block;
-  }
+  .t1a-lines{ display:block; }
   .t1a-line{
     padding:6px 8px;
     border-bottom:1px solid rgba(15,23,42,.10);
@@ -375,403 +366,270 @@
 
         <tbody>
           {% for st in stations %}
-            {% with tcount=st.terminals|length %}
 
-              <!-- {# ===========================
-                 STATUS TRUE: day + day итог + night + night итог + всего
-                 =========================== #} -->
-              {% if st.status %}
-                {% with rowsp=5 %}
+            {% if st.status %}
 
-                  {# -------- DAY ROW (multiline list) -------- #}
-                  <tr>
-                    <td rowspan="{{ rowsp }}"
-                        class="t1a-name t1a-stickyA {% if st.blocks_url %}is-clickable{% endif %}"
-                        {% if st.blocks_url %}data-href="{{ st.blocks_url }}"{% endif %}>
-                      {% if st.blocks_url %}
-                        <a class="t1a-stname-link" href="{{ st.blocks_url }}" title="Открыть детализацию станции">
-                          {{ st.name }}
-                        </a>
-                      {% else %}
+              {% with rowsp=3 %}
+                <tr>
+                  <td rowspan="{{ rowsp }}"
+                      class="t1a-name t1a-stickyA {% if st.blocks_url %}is-clickable{% endif %}"
+                      {% if st.blocks_url %}data-href="{{ st.blocks_url }}"{% endif %}>
+                    {% if st.blocks_url %}
+                      <a class="t1a-stname-link" href="{{ st.blocks_url }}" title="Открыть детализацию станции">
                         {{ st.name }}
-                      {% endif %}
-                    </td>
+                      </a>
+                    {% else %}
+                      {{ st.name }}
+                    {% endif %}
+                  </td>
 
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
+                  <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
 
-                    {# Терминалы списком #}
-                    <td class="t1a-term t1a-stickyC t1a-multi">
-                      <div class="t1a-lines">
-                        {% for t in st.terminals %}
-                          <div class="t1a-line"><b>{{ t.terminal_name|default:"-" }}</b></div>
-                        {% empty %}
-                          <div class="t1a-line">-</div>
-                        {% endfor %}
-                      </div>
-                    </td>
+                  <td class="t1a-term t1a-stickyC t1a-multi">
+                    <div class="t1a-lines">
+                      {% for t in st.terminals %}
+                        <div class="t1a-line"><b>{{ t.terminal_name|default:"-" }}</b></div>
+                      {% empty %}
+                        <div class="t1a-line">-</div>
+                      {% endfor %}
+                    </div>
+                  </td>
 
-                    {# Все значения терминалов по дню — тоже списком #}
-                    <td class="t1a-multi">
-                      <div class="t1a-lines">
-                        {% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"podano_lc"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}
-                      </div>
-                    </td>
-                    <td class="t1a-multi">
-                      <div class="t1a-lines">
-                        {% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"k_podache_so_st"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}
-                      </div>
-                    </td>
+                  <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"podano_lc"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"k_podache_so_st"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                  </tr>
+                  <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                </tr>
 
-                  {# -------- DAY ИТОГ (sum day) -------- #}
-                  <tr class="t1a-total">
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_total">итог</td>
-                    <td class="t1a-term t1a-stickyC">—</td>
+                <tr>
+                  <td class="t1a-shift t1a-stickyB" data-i18n="shift_night">ночь</td>
 
-                    <td><b>{{ st.sum_day|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
-                    <td><b>{{ st.sum_day|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
+                  <td class="t1a-term t1a-stickyC t1a-multi">
+                    <div class="t1a-lines">
+                      {% for t in st.terminals %}
+                        <div class="t1a-line"><b>{{ t.terminal_name|default:"-" }}</b></div>
+                      {% empty %}
+                        <div class="t1a-line">-</div>
+                      {% endfor %}
+                    </div>
+                  </td>
 
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"podano_lc"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"k_podache_so_st"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-yellow"><b>{{ st.sum_day|get_item:"uborka"|default_if_none:"0" }}</b></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-gray"><b>{{ st.sum_day|get_item:"income_daily"|default_if_none:"0" }}</b></td>
-                  </tr>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                  {# -------- NIGHT ROW (multiline list) -------- #}
-                  <tr>
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_night">ночь</td>
+                  <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                </tr>
 
-                    <td class="t1a-term t1a-stickyC t1a-multi">
-                      <div class="t1a-lines">
-                        {% for t in st.terminals %}
-                          <div class="t1a-line"><b>{{ t.terminal_name|default:"-" }}</b></div>
-                        {% empty %}
-                          <div class="t1a-line">-</div>
-                        {% endfor %}
-                      </div>
-                    </td>
 
-                    <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"podano_lc"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"k_podache_so_st"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                <tr class="t1a-total">
+                  <td class="t1a-shift t1a-stickyB" data-i18n="shift_all">всего</td>
+                  <td class="t1a-term t1a-stickyC">—</td>
 
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td><b>{{ st.sum_total|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
+                  <td><b>{{ st.sum_total|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
 
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                    <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-yellow"><b>{{ st.sum_total|get_item:"uborka"|default_if_none:"0" }}</b></td>
 
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                    <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                  </tr>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                  {# -------- NIGHT ИТОГ (sum night) -------- #}
-                  <tr class="t1a-total">
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_total">итог</td>
-                    <td class="t1a-term t1a-stickyC">—</td>
+                  <td class="g-gray"><b>{{ st.sum_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
+                </tr>
 
-                    <td><b>{{ st.sum_night|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
-                    <td><b>{{ st.sum_night|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
+              {% endwith %}
 
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
+            {% else %}
 
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_night|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
+              {% with rowsp=2 %}
 
-                    <td class="g-yellow"><b>{{ st.sum_night|get_item:"uborka"|default_if_none:"0" }}</b></td>
+                <tr>
+                  <td rowspan="{{ rowsp }}" class="t1a-name t1a-stickyA">{{ st.name }}</td>
+                  <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
 
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="t1a-term t1a-stickyC t1a-multi">
+                    <div class="t1a-lines">
+                      {% for t in st.terminals %}
+                        <div class="t1a-line"><b>{{ t.terminal_name|default:"-" }}</b></div>
+                      {% empty %}
+                        <div class="t1a-line">-</div>
+                      {% endfor %}
+                    </div>
+                  </td>
 
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_night|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"podano_lc"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"k_podache_so_st"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-gray"><b>{{ st.sum_night|get_item:"income_daily"|default_if_none:"0" }}</b></td>
-                  </tr>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                  {# -------- ВСЕГО (sum total) -------- #}
-                  <tr class="t1a-total">
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_all">всего</td>
-                    <td class="t1a-term t1a-stickyC">—</td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td><b>{{ st.sum_total|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
-                    <td><b>{{ st.sum_total|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
+                  <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
-                    <td class="g-yellow"><b>{{ st.sum_total|get_item:"uborka"|default_if_none:"0" }}</b></td>
+                  <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                </tr>
 
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
+                {# -------------------- ВСЕГО (only total row) -------------------- #}
+                <tr class="t1a-total">
+                  <td class="t1a-shift t1a-stickyB" data-i18n="shift_all">всего</td>
+                  <td class="t1a-term t1a-stickyC">—</td>
 
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
+                  <td><b>{{ st.sum_total|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
+                  <td><b>{{ st.sum_total|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
 
-                    <td class="g-gray"><b>{{ st.sum_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
-                  </tr>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                {% endwith %}
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
+                  <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-              {% else %}
-                {# ===========================
-                   STATUS FALSE: day + day итог + всего
-                   =========================== #}
-                {% with rowsp=3 %}
+                  <td class="g-yellow"><b>{{ st.sum_total|get_item:"uborka"|default_if_none:"0" }}</b></td>
 
-                  <tr>
-                    <td rowspan="{{ rowsp }}" class="t1a-name t1a-stickyA">{{ st.name }}</td>
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                    <td class="t1a-term t1a-stickyC t1a-multi">
-                      <div class="t1a-lines">
-                        {% for t in st.terminals %}
-                          <div class="t1a-line"><b>{{ t.terminal_name|default:"-" }}</b></div>
-                        {% empty %}
-                          <div class="t1a-line">-</div>
-                        {% endfor %}
-                      </div>
-                    </td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
-                    <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"podano_lc"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"k_podache_so_st"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-gray"><b>{{ st.sum_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
+                </tr>
 
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-green t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-
-                    <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                    <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-
-                    <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
-                  </tr>
-
-                  <tr class="t1a-total">
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_total">итог</td>
-                    <td class="t1a-term t1a-stickyC">—</td>
-                    <td><b>{{ st.sum_day|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
-                    <td><b>{{ st.sum_day|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_day|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-yellow"><b>{{ st.sum_day|get_item:"uborka"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_day|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-gray"><b>{{ st.sum_day|get_item:"income_daily"|default_if_none:"0" }}</b></td>
-                  </tr>
-
-                  <tr class="t1a-total">
-                    <td class="t1a-shift t1a-stickyB" data-i18n="shift_all">всего</td>
-                    <td class="t1a-term t1a-stickyC">—</td>
-                    <td><b>{{ st.sum_total|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
-                    <td><b>{{ st.sum_total|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"vygr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo"|default_if_none:"0" }}</b></td>
-                    <td class="g-green"><b>{{ st.sum_total|get_item:"pod_vygr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-yellow"><b>{{ st.sum_total|get_item:"uborka"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_cont"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
-                    <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
-                    <td class="g-gray"><b>{{ st.sum_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
-                  </tr>
-
-                {% endwith %}
-              {% endif %}
-
-            {% endwith %}
+              {% endwith %}
+            {% endif %}
 
           {% empty %}
             <tr>
@@ -815,7 +673,6 @@
       col_shift: "Smena",
       shift_day: "kun",
       shift_night: "tun",
-      shift_total: "jami",
       shift_all: "jami (ВСЕГО)",
       no_data: "Ushbu sana bo‘yicha ma’lumot yo‘q",
       t1_admin_note: "Izoh: admin panelda “jami” maydonlari “ft+kr+pv+прочее” bo‘yicha hisoblanadi, “jami kon” esa “kont.” ni takrorlaydi (bloklar: Tushirish / Tushirishda / Yuklash / Yuklashda).",
@@ -840,7 +697,6 @@
       col_shift: "Смена",
       shift_day: "день",
       shift_night: "ночь",
-      shift_total: "итог",
       shift_all: "всего",
       no_data: "Нет данных по этой дате",
       t1_admin_note: "Примечание: в админке поля “итого” считаются как “фт+кр+пв+прочее”, а “итого кон” зеркалит “конт.” (для блоков: Выгрузка / Под выгрузкой / Погрузка / Под погрузкой).",
@@ -891,7 +747,7 @@
 
   table.querySelectorAll('tbody td').forEach(td => {
     if (td.classList.contains('t1a-name') || td.classList.contains('t1a-shift') || td.classList.contains('t1a-term')) return;
-    // multiline cells: format each line separately
+
     const lines = td.querySelectorAll('.t1a-line');
     if (lines.length) {
       lines.forEach(line=>{
@@ -903,6 +759,7 @@
       });
       return;
     }
+
     let s = (td.textContent || '').trim();
     if (!/^-?\d+$/.test(s)) return;
     const n = Number(s);
