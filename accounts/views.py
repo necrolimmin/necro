@@ -26,9 +26,9 @@ class AppLoginView(LoginView):
         response = super().form_valid(form)
         sp = getattr(self.request.user, "station_profile", None)
         if sp:
-            sp.status = True
+            sp.status_online = True
             sp.last_seen = timezone.now()
-            sp.save(update_fields=["status", "last_seen"])
+            sp.save(update_fields=["status_online", "last_seen"])
         return response
 
 
@@ -37,8 +37,8 @@ class AppLogoutView(LogoutView):
         if request.user.is_authenticated:
             sp = getattr(request.user, "station_profile", None)
             if sp:
-                sp.status = False
-                sp.save(update_fields=["status"])
+                sp.status_online = False
+                sp.save(update_fields=["status_online"])
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -365,7 +365,7 @@ def admin_settings_online_users_json(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({"detail": "forbidden"}, status=403)
 
-    ONLINE_WINDOW = 90  # seconds
+    ONLINE_WINDOW = 60  # seconds
     now = timezone.now()
 
     users = (

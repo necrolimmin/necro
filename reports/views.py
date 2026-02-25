@@ -78,12 +78,11 @@ def _station_has_night(user) -> bool:
     status=True  -> день+ночь+итог
     status=False -> только день
     """
-    try:
-        pro = StationProfile.objects.get(user=user)
-        return bool(pro.status)
-    except StationProfile.DoesNotExist:
-        # безопасный дефолт
-        return True
+
+    pro = StationProfile.objects.get(user=user)
+    print(pro.status)
+    return bool(pro.status) or False
+
 
 
 def _terminal_blocks_for_station_date(user, d: dt_date, *, force_new: bool = False) -> list[int]:
@@ -216,6 +215,7 @@ def station_table_1_view(request, date_str):
 
     d = _parse_date(date_str)
     has_night = _station_has_night(request.user)
+    print(has_night)
 
     blocks = _terminal_blocks_for_station_date(request.user, d, force_new=False)
 
