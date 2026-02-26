@@ -49,7 +49,7 @@
 
   const dict = {
     ru: {
-      brand:  "O‘ztemiryo‘lkonteyner AJ",
+      brand:  "\"O‘ztemiryo‘lkonteyner\" AJ",
       subtitle: "Платформа контейнерных операций",
       menu: "Меню",
       dash: "Dashboard",
@@ -63,7 +63,7 @@
       logout: "Выйти"
     },
     uz: {
-      brand: "O‘ztemiryo‘lkonteyner AJ",
+      brand: "\"O‘ztemiryo‘lkonteyner\" AJ",
       subtitle: "Konteyner operatsiyalar platformasi",
       menu: "Menyu",
       dash: "Dashboard",

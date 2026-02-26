@@ -26,7 +26,7 @@
   .t1a-titlebox h2{
     margin:0;
     font-size:20px;
-    font-weight:950;
+    font-weight:750;
     letter-spacing:-.02em;
     color:var(--text);
   }
@@ -49,7 +49,7 @@
     background: rgba(255,255,255,.55);
     color:var(--text);
     text-decoration:none;
-    font-weight:950;
+    font-weight:650;
     white-space:nowrap;
     box-shadow: 0 14px 34px rgba(15,23,42,.08);
     transition:transform .12s ease, box-shadow .12s ease, filter .12s ease, background .12s ease;
@@ -68,7 +68,7 @@
   html[data-theme="dark"] .t1a-wrap{ background: rgba(255,255,255,.04); }
 
   .t1a-hdr{
-    font-weight:950;
+    font-weight:650;
     text-align:center;
     padding:12px 12px;
     border-bottom:1px solid var(--stroke);
@@ -90,9 +90,9 @@
   :root{
     --t1a-grid: rgba(15,23,42,.22);
     --t1a-sticky-shadow: rgba(15,23,42,.12);
-    --t1a-col-name: 190px;
-    --t1a-col-shift: 74px;
-    --t1a-col-term: 190px;
+    --t1a-col-name: 140px;
+    --t1a-col-shift: 70px;
+    --t1a-col-term: 120px;
   }
   html[data-theme="dark"]{
     --t1a-grid: rgba(255,255,255,.22);
@@ -126,7 +126,7 @@
     top:0;
     z-index:40;
     background: var(--surface);
-    font-weight:950;
+    font-weight:750;
   }
 
   /* colgroup подсветки — сдвинулись на +1 из-за Терминал */
@@ -158,7 +158,7 @@
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     white-space: nowrap;
-    font-weight: 900;
+    font-weight: 700;
     line-height:1.05;
   }
 
@@ -166,21 +166,22 @@
     width:var(--t1a-col-name);
     min-width:var(--t1a-col-name);
     max-width:var(--t1a-col-name);
-    font-weight:950;
+    font-weight:750;
     text-align:left;
     padding-left:10px;
+    
   }
   .t1a-shift{
     width:var(--t1a-col-shift);
     min-width:var(--t1a-col-shift);
     max-width:var(--t1a-col-shift);
-    font-weight:950;
+    font-weight:750;
   }
   .t1a-term{
     width:var(--t1a-col-term);
     min-width:var(--t1a-col-term);
     max-width:var(--t1a-col-term);
-    font-weight:950;
+    font-weight:750;
     text-align:left;
     padding-left:10px;
   }
@@ -205,6 +206,28 @@
     z-index:180;
     background: var(--surface);
     box-shadow: 10px 0 16px -14px var(--t1a-sticky-shadow);
+  }
+
+  .t1a-table td.t1a-stickyA,
+  .t1a-table td.t1a-stickyB,
+  .t1a-table td.t1a-stickyC{
+    background: rgba(255,255,255,.92) !important;
+  }
+  html[data-theme="dark"] .t1a-table td.t1a-stickyA,
+  html[data-theme="dark"] .t1a-table td.t1a-stickyB,
+  html[data-theme="dark"] .t1a-table td.t1a-stickyC{
+    background: rgba(17,24,39,.92) !important; /* dark uchun */
+  }
+
+  .t1a-table th.t1a-stickyA,
+  .t1a-table th.t1a-stickyB,
+  .t1a-table th.t1a-stickyC{
+    background: rgba(255,255,255,.92) !important;
+  }
+  html[data-theme="dark"] .t1a-table th.t1a-stickyA,
+  html[data-theme="dark"] .t1a-table th.t1a-stickyB,
+  html[data-theme="dark"] .t1a-table th.t1a-stickyC{
+    background: rgba(17,24,39,.92) !important; /* dark uchun */
   }
 
   .g-green{ background: rgba(34,197,94,.12); }
@@ -243,6 +266,7 @@
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
+    
   }
 
   /* ===== Multiline cells ===== */
@@ -260,7 +284,9 @@
     border-bottom:1px solid rgba(255,255,255,.10);
   }
   .t1a-line:last-child{ border-bottom:0; }
-  .t1a-line b{ font-weight:950; }
+  .t1a-line b{ font-weight:750; }
+
+  
 </style>
 
 <div class="t1a-panel">
@@ -293,9 +319,9 @@
     <div class="t1a-scroll">
       <table class="t1a-table" id="t1admin">
         <colgroup>
-          <col style="width:190px;">  {# 1: station #}
-          <col style="width:74px;">   {# 2: shift #}
-          <col style="width:190px;">  {# 3: terminal #}
+          <col style="width:140px;">  {# 1: station #}
+          <col style="width:70px;">   {# 2: shift #}
+          <col style="width:120px;">  {# 3: terminal #}
 
           <col style="width:74px;">   {# 4: podano #}
           <col style="width:74px;">   {# 5: kpod #}
@@ -373,7 +399,7 @@
                 <tr>
                   <td rowspan="{{ rowsp }}"
                       class="t1a-name t1a-stickyA {% if st.blocks_url %}is-clickable{% endif %}"
-                      {% if st.blocks_url %}data-href="{{ st.blocks_url }}"{% endif %}>
+                      {% if st.blocks_url %}data-href="{{ st.blocks_url }}"{% endif %} style="font-size: 14px;">
                     {% if st.blocks_url %}
                       <a class="t1a-stname-link" href="{{ st.blocks_url }}" title="Открыть детализацию станции">
                         {{ st.name }}
@@ -534,7 +560,7 @@
               {% with rowsp=2 %}
 
                 <tr>
-                  <td rowspan="{{ rowsp }}" class="t1a-name t1a-stickyA">{{ st.name }}</td>
+                  <td rowspan="{{ rowsp }}" class="t1a-name t1a-stickyA" style="font-size: 14px;">{{ st.name }}</td>
                   <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
 
                   <td class="t1a-term t1a-stickyC t1a-multi">
@@ -638,7 +664,7 @@
           {% endfor %}
           {% if grand_total %}
             <tr class="t1a-total">
-              <td class="t1a-name t1a-stickyA"><b>ИТОГО ПО ВСЕМ ЛЦ</b></td>
+              <td class="t1a-name t1a-stickyA" style="font-size: 14px;">Umumiy</td>
               <td class="t1a-shift t1a-stickyB"><b>—</b></td>
               <td class="t1a-term  t1a-stickyC"><b>—</b></td>
 
@@ -717,10 +743,10 @@
       col_shift: "Smena",
       shift_day: "kun",
       shift_night: "tun",
-      shift_all: "jami (ВСЕГО)",
+      shift_all: "jami ",
       no_data: "Ushbu sana bo‘yicha ma’lumot yo‘q",
       t1_admin_note: "Izoh: admin panelda “jami” maydonlari “ft+kr+pv+прочее” bo‘yicha hisoblanadi, “jami kon” esa “kont.” ni takrorlaydi (bloklar: Tushirish / Tushirishda / Yuklash / Yuklashda).",
-      t1_admin_header: "\"O‘ztemiryo‘lkonteyner\" AJ logistika markazlari bo‘yicha sutkalik operativ ma’lumot —",
+      t1_admin_header: "\"O‘ztemiryo‘lkonteyner\" AJ logistika markazlari bo‘yicha sutkalik operativ ma’lumot ",
       t1_col_podano: "LMga berildi",
       t1_col_kpod: "St’dan berishga",
       t1_blk_vygr: "Tushirish",
@@ -744,7 +770,7 @@
       shift_all: "всего",
       no_data: "Нет данных по этой дате",
       t1_admin_note: "Примечание: в админке поля “итого” считаются как “фт+кр+пв+прочее”, а “итого кон” зеркалит “конт.” (для блоков: Выгрузка / Под выгрузкой / Погрузка / Под погрузкой).",
-      t1_admin_header: "Оперативная информация о работе логистических центров АО \"Узтемирйулконтейнер\" в сутки —",
+      t1_admin_header: "Оперативная информация о работе логистических центров АО \"Узтемирйулконтейнер\" в сутки ",
       t1_col_podano: "Подано на ЛЦ",
       t1_col_kpod: "к подаче со ст",
       t1_blk_vygr: "Выгрузка",
