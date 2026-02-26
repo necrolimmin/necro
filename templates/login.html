@@ -689,7 +689,7 @@
 
 <body>
   <!-- add data-theme + data-lang to section (scoped) -->
-  <section class="utk-login" id="utkLogin" data-theme="dark" data-lang="uz" aria-label="Login">
+  <section class="utk-login" id="utkLogin" data-theme="light" data-lang="uz" aria-label="Login">
     <!-- Background slideshow -->
     <div class="utk-login__bg" id="utkBg" aria-hidden="true" data-layer="a">
       <div class="utk-login__bgOverlay"></div>
@@ -1022,7 +1022,7 @@
            4) Theme toggle (Dark/Light) - scoped
            ====================== */
         const themeBtn = document.getElementById("utkThemeBtn");
-        const savedTheme = localStorage.getItem("utk_theme") || "dark";
+        const savedTheme = localStorage.getItem("utk_theme") || "light";
 
         function applyTheme(theme){
           root.dataset.theme = theme;
