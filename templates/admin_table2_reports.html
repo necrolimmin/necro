@@ -95,10 +95,16 @@
 
   /* Modal */
   .modal{
-    position:fixed;inset:0;
-    background:rgba(0,0,0,.35);
-    display:none;align-items:center;justify-content:center;
-    padding:18px;z-index:999;
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 999999; /* kuchliroq */
   }
   .modal.open{display:flex;}
   .modalCard{
@@ -142,7 +148,7 @@
   }
   html[data-theme="dark"] .stLine{ border-bottom:1px dashed rgba(255,255,255,.14); }
   .stLine:last-child{border-bottom:none;}
-  .stName{font-weight:900;}
+  .stName{font-weight:600;}
   .stTime{font-size:12px;color:var(--muted);white-space:nowrap;}
 
   /* Front pagination */
@@ -292,73 +298,97 @@
 </div>
 
 <script>
-(function(){
-  // Modal open/close
-  function openModal(id){
-    const m = document.getElementById(id);
-    if(!m) return;
-    m.classList.add('open');
-    document.body.style.overflow='hidden';
-  }
-  function closeModal(id){
-    const m = document.getElementById(id);
-    if(!m) return;
-    m.classList.remove('open');
-    document.body.style.overflow='';
-  }
+  (function(){
+    // -------- MODAL open/close (FIX: append modal to body) ----------
+    const modalHome = new Map(); // modalId -> originalParent
 
-  document.addEventListener('click', (e)=>{
-    const ob = e.target.closest('[data-open]');
-    if(ob){ openModal(ob.getAttribute('data-open')); return; }
-
-    const cb = e.target.closest('[data-close]');
-    if(cb){ closeModal(cb.getAttribute('data-close')); return; }
-
-    if(e.target.classList && e.target.classList.contains('modal')){
-      e.target.classList.remove('open');
-      document.body.style.overflow='';
+    function moveToBody(modal){
+      if(!modal) return;
+      if(!modalHome.has(modal.id)){
+        modalHome.set(modal.id, modal.parentNode);
+      }
+      document.body.appendChild(modal);
     }
-  });
 
-  document.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape'){
-      document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));
-      document.body.style.overflow='';
+    function moveBack(modal){
+      if(!modal) return;
+      const home = modalHome.get(modal.id);
+      if(home) home.appendChild(modal);
     }
-  });
 
-  // Front pagination (10 rows)
-  const rows = Array.from(document.querySelectorAll('#t2Body .t2-row'));
-  const perPage = 10;
-  let page = 1;
-  const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+    function openModal(id){
+      const m = document.getElementById(id);
+      if(!m) return;
+      moveToBody(m); // <<< FIX
+      m.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
 
-  const info = document.getElementById('t2Info');
-  const prev = document.getElementById('t2Prev');
-  const next = document.getElementById('t2Next');
+    function closeModal(id){
+      const m = document.getElementById(id);
+      if(!m) return;
+      m.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(()=> moveBack(m), 0);
+    }
 
-  function render(){
-    const start = (page-1)*perPage;
-    const end = start + perPage;
+    document.addEventListener('click', (e)=>{
+      const ob = e.target.closest('[data-open]');
+      if(ob){ openModal(ob.getAttribute('data-open')); return; }
 
-    rows.forEach((r, idx)=>{
-      const show = idx >= start && idx < end;
-      r.style.display = show ? '' : 'none';
-      if(show){
-        const nCell = r.querySelector('.t2-num');
-        if(nCell) nCell.textContent = (idx + 1).toString();
+      const cb = e.target.closest('[data-close]');
+      if(cb){ closeModal(cb.getAttribute('data-close')); return; }
+
+      // overlay click closes
+      if(e.target.classList && e.target.classList.contains('modal')){
+        e.target.classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(()=> moveBack(e.target), 0);
       }
     });
 
-    info.textContent = `Sahifa ${page}/${totalPages} • Jami: ${rows.length}`;
-    prev.disabled = page <= 1;
-    next.disabled = page >= totalPages;
-  }
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        document.querySelectorAll('.modal.open').forEach(m=>{
+          m.classList.remove('open');
+          setTimeout(()=> moveBack(m), 0);
+        });
+        document.body.style.overflow = '';
+      }
+    });
 
-  prev.addEventListener('click', ()=>{ if(page>1){ page--; render(); window.scrollTo({top:0,behavior:'smooth'});} });
-  next.addEventListener('click', ()=>{ if(page<totalPages){ page++; render(); window.scrollTo({top:0,behavior:'smooth'});} });
+    // -------- FRONT PAGINATION (10 rows) ----------
+    const rows = Array.from(document.querySelectorAll('#t2Body .t2-row'));
+    const perPage = 10;
+    let page = 1;
+    const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
 
-  render();
-})();
+    const info = document.getElementById('t2Info');
+    const prev = document.getElementById('t2Prev');
+    const next = document.getElementById('t2Next');
+
+    function render(){
+      const start = (page-1)*perPage;
+      const end = start + perPage;
+
+      rows.forEach((r, idx)=>{
+        const show = idx >= start && idx < end;
+        r.style.display = show ? '' : 'none';
+        if(show){
+          const nCell = r.querySelector('.t2-num');
+          if(nCell) nCell.textContent = (idx + 1).toString();
+        }
+      });
+
+      info.textContent = `Sahifa ${page}/${totalPages} • Jami: ${rows.length}`;
+      prev.disabled = page <= 1;
+      next.disabled = page >= totalPages;
+    }
+
+    prev.addEventListener('click', ()=>{ if(page>1){ page--; render(); window.scrollTo({top:0,behavior:'smooth'});} });
+    next.addEventListener('click', ()=>{ if(page<totalPages){ page++; render(); window.scrollTo({top:0,behavior:'smooth'});} });
+
+    render();
+  })();
 </script>
 {% endblock %}

@@ -241,7 +241,7 @@
           </button>
         </div>
         <div class="muted" style="margin-top:8px" data-i18n="pw_note">
-          Eslatma: Django parolni ochiq ko‘rinishda saqlamaydi. Ro‘yxatda parolni ko‘rsatish uchun uni alohida saqlash kerak (xavfsiz emas).
+          Eslatma: Login-parol  yaratishda bir xillikdan saqlaning.
         </div>
       </div>
 
@@ -355,7 +355,7 @@
     </div>
 
     <div class="muted" style="margin-top:10px" data-i18n="note2">
-      Izoh: “Parol” ustuni “—” bo‘lishi mumkin, chunki Django parolni ochiq ko‘rinishda qaytarmaydi.
+      Izoh: True - statusdegi filiallar kunduzgi tungi bajargan yuk operatsiyalarini kirgizadilar, False - statusdegi filiallar faqat kunduzgi yuk operatsiyalari ma'lumotlarini tuldiradilar.
     </div>
   </div>
 
@@ -382,7 +382,7 @@
         label_station: "Filial nomi",
         label_username: "Username (login)",
         label_password: "Password",
-        pw_note: "Eslatma: Django parolni ochiq ko‘rinishda saqlamaydi. Ro‘yxatda parolni ko‘rsatish uchun uni alohida saqlash kerak (xavfsiz emas).",
+        pw_note: "Eslatma: Login-parol  yaratishda bir xillikdan saqlaning.",
         btn_create: "Yaratish",
         list_title: "Filiallar ro‘yxati",
         list_sub: "O‘chirishda ehtiyot bo‘ling — foydalanuvchi ham o‘chadi.",
@@ -393,7 +393,7 @@
         col_actions: "Amallar",
         btn_delete: "O‘chirish",
         empty: "Hozircha filial yo‘q",
-        note2: "Izoh: “Parol” ustuni “—” bo‘lishi mumkin, chunki Django parolni ochiq ko‘rinishda qaytarmaydi."
+        note2: "Izoh: True - statusdegi filiallar kunduzgi tungi bajargan yuk operatsiyalarini kirgizadilar, False - statusdegi filiallar faqat kunduzgi yuk operatsiyalari ma'lumotlarini tuldiradilar."
       },
       ru: {
         stations_title: "Филиалы",
@@ -402,7 +402,7 @@
         label_station: "Название филиала",
         label_username: "Логин (username)",
         label_password: "Пароль",
-        pw_note: "Важно: Django не хранит пароль в открытом виде. Чтобы показывать пароль — нужно хранить отдельно (это небезопасно).",
+        pw_note: "Важно: При создании логина и пароля избегайте их одинаковости.",
         btn_create: "Создать",
         list_title: "Список филиалов",
         list_sub: "Будьте осторожны при удалении — пользователь тоже будет удалён.",
@@ -413,7 +413,7 @@
         col_actions: "Действия",
         btn_delete: "Удалить",
         empty: "Пока нет филиалов",
-        note2: "Примечание: колонка “Пароль” может быть “—”, так как Django не возвращает пароль в открытом виде."
+        note2: "Примечание: Филиалы со статусом True - вводят данные о выполненных дневных и ночных грузовых операциях, а филиалы со статусом False - заполняют только данные по дневным грузовым операциям."
       }
     };
 

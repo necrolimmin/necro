@@ -85,10 +85,16 @@
 
   /* Modal */
   .modal{
-    position:fixed;inset:0;
-    background:rgba(0,0,0,.35);
-    display:none;align-items:center;justify-content:center;
-    padding:18px;z-index:999;
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 999999; /* kuchliroq */
   }
   .modal.open{display:flex;}
   .modalCard{
@@ -132,7 +138,7 @@
   }
   html[data-theme="dark"] .stLine{ border-bottom:1px dashed rgba(255,255,255,.14); }
   .stLine:last-child{border-bottom:none;}
-  .stName{font-weight:900;}
+  .stName{font-weight:600;}
   .stTime{font-size:12px;color:var(--muted);white-space:nowrap;}
 
   /* Front pagination (no backend) */
@@ -272,18 +278,38 @@
 
 <script>
 (function(){
-  // -------- MODAL open/close ----------
+  // -------- MODAL open/close (FIX: append to body) ----------
+  const modalHome = new Map(); // modalId -> originalParent
+
+  function moveToBody(modal){
+    if(!modal) return;
+    if(!modalHome.has(modal.id)){
+      modalHome.set(modal.id, modal.parentNode);
+    }
+    document.body.appendChild(modal);
+  }
+
+  function moveBack(modal){
+    if(!modal) return;
+    const home = modalHome.get(modal.id);
+    if(home) home.appendChild(modal);
+  }
+
   function openModal(id){
     const m = document.getElementById(id);
     if(!m) return;
+    moveToBody(m);                 // <<< FIX
     m.classList.add('open');
     document.body.style.overflow='hidden';
   }
+
   function closeModal(id){
     const m = document.getElementById(id);
     if(!m) return;
     m.classList.remove('open');
     document.body.style.overflow='';
+    // ozgina kutib, so‘ng joyiga qaytaramiz (anim/klik konflikt bo‘lmasin)
+    setTimeout(()=> moveBack(m), 0);
   }
 
   document.addEventListener('click', (e)=>{
@@ -293,16 +319,21 @@
     const cb = e.target.closest('[data-close]');
     if(cb){ closeModal(cb.getAttribute('data-close')); return; }
 
-    // click on overlay closes
+    // overlay click closes
     if(e.target.classList && e.target.classList.contains('modal')){
+      const id = e.target.id;
       e.target.classList.remove('open');
       document.body.style.overflow='';
+      setTimeout(()=> moveBack(e.target), 0);
     }
   });
 
   document.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape'){
-      document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));
+      document.querySelectorAll('.modal.open').forEach(m=>{
+        m.classList.remove('open');
+        setTimeout(()=> moveBack(m), 0);
+      });
       document.body.style.overflow='';
     }
   });
@@ -326,7 +357,7 @@
       r.style.display = show ? '' : 'none';
       if(show){
         const nCell = r.querySelector('.t1-num');
-        if(nCell) nCell.textContent = (idx + 1).toString(); // global numbering
+        if(nCell) nCell.textContent = (idx + 1).toString();
       }
     });
 
