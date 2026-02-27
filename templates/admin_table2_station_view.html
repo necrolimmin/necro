@@ -216,60 +216,95 @@
       </thead>
 
       <tbody>
-        {% for n,label,code,k_total,k_ktk in rows_def %}
+  {% for n,label,code,k_total,k_ktk in rows_def %}
 
-          {% if n == 8 %}
-            <tr>
-              <td class="center bold" rowspan="2">8</td>
-              <td colspan="2">{{ label }}</td>
-              <td class="center">{{ code }}</td>
-              <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
-              <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
-            </tr>
-            {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
-              {% if n2 == 9 %}
-                <tr>
-                  <td colspan="2">{{ label2 }}</td>
-                  <td class="center">{{ code2 }}</td>
-                  <td class="center"><input value="{{ obj|data_val:k_total2 }}" disabled></td>
-                  <td class="center"><input value="{{ obj|data_val:k_ktk2 }}" disabled></td>
-                </tr>
-              {% endif %}
-            {% endfor %}
+    {# 8 va 9: 8 raqami rowspan=2 #}
+    {% if n == 8 %}
+      <tr>
+        <td class="center bold" rowspan="2">8</td>
+        <td colspan="2">{{ label }}</td>
+        <td class="center">{{ code }}</td>
+        <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+      </tr>
 
-          {% elif n == 9 %}
-            {# skip #}
+      {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
+        {% if n2 == 9 %}
+          <tr>
+            <td colspan="2">{{ label2 }}</td>
+            <td class="center">{{ code2 }}</td>
+            <td class="center"><input value="{{ obj|data_val:k_total2 }}" disabled></td>
+            <td class="center"><input value="{{ obj|data_val:k_ktk2 }}" disabled></td>
+          </tr>
+        {% endif %}
+      {% endfor %}
 
-          {% elif n == 22 %}
-            <tr>
-              <td class="center bold" rowspan="2">21</td>
-              <td class="bold" rowspan="2">Загружено</td>
-              <td class="bold">Гружёные</td>
-              <td class="center">З/г</td>
-              <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
-              <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
-            </tr>
-            <tr>
-              <td class="bold">Порожние</td>
-              <td class="center">З/п</td>
-              <td class="center"><input value="{{ obj|data_val:'r22p_total' }}" disabled></td>
-              <td class="center"><input value="{{ obj|data_val:'r22p_ktk' }}" disabled></td>
-            </tr>
+    {% elif n == 9 %}
+      {# skip #}
 
+    {# 18 va 19 raqam katagi birlashsin: bu sizda n==19 va n==20 bo‘lib kelayapti #}
+    {% elif n == 19 %}
+      <tr>
+        <td class="center bold" rowspan="2">18</td>
+        <td colspan="2">{{ label }}</td>
+        <td class="center">{{ code }}</td>
+        <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+      </tr>
+
+      {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
+        {% if n2 == 20 %}
+          <tr>
+            <td colspan="2">{{ label2 }}</td>
+            <td class="center">{{ code2 }}</td>
+            <td class="center"><input value="{{ obj|data_val:k_total2 }}" disabled></td>
+            <td class="center"><input value="{{ obj|data_val:k_ktk2 }}" disabled></td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+
+    {% elif n == 20 %}
+      {# skip #}
+
+    {# 22 blok: “Загружено” raqami 21 bo‘lib ko‘rinsin #}
+    {% elif n == 22 %}
+      <tr>
+        <td class="center bold" rowspan="2">20</td>
+        <td class="bold" rowspan="2">Загружено</td>
+        <td class="bold">Гружёные</td>
+        <td class="center">З/г</td>
+        <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+      </tr>
+      <tr>
+        <td class="bold">Порожние</td>
+        <td class="center">З/п</td>
+        <td class="center"><input value="{{ obj|data_val:'r22p_total' }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:'r22p_ktk' }}" disabled></td>
+      </tr>
+
+    {% else %}
+      <tr>
+        <td class="center bold">
+          {% if n <= 8 %}
+            {{ n }}
+          {% elif n >= 10 and n <= 19 %}
+            {{ n|add:"-1" }}
+          {% elif n >= 21 %}
+            {{ n|add:"-2" }}
           {% else %}
-            <tr>
-              <td class="center bold">
-                {% if n >= 10 %}{{ n|add:"-1" }}{% else %}{{ n }}{% endif %}
-              </td>
-              <td colspan="2">{{ label }}</td>
-              <td class="center">{{ code }}</td>
-              <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
-              <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
-            </tr>
+            {{ n }}
           {% endif %}
+        </td>
+        <td colspan="2">{{ label }}</td>
+        <td class="center">{{ code }}</td>
+        <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
+        <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+      </tr>
+    {% endif %}
 
-        {% endfor %}
-      </tbody>
+  {% endfor %}
+</tbody>
     </table>
   </div>
 
