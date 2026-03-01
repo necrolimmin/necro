@@ -22,10 +22,7 @@
     flex-wrap:wrap;
     margin-bottom:12px;
   }
-  .t1a-titlebox{
-  min-width: 320px;
-  flex: 1 1 auto;
-}
+  .t1a-titlebox{ min-width: 320px; flex: 1 1 auto; }
 
   .t1a-titlebox h2{
     margin:0;
@@ -33,7 +30,6 @@
     font-weight:750;
     letter-spacing:-.02em;
     color:var(--text);
-
     line-height:1.15;
   }
   .t1a-subtitle{
@@ -44,12 +40,12 @@
   }
 
   .t1a-actionsTop{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:flex-end;
-  flex: 0 0 auto;
-}
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:flex-end;
+    flex: 0 0 auto;
+  }
 
   .t1a-back{
     display:inline-flex;
@@ -71,15 +67,9 @@
   }
 
   @media (max-width: 720px){
-  .t1a-actionsTop{
-    width:100%;
-    justify-content:space-between;
+    .t1a-actionsTop{ width:100%; justify-content:space-between; }
+    .t1a-back{ flex:1 1 auto; justify-content:center; }
   }
-  .t1a-back{
-    flex:1 1 auto;
-    justify-content:center;
-  }
-}
 
   html[data-theme="dark"] .t1a-back{ background: rgba(255,255,255,.06); }
   .t1a-back:hover{ transform: translateY(-1px); box-shadow: 0 18px 48px rgba(15,23,42,.12); filter:saturate(1.02); }
@@ -128,7 +118,7 @@
   table.t1a-table{
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 2360px;
+    min-width: 2520px; /* was 2360px; +2 колонка */
     width: max-content;
     table-layout: fixed;
   }
@@ -155,7 +145,7 @@
     font-weight:750;
   }
 
-  /* colgroup подсветки — сдвинулись на +1 из-за Терминал */
+  /* colgroup подсветки — С УЧЁТОМ НОВЫХ КОЛОНОК */
   #t1admin col:nth-child(4),
   #t1admin col:nth-child(5){
     background: rgba(240, 149, 149, 0.18);
@@ -172,11 +162,12 @@
     background: rgba(236, 222, 160, 0.55);
   }
 
-  #t1admin col:nth-child(26){
+  /* Погрузка теперь 21..27 (7 колонок) */
+  #t1admin col:nth-child(n+21):nth-child(-n+27){
     background: rgba(229, 246, 250, 0.55);
   }
- 
-  #t1admin col:nth-child(32){
+  /* Под погрузкой теперь 28..34 (7 колонок) */
+  #t1admin col:nth-child(n+28):nth-child(-n+34){
     background: rgba(171, 229, 236, 0.55);
   }
 
@@ -195,7 +186,6 @@
     font-weight:750;
     text-align:left;
     padding-left:10px;
-    
   }
   .t1a-shift{
     width:var(--t1a-col-shift);
@@ -242,7 +232,7 @@
   html[data-theme="dark"] .t1a-table td.t1a-stickyA,
   html[data-theme="dark"] .t1a-table td.t1a-stickyB,
   html[data-theme="dark"] .t1a-table td.t1a-stickyC{
-    background: rgba(17,24,39,.92) !important; /* dark uchun */
+    background: rgba(17,24,39,.92) !important;
   }
 
   .t1a-table th.t1a-stickyA,
@@ -253,7 +243,7 @@
   html[data-theme="dark"] .t1a-table th.t1a-stickyA,
   html[data-theme="dark"] .t1a-table th.t1a-stickyB,
   html[data-theme="dark"] .t1a-table th.t1a-stickyC{
-    background: rgba(17,24,39,.92) !important; /* dark uchun */
+    background: rgba(17,24,39,.92) !important;
   }
 
   .g-green{ background: rgba(34,197,94,.12); }
@@ -292,10 +282,8 @@
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
-    
   }
 
-  /* ===== Multiline cells ===== */
   td.t1a-multi{
     padding:0 !important;
     vertical-align:top !important;
@@ -311,32 +299,30 @@
   }
   .t1a-line:last-child{ border-bottom:0; }
   .t1a-line b{ font-weight:750; }
-
-  
 </style>
 
 <div class="t1a-panel">
   <div class="t1a-topbar">
-  <div class="t1a-titlebox">
-    <h2>
-      <span data-i18n="t1_admin_title">Hisobot №1</span> — {{ date|date:"d.m.Y" }}
-    </h2>
-    <div class="t1a-subtitle" data-i18n="t1_admin_sub">
-      Logistika markazlari bo‘yicha operativ ma’lumot (admin ko‘rish).
+    <div class="t1a-titlebox">
+      <h2>
+        <span data-i18n="t1_admin_title">Hisobot №1</span> — {{ date|date:"d.m.Y" }}
+      </h2>
+      <div class="t1a-subtitle" data-i18n="t1_admin_sub">
+        Logistika markazlari bo‘yicha operativ ma’lumot (admin ko‘rish).
+      </div>
+    </div>
+
+    <div class="t1a-actionsTop">
+      <a class="t1a-back" href="{% url 'admin_table1_reports' %}">
+        <span aria-hidden="true">←</span>
+        <span data-i18n="back_to_list">Ro‘yxatga qaytish</span>
+      </a>
+
+      <a class="t1a-back t1a-excel" href="{% url 'admin_table1_export_excel' date|date:'Y-m-d' %}">
+        📥 Excel
+      </a>
     </div>
   </div>
-
-  <div class="t1a-actionsTop">
-    <a class="t1a-back" href="{% url 'admin_table1_reports' %}">
-      <span aria-hidden="true">←</span>
-      <span data-i18n="back_to_list">Ro‘yxatga qaytish</span>
-    </a>
-
-    <a class="t1a-back t1a-excel" href="{% url 'admin_table1_export_excel' date|date:'Y-m-d' %}">
-      📥 Excel
-    </a>
-  </div>
-</div>
 
   <div class="t1a-wrap">
     <div class="t1a-hdr" data-i18n="t1_admin_header">
@@ -359,10 +345,10 @@
 
           <col style="width:74px;">   {# 20 уборка #}
 
-          {% for _ in "123456" %}<col style="width:74px;">{% endfor %} {# 21..26 погрузка #}
-          {% for _ in "123456" %}<col style="width:74px;">{% endfor %} {# 27..32 под погрузкой #}
+          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %} {# 21..27 погрузка (7!) #}
+          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %} {# 28..34 под погрузкой (7!) #}
 
-          <col style="width:86px;">   {# 33 доходы #}
+          <col style="width:86px;">   {# 35 доходы #}
         </colgroup>
 
         <thead>
@@ -379,8 +365,8 @@
 
             <th style="background: rgba(236, 222, 160, 0.55);" rowspan="2" class="g-yellow"><div class="t1a-vtxt" data-i18n="t1_col_uborka">Уборка</div></th>
 
-            <th style="background: rgba(229, 246, 250, 0.55);" colspan="6" class="g-blue" data-i18n="t1_blk_pogr">Погрузка</th>
-            <th style="background: rgba(171, 229, 236, 0.55);" colspan="6" class="g-blue" data-i18n="t1_blk_pod_pogr">Под погрузкой</th>
+            <th style="background: rgba(229, 246, 250, 0.55);" colspan="7" class="g-blue" data-i18n="t1_blk_pogr">Погрузка</th>
+            <th style="background: rgba(171, 229, 236, 0.55);" colspan="7" class="g-blue" data-i18n="t1_blk_pod_pogr">Под погрузкой</th>
 
             <th rowspan="2" class="g-gray"><div class="t1a-vtxt" data-i18n="t1_col_income">суточные доходы</div></th>
           </tr>
@@ -402,18 +388,22 @@
             <th style="background: rgba(39, 161, 1, 0.18);" class="g-green"><div class="t1a-vtxt" data-i18n="t1_itogo">итого</div></th>
             <th style="background: rgba(39, 161, 1, 0.18);" class="g-green"><div class="t1a-vtxt" data-i18n="t1_itogo_kon">итого кон</div></th>
 
+       
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="ft">фт</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="kont">конт.</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="kr">кр</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="pv">пв</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="t1_misc">прочее</div></th>
+            <th style="background: rgba(229, 246, 250, 0.55);" class="g-blue"><div class="t1a-vtxt" data-i18n="t1_itogo">итого</div></th>
             <th style="background: rgba(229, 246, 250, 0.55);" class="g-blue"><div class="t1a-vtxt" data-i18n="t1_itogo_kon">итого кон</div></th>
 
+        
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="ft">фт</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="kont">конт.</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="kr">кр</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="pv">пв</div></th>
             <th class="g-blue"><div class="t1a-vtxt" data-i18n="t1_misc">прочее</div></th>
+            <th style="background: rgba(171, 229, 236, 0.55);" class="g-blue"><div class="t1a-vtxt" data-i18n="t1_itogo">итого</div></th>
             <th style="background: rgba(171, 229, 236, 0.55);" class="g-blue"><div class="t1a-vtxt" data-i18n="t1_itogo_kon">итого кон</div></th>
           </tr>
         </thead>
@@ -422,7 +412,6 @@
           {% for st in stations %}
 
             {% if st.status %}
-
               {% with rowsp=3 %}
                 <tr>
                   <td rowspan="{{ rowsp }}"
@@ -470,23 +459,28 @@
 
                   <td class="g-yellow t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"uborka"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
+                  {# Погрузка: + pogr_itogo #}
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
+                  {# Под погрузкой: + pod_pogr_itogo #}
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_cont"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
                   <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                 </tr>
 
+      
                 <tr>
                   <td class="t1a-shift t1a-stickyB" data-i18n="shift_night">ночь</td>
 
@@ -526,6 +520,7 @@
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
@@ -533,11 +528,11 @@
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
                   <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                 </tr>
-
 
                 <tr class="t1a-total">
                   <td class="t1a-shift t1a-stickyB" data-i18n="shift_all">всего</td>
@@ -569,6 +564,7 @@
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
@@ -576,17 +572,14 @@
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
                   <td class="g-gray"><b>{{ st.sum_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
                 </tr>
-
               {% endwith %}
-
             {% else %}
-
               {% with rowsp=2 %}
-
                 <tr>
                   <td rowspan="{{ rowsp }}" class="t1a-name t1a-stickyA" style="font-size: 14px;">{{ st.name }}</td>
                   <td class="t1a-shift t1a-stickyB" data-i18n="shift_day">день</td>
@@ -627,6 +620,7 @@
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_ft"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
@@ -634,15 +628,15 @@
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_kr"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_pv"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_proch"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
+                  <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                   <td class="g-blue t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
 
                   <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.day_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                 </tr>
 
-                {# -------------------- ВСЕГО (only total row) -------------------- #}
                 <tr class="t1a-total">
                   <td class="t1a-shift t1a-stickyB" data-i18n="shift_all">всего</td>
-                  <td class="t1a-term t1a-stickyC">—</td>
+                  <td class="t1a-term  t1a-stickyC"><b>—</b></td>
 
                   <td><b>{{ st.sum_total|get_item:"podano_lc"|default_if_none:"0" }}</b></td>
                   <td><b>{{ st.sum_total|get_item:"k_podache_so_st"|default_if_none:"0" }}</b></td>
@@ -670,6 +664,7 @@
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
@@ -677,19 +672,20 @@
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
+                  <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo"|default_if_none:"0" }}</b></td>
                   <td class="g-blue"><b>{{ st.sum_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
                   <td class="g-gray"><b>{{ st.sum_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
                 </tr>
-
               {% endwith %}
             {% endif %}
 
           {% empty %}
             <tr>
-              <td colspan="33" style="padding:16px;" data-i18n="no_data">Нет данных по этой дате</td>
+              <td colspan="35" style="padding:16px;" data-i18n="no_data">Нет данных по этой дате</td>
             </tr>
           {% endfor %}
+
           {% if grand_total %}
             <tr class="t1a-total">
               <td class="t1a-name t1a-stickyA" style="font-size: 14px;">Umumiy</td>
@@ -722,6 +718,7 @@
               <td class="g-blue"><b>{{ grand_total|get_item:"pogr_kr"|default_if_none:"0" }}</b></td>
               <td class="g-blue"><b>{{ grand_total|get_item:"pogr_pv"|default_if_none:"0" }}</b></td>
               <td class="g-blue"><b>{{ grand_total|get_item:"pogr_proch"|default_if_none:"0" }}</b></td>
+              <td class="g-blue"><b>{{ grand_total|get_item:"pogr_itogo"|default_if_none:"0" }}</b></td>
               <td class="g-blue"><b>{{ grand_total|get_item:"pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
               <td class="g-blue"><b>{{ grand_total|get_item:"pod_pogr_ft"|default_if_none:"0" }}</b></td>
@@ -729,11 +726,12 @@
               <td class="g-blue"><b>{{ grand_total|get_item:"pod_pogr_kr"|default_if_none:"0" }}</b></td>
               <td class="g-blue"><b>{{ grand_total|get_item:"pod_pogr_pv"|default_if_none:"0" }}</b></td>
               <td class="g-blue"><b>{{ grand_total|get_item:"pod_pogr_proch"|default_if_none:"0" }}</b></td>
+              <td class="g-blue"><b>{{ grand_total|get_item:"pod_pogr_itogo"|default_if_none:"0" }}</b></td>
               <td class="g-blue"><b>{{ grand_total|get_item:"pod_pogr_itogo_kon"|default_if_none:"0" }}</b></td>
 
               <td class="g-gray"><b>{{ grand_total|get_item:"income_daily"|default_if_none:"0" }}</b></td>
             </tr>
-            {% endif %}
+          {% endif %}
         </tbody>
       </table>
     </div>
@@ -760,123 +758,6 @@
 })();
 </script>
 
-<script>
-(function(){
-  const dict = {
-    uz: {
-      t1_admin_title: "Hisobot №1",
-      t1_admin_sub: "Logistika markazlari bo‘yicha operativ ma’lumot (admin ko‘rish).",
-      back_to_list: "Ro‘yxatga qaytish",
-      col_lc: "LM nomi",
-      terminal: "Terminal",
-      col_shift: "Smena",
-      shift_day: "kun",
-      shift_night: "tun",
-      shift_all: "jami ",
-      no_data: "Ushbu sana bo‘yicha ma’lumot yo‘q",
-      t1_admin_note: "Izoh: admin panelda “jami” maydonlari “ft+kr+pv+прочее” bo‘yicha hisoblanadi, “jami kon” esa “kont.” ni takrorlaydi (bloklar: Tushirish / Tushirishda / Yuklash / Yuklashda).",
-      t1_admin_header: "\"O‘ztemiryo‘lkonteyner\" AJ logistika markazlari bo‘yicha sutkalik operativ ma’lumot ",
-      t1_col_podano: "LMga berildi",
-      t1_col_kpod: "St’dan berishga",
-      t1_blk_vygr: "Tushirish",
-      t1_blk_pod_vygr: "Tushirishda",
-      t1_col_uborka: "Yig‘ishtirish",
-      t1_blk_pogr: "Yuklash",
-      t1_blk_pod_pogr: "Yuklashda",
-      t1_col_income: "sutkalik daromad",
-      ft: "ft",
-      kont: "kont",
-      kr: "kr",
-      pv: "pv",
 
-      t1_misc: "boshqa",
-      t1_itogo: "jami",
-      t1_itogo_kon: "jami kont"
-    },
-    ru: {
-      t1_admin_title: "Таблица №1",
-      t1_admin_sub: "Оперативная информация по логистическим центрам (админ просмотр).",
-      back_to_list: "Назад к списку",
-      col_lc: "Наименование ЛЦ",
-      terminal: "Терминал",
-      col_shift: "Смена",
-      shift_day: "день",
-      shift_night: "ночь",
-      shift_all: "всего",
-      no_data: "Нет данных по этой дате",
-      t1_admin_note: "Примечание: в админке поля “итого” считаются как “фт+кр+пв+прочее”, а “итого кон” зеркалит “конт.” (для блоков: Выгрузка / Под выгрузкой / Погрузка / Под погрузкой).",
-      t1_admin_header: "Оперативная информация о работе логистических центров АО \"Узтемирйулконтейнер\" в сутки ",
-      t1_col_podano: "Подано на ЛЦ",
-      t1_col_kpod: "к подаче со ст",
-      t1_blk_vygr: "Выгрузка",
-      t1_blk_pod_vygr: "Под выгрузкой",
-      t1_col_uborka: "Уборка",
-      t1_blk_pogr: "Погрузка",
-      t1_blk_pod_pogr: "Под погрузкой",
-      t1_col_income: "суточные доходы",
-      t1_misc: "прочее",
-      t1_itogo: "итого",
-      t1_itogo_kon: "итого кон",
-
-      ft: "фт",
-      kont: "конт",
-      kr: "кр",
-      pv: "пв",
-    }
-  };
-
-  function getLang(){
-    const htmlLang = document.documentElement.getAttribute("data-lang");
-    const ls = localStorage.getItem("lang") || localStorage.getItem("ui_lang");
-    const lang = (htmlLang || ls || "ru").toLowerCase();
-    return (lang === "uz") ? "uz" : "ru";
-  }
-
-  function applyLang(){
-    const t = dict[getLang()] || dict.ru;
-    document.querySelectorAll("[data-i18n]").forEach(el=>{
-      const k = el.getAttribute("data-i18n");
-      if (t[k] !== undefined) el.textContent = t[k];
-    });
-  }
-
-  applyLang();
-  window.addEventListener("storage", (e)=>{
-    if(e.key === "lang" || e.key === "ui_lang") applyLang();
-  });
-  const mo = new MutationObserver(applyLang);
-  mo.observe(document.documentElement, { attributes:true, attributeFilter:["data-lang"] });
-})();
-</script>
-
-<script>
-(function(){
-  const fmt = new Intl.NumberFormat('ru-RU');
-  const table = document.getElementById('t1admin');
-  if (!table) return;
-
-  table.querySelectorAll('tbody td').forEach(td => {
-    if (td.classList.contains('t1a-name') || td.classList.contains('t1a-shift') || td.classList.contains('t1a-term')) return;
-
-    const lines = td.querySelectorAll('.t1a-line');
-    if (lines.length) {
-      lines.forEach(line=>{
-        let s = (line.textContent || '').trim();
-        if (!/^-?\d+$/.test(s)) return;
-        const n = Number(s);
-        if (!Number.isFinite(n)) return;
-        line.textContent = fmt.format(n);
-      });
-      return;
-    }
-
-    let s = (td.textContent || '').trim();
-    if (!/^-?\d+$/.test(s)) return;
-    const n = Number(s);
-    if (!Number.isFinite(n)) return;
-    td.textContent = fmt.format(n);
-  });
-})();
-</script>
-
+{{ block.super }}
 {% endblock %}

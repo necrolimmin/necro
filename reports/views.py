@@ -771,7 +771,33 @@ def admin_table1_reports(request):
 
 
 def _apply_itogo_rules(data: dict) -> dict:
+    """
+    itogo = ft + kr + pv + proch
+    itogo_kon = cont
+
+    MUHIM: endi itogo/itogo_kon keylari dictda bo'lmasa ham
+    yaratib qo'yadi (pogr/pod_pogr uchun ham).
+    """
     d = dict(data or {})
+
+    blocks = [
+        ("vygr",      "ft", "cont", "kr", "pv", "proch"),
+        ("pod_vygr",  "ft", "cont", "kr", "pv", "proch"),
+        ("pogr",      "ft", "cont", "kr", "pv", "proch"),
+        ("pod_pogr",  "ft", "cont", "kr", "pv", "proch"),
+    ]
+
+    for prefix, k_ft, k_cont, k_kr, k_pv, k_proch in blocks:
+        ft = _int0(d.get(f"{prefix}_{k_ft}"))
+        kr = _int0(d.get(f"{prefix}_{k_kr}"))
+        pv = _int0(d.get(f"{prefix}_{k_pv}"))
+        proch = _int0(d.get(f"{prefix}_{k_proch}"))
+        cont = _int0(d.get(f"{prefix}_{k_cont}"))
+
+        d[f"{prefix}_itogo"] = ft + kr + pv + proch
+        d[f"{prefix}_itogo_kon"] = cont
+
+    return d
 
     blocks = [
         ("vygr", "ft", "cont", "kr", "pv", "proch", "itogo", "itogo_kon"),
