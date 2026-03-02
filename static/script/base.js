@@ -26,18 +26,26 @@
   const themeBtn = document.getElementById('themeBtn');
   const themeIconHolder = document.getElementById('themeIconHolder');
 
+  function renderThemeIcon(currentTheme){
+    // show NEXT theme icon (better UX)
+    if (!themeIconHolder) return;
+    themeIconHolder.innerHTML = (currentTheme === 'dark') ? ICON_SUN : ICON_MOON;
+  }
+
   function applyTheme(theme){
     const t = (theme === 'dark') ? 'dark' : 'light';
     html.setAttribute('data-theme', t);
     localStorage.setItem(THEME_KEY, t);
-    if (themeIconHolder) themeIconHolder.innerHTML = (t === 'dark') ? ICON_MOON : ICON_SUN;
+    renderThemeIcon(t);
   }
 
-  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  // default MUST be light
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  applyTheme(savedTheme ? savedTheme : 'light');
 
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
-      const cur = html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      const cur = (html.getAttribute('data-theme') === 'dark') ? 'dark' : 'light';
       applyTheme(cur === 'dark' ? 'light' : 'dark');
     });
   }
@@ -89,7 +97,6 @@
       if (t[key] !== undefined) el.textContent = t[key];
     });
 
-    // small animation
     if (langBtn) {
       try{
         langBtn.animate(
@@ -154,7 +161,6 @@
       centerNav.classList.toggle('open');
     });
 
-    // outside click closes
     document.addEventListener('click', (e) => {
       if (!centerNav.contains(e.target) && !navToggle.contains(e.target)) {
         centerNav.classList.remove('open');
