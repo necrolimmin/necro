@@ -35,7 +35,7 @@
   }
 
   .dbx{
-    max-width: 1320px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 10px 12px 18px;
     box-sizing: border-box;
@@ -158,8 +158,8 @@
     display:grid;
     grid-template-columns: repeat(4, minmax(0,1fr));
     gap: var(--db-gap);
-    margin-top: 10px;
-    margin-bottom: 12px;
+    margin-top: 18px;
+    margin-bottom: 19px;
   }
   
   @media (max-width: 1100px){
@@ -211,7 +211,17 @@
     overflow: hidden;
     position: relative;
   }
-  .card::before{
+  .cardh{
+    border-radius: var(--db-radius);
+    border: 1px solid var(--stroke);
+    background: var(--surface);
+    box-shadow: var(--shadow2);
+    
+    overflow: hidden;
+    position: relative;
+  }
+  .card::before,
+  .cardh::before{
     content:"";
     position:absolute;
     inset:-2px;
@@ -220,13 +230,15 @@
       radial-gradient(520px 260px at 90% 0%, rgba(16,185,129,.12), transparent 55%);
     pointer-events:none;
   }
-  html[data-theme="dark"] .card::before{
+  html[data-theme="dark"] .card::before,
+  html[data-theme="dark"] .cardh::before{
     background:
       radial-gradient(600px 260px at 10% 0%, rgba(99,102,241,.18), transparent 55%),
       radial-gradient(520px 260px at 90% 0%, rgba(16,185,129,.10), transparent 55%);
   }
 
   .card > *{ position: relative; }
+  .cardh > *{ position: relative; }
   
   .card-h{
     display:flex;
@@ -250,65 +262,113 @@
     line-height: 1.35;
   }
 
-  /* ---- kpi card ---- */
-  .kpi{
-    display:flex;
-    justify-content:space-between;
-    gap: 10px;
-    align-items:flex-start;
-    min-height: 88px;
-  }
-  .kpi-left .val{
-    font-size: 26px;
-    font-weight: 1100;
-    letter-spacing:-.02em;
-    color: var(--text);
-    margin-top: 8px;
-  }
-  .kpi-left .meta{
-    margin-top: 6px;
-    color: var(--muted);
-    font-size: 12.5px;
-    line-height: 1.3;
-  }
 
-  .kpi-icon{
-    width: 54px;
-    height: 54px;
-    border-radius: 18px;
-    border: 1px solid var(--stroke);
-    background: var(--glass2);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    box-shadow: var(--shadow3);
-    font-size: 24px;
-  }
 
-  .kpi-icon svg{
-    transition: transform .25s ease;
-  }
-  .card-3d:hover .kpi-icon svg{
-    transform: translateY(1px) scale(1.06);
-  }
+  /* ---- KPI card (image pinned to right, like sample) ---- */
+.card.card-3d { overflow: hidden; } /* rasm tashqariga chiqmasin */
 
-  .chip{
-    display:inline-flex;
-    align-items:center;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--stroke);
-    background: var(--glass2);
-    font-size: 12px;
-    font-weight: 950;
-    color: var(--text);
-    white-space: nowrap;
-  }
-  .dot{ width:8px; height:8px; border-radius: 999px; background: var(--good); }
-  .dot.warn{ background: var(--warn); }
-  .dot.bad{ background: var(--bad); }
-  .dot.info{ background: var(--info); }
+
+/* KPI card: text can overlay image */
+.kpi{
+  position: relative;
+  display:flex;
+  align-items:flex-start;
+  min-height: 118px;
+  padding: 0;                /* ✅ padding-right yo'q */
+}
+
+/* Text always above */
+.kpi-left{
+  position: relative;
+  z-index: 2;                /* ✅ text rasm ustida */
+  max-width: 68%;            /* ixtiyoriy: chap blokni biroz cheklab qo'yadi */
+  padding: var(--db-pad);
+}
+
+.kpi-left .card-title{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpi-left .val{
+  font-size: 25px;
+  font-weight: 1100;
+  letter-spacing: -.02em;
+  color: var(--text);
+  margin-top: 10px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpi-left .meta{
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+/* Right image area fills right side */
+.kpi-media.kpi-bg{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 35%;                /* ✅ o'ng tarafni to'ldiradi (kerak bo'lsa 55-65% o'ynat) */
+  z-index: 1;
+  background-repeat: no-repeat;
+  background-position: right top;  /* ✅ o'ngga yopishadi */
+  background-size: cover;             /* ✅ o'ng tarafni to'liq to'ldiradi */
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* Soft fade so left text reads well */
+.kpi-media.kpi-bg::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg,
+    var(--surface) 0%,
+    rgba(255,255,255,.70) 35%,
+    rgba(255,255,255,.10) 70%,
+    rgba(255,255,255,0) 100%
+  );
+  opacity: .65;
+}
+
+html[data-theme="dark"] .kpi-media.kpi-bg::before{
+  background: linear-gradient(90deg,
+    rgba(2,6,23,.92) 0%,
+    rgba(2,6,23,.62) 35%,
+    rgba(2,6,23,.18) 70%,
+    rgba(2,6,23,0) 100%
+  );
+  opacity: .96;
+}
+
+/* optional: slightly round only the left, keep right clean */
+.kpi-media.kpi-bg{
+  border-top-right-radius: var(--db-radius);
+  border-bottom-right-radius: var(--db-radius);
+}
+
+/* Background images (your png) */
+.kpi-bg-1{ background-image: url("{% static 'images/card1.png' %}"); }
+.kpi-bg-2{ background-image: url("{% static 'images/card2.png' %}"); }
+.kpi-bg-3{ background-image: url("{% static 'images/card3.png' %}"); }
+.kpi-bg-4{ background-image: url("{% static 'images/card4.png' %}"); }
+
+/* Mobile: image becomes a bit smaller so text fits */
+@media (max-width: 600px){
+  .kpi-left{ max-width: 72%; }
+  .kpi-media.kpi-bg{ width: 62%; }
+}
+
+
+  
 
   /* ---- charts ---- */
   .chart{
@@ -469,84 +529,55 @@
   <!-- ================= KPI CARDS ================= -->
   <div class="grid-kpi">
 
-    <div class="card">
+    <!-- 1 -->
+    <div class="cardh card-3d">
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Ortish / Pogruzka</div>
           <div class="val mono" id="kpiOrtish">33 415</div>
-          <div class="meta">Vagon </div>
+          <div class="meta">Vagon</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot"></span><span>ok</span></div>
-          <div class="kpi-icon">🚂</div>
-        </div>
+
+        <div class="kpi-media kpi-bg kpi-bg-1" aria-hidden="true"></div>
       </div>
     </div>
 
-    <div class="card">
+    <!-- 2 -->
+    <div class="cardh card-3d">
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Tushirish / Vigruzka</div>
           <div class="val mono" id="kpiTushirish">27 794</div>
-          <div class="meta">Vagon </div>
+          <div class="meta">Vagon</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot "></span><span>ok</span></div>
-          <div class="kpi-icon">📦</div>
-        </div>
+
+        <div class="kpi-media kpi-bg kpi-bg-2" aria-hidden="true"></div>
       </div>
     </div>
 
-    <div class="card">
+    <!-- 3 -->
+    <div class="cardh card-3d">
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Ortishda / Podpogruzka</div>
           <div class="val mono" id="kpiPodpogruzka">15 245</div>
           <div class="meta">Vagon</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot warn"></span><span> load</span></div>
-          <div class="kpi-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="8" width="18" height="10" rx="2" fill="#3B82F6"/>
-              <path d="M7 8V18M11 8V18M15 8V18M19 8V18"
-                    stroke="rgba(255,255,255,.65)" stroke-width="1"/>
-              <path d="M12 20V13" stroke="#16A34A" stroke-width="2.2"
-                    stroke-linecap="round"/>
-              <path d="M9.5 15.5L12 13L14.5 15.5"
-                    stroke="#16A34A" stroke-width="2.2"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
+
+        <div class="kpi-media kpi-bg kpi-bg-3" aria-hidden="true"></div>
       </div>
     </div>
 
-    <div class="card">
+    <!-- 4 -->
+    <div class="cardh card-3d">
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Tushirishda / Podvigruzka</div>
-          <div class="val mono" id="kpiPodvigruzka">10 321 </div>
+          <div class="val mono" id="kpiPodvigruzka">10 321</div>
           <div class="meta">Vagon</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <div class="chip"><span class="dot warn"></span><span>load</span></div>
-          <div class="kpi-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="8" width="18" height="7" rx="2"
-                    fill="#3B82F6"/>
-              <circle cx="7" cy="18" r="1.6" fill="#111827"/>
-              <circle cx="17" cy="18" r="1.6" fill="#111827"/>
-              <path d="M12 3V10" stroke="#16A34A" stroke-width="2.2"
-                    stroke-linecap="round"/>
-              <path d="M9.5 7.5L12 10L14.5 7.5"
-                    stroke="#16A34A" stroke-width="2.2"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
+
+        <div class="kpi-media kpi-bg kpi-bg-4" aria-hidden="true"></div>
       </div>
     </div>
 

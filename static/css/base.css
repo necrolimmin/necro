@@ -85,7 +85,7 @@ img{ max-width:100%; }
    Layout
    ========================= */
 .wrap{
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 18px;
 }
@@ -357,7 +357,7 @@ html[data-theme="dark"] .admin-badge{ background: rgba(255,255,255,.06); }
 main.page{
   position:relative;
   z-index: 1;
-  max-width: 1400px;
+  max-width: 98%;
   margin: 0 auto;
   padding: 22px 18px;
 }
