@@ -336,9 +336,48 @@
                 {% elif n == 9 %}
                   {# skip #}
 
+                {# ✅ NEW: ekranda 18 va 19 bo'lib ko'rinayotgan raqamlarni birlashtiramiz (n=19 va n=20) #}
+                {% elif n == 19 %}
+                  <tr>
+                    {# bu yerda ekrandagi raqam 18 bo‘lishi kerak -> n-1 #}
+                    <td class="t2-center t2-bold" rowspan="2">{{ n|add:"-1" }}</td>
+
+                    <td colspan="2">{{ label }}</td>
+                    <td class="t2-center">{{ code }}</td>
+                    <td class="t2-center">
+                      <input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}"
+                            {% if mode == 'view' %}disabled{% endif %}>
+                    </td>
+                    <td class="t2-center">
+                      <input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}"
+                            {% if mode == 'view' %}disabled{% endif %}>
+                    </td>
+                  </tr>
+
+                  {# ikkinchi qator: n==20 ni chiqaramiz, lekin raqam ustuni bo‘lmaydi #}
+                  {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
+                    {% if n2 == 20 %}
+                      <tr>
+                        <td colspan="2">{{ label2 }}</td>
+                        <td class="t2-center">{{ code2 }}</td>
+                        <td class="t2-center">
+                          <input class="t2-cell-input" name="{{ k_total2 }}" value="{{ obj|data_val:k_total2 }}"
+                                {% if mode == 'view' %}disabled{% endif %}>
+                        </td>
+                        <td class="t2-center">
+                          <input class="t2-cell-input" name="{{ k_ktk2 }}" value="{{ obj|data_val:k_ktk2 }}"
+                                {% if mode == 'view' %}disabled{% endif %}>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+
+                {% elif n == 20 %}
+                  {# ✅ skip: chunki u yuqorida merge ichida chiqarildi #}
+
                 {% elif n == 22 %}
                   <tr>
-                    <td class="t2-center t2-bold" rowspan="2">21</td>
+                    <td class="t2-center t2-bold" rowspan="2">20</td>
                     <td class="t2-bold" rowspan="2">Загружено</td>
                     <td class="t2-bold">Гружёные</td>
                     <td class="t2-center">З/г</td>
@@ -354,7 +393,15 @@
 
                 {% else %}
                   <tr>
-                    <td class="t2-center t2-bold">{% if n >= 10 %}{{ n|add:"-1" }}{% else %}{{ n }}{% endif %}</td>
+                    <td class="t2-center t2-bold">
+                      {% if n >= 21 %}
+                        {{ n|add:"-2" }}
+                      {% elif n >= 10 %}
+                        {{ n|add:"-1" }}
+                      {% else %}
+                        {{ n }}
+                      {% endif %}
+                    </td>
                     <td colspan="2">{{ label }}</td>
                     <td class="t2-center">{{ code }}</td>
                     <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
@@ -471,4 +518,5 @@
 <script>
 setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 </script>
+
 {% endblock %}  

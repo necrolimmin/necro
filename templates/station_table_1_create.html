@@ -461,7 +461,7 @@
                           value="{{ day_obj|data_val:'vygr_itogo' }}"
                           inputmode="numeric">
                   </td>
-                  <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_itogo_kon" value="{{ day_obj|data_val:'vygr_itogo_kon' }}" data-key="vygr_itogo_kon" inputmode="numeric"></td>
+                  <td class="xinput g-green"><input readonly {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__vygr_itogo_kon" value="{{ day_obj|data_val:'vygr_itogo_kon' }}" data-key="vygr_itogo_kon" inputmode="numeric"></td>
 
                   <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_ft" value="{{ day_obj|data_val:'pod_vygr_ft' }}" data-key="pod_vygr_ft" inputmode="numeric"></td>
                   <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_cont" value="{{ day_obj|data_val:'pod_vygr_cont' }}" data-key="pod_vygr_cont" inputmode="numeric"></td>
@@ -474,7 +474,7 @@
                           value="{{ day_obj|data_val:'pod_vygr_itogo' }}"
                           inputmode="numeric">
                   </td>
-                  <td class="xinput g-green"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_itogo_kon" value="{{ day_obj|data_val:'pod_vygr_itogo_kon' }}" data-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
+                  <td class="xinput g-green"><input readonly {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_vygr_itogo_kon" value="{{ day_obj|data_val:'pod_vygr_itogo_kon' }}" data-key="pod_vygr_itogo_kon" inputmode="numeric"></td>
 
                   <td class="xinput"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__uborka" value="{{ day_obj|data_val:'uborka' }}" data-key="uborka" inputmode="numeric"></td>
 
@@ -490,7 +490,7 @@
                           data-key="pogr_itogo"
                           inputmode="numeric">
                   </td>
-                  <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_itogo_kon" value="{{ day_obj|data_val:'pogr_itogo_kon' }}" data-key="pogr_itogo_kon" inputmode="numeric"></td>
+                  <td class="xinput g-blue"><input readonly {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pogr_itogo_kon" value="{{ day_obj|data_val:'pogr_itogo_kon' }}" data-key="pogr_itogo_kon" inputmode="numeric"></td>
 
                   <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_ft" value="{{ day_obj|data_val:'pod_pogr_ft' }}" data-key="pod_pogr_ft" inputmode="numeric"></td>
                   <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_cont" value="{{ day_obj|data_val:'pod_pogr_cont' }}" data-key="pod_pogr_cont" inputmode="numeric"></td>
@@ -504,7 +504,7 @@
                           data-key="pod_pogr_itogo"
                           inputmode="numeric">
                   </td>
-                  <td class="xinput g-blue"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_itogo_kon" value="{{ day_obj|data_val:'pod_pogr_itogo_kon' }}" data-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
+                  <td class="xinput g-blue"><input readonly {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__pod_pogr_itogo_kon" value="{{ day_obj|data_val:'pod_pogr_itogo_kon' }}" data-key="pod_pogr_itogo_kon" inputmode="numeric"></td>
 
                   <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__spc_lc" value="{{ day_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
                   <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__spc_station" value="{{ day_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
@@ -1042,6 +1042,238 @@
 <script>
 setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 </script>
+<script>
+  (function(){
+    // ---------------------------
+    // Helpers
+    // ---------------------------
+    const num = (v) => {
+      if (v == null) return 0;
+      const s = String(v).replace(/\s+/g,'').replace(',', '.');
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : 0;
+    };
 
+    const setVal = (inp, value) => {
+      if (!inp) return;
+      const v = (value === 0) ? "0" : String(value);
+      if (inp.value !== v) inp.value = v;
+    };
+
+    // cont -> jami_kont mapping (4 blocks)
+    const CONT_TO_JAMI_KONT = {
+      vygr_cont:       "vygr_itogo_kon",
+      pod_vygr_cont:   "pod_vygr_itogo_kon",
+      pogr_cont:       "pogr_itogo_kon",
+      pod_pogr_cont:   "pod_pogr_itogo_kon",
+    };
+
+    // total row should sum these keys (day + night)
+    const SUM_KEYS = [
+      // Vygruzka
+      "vygr_ft","vygr_cont","vygr_kr","vygr_pv","vygr_proch","vygr_itogo","vygr_itogo_kon",
+      // Pod vigruzkoy
+      "pod_vygr_ft","pod_vygr_cont","pod_vygr_kr","pod_vygr_pv","pod_vygr_proch","pod_vygr_itogo","pod_vygr_itogo_kon",
+      // Pogruzka
+      "pogr_ft","pogr_cont","pogr_kr","pogr_pv","pogr_proch","pogr_itogo","pogr_itogo_kon",
+      // Pod pogruzkoy
+      "pod_pogr_ft","pod_pogr_cont","pod_pogr_kr","pod_pogr_pv","pod_pogr_proch","pod_pogr_itogo","pod_pogr_itogo_kon",
+
+      // Others
+      "podano_lc","uborka","spc_lc","spc_station","income_daily",
+    ];
+
+    function q(table, selector){ return table.querySelector(selector); }
+
+    function getInputByName(table, name){
+      return q(table, `input[name="${CSS.escape(name)}"]`);
+    }
+
+    function nameKeyFromInputName(inputName){
+      // inputName like: b1__day__vygr_cont  OR b1__total__vygr_cont
+      const parts = String(inputName || "").split("__");
+      // ["b1","day","vygr_cont"]
+      return parts.length >= 3 ? parts[2] : null;
+    }
+
+    function prefixFromInputName(inputName){
+      // returns "b1" part
+      const parts = String(inputName || "").split("__");
+      return parts[0] || null;
+    }
+
+    function rowFromInputName(inputName){
+      const parts = String(inputName || "").split("__");
+      return parts[1] || null; // day/night/total/common/terminal
+    }
+
+    // 1) cont -> jami kont on same row (day/night)
+    function syncKontToJamiKont(table, prefix, row, key){
+      const jamiKey = CONT_TO_JAMI_KONT[key];
+      if (!jamiKey) return;
+
+      const src = getInputByName(table, `${prefix}__${row}__${key}`);
+      const dst = getInputByName(table, `${prefix}__${row}__${jamiKey}`);
+      if (!src || !dst) return;
+
+      setVal(dst, num(src.value));
+    }
+
+    // 2) total = day + night for each key
+    function recalcTotals(table, prefix){
+      for (const key of SUM_KEYS){
+        const dayInp   = getInputByName(table, `${prefix}__day__${key}`);
+        const nightInp = getInputByName(table, `${prefix}__night__${key}`);
+        const totInp   = getInputByName(table, `${prefix}__total__${key}`);
+
+        if (!totInp) continue; // some keys might not exist in your view/mode
+        const sum = num(dayInp?.value) + num(nightInp?.value);
+        setVal(totInp, sum);
+      }
+
+      // Also ensure total "jami kont" matches total "kont" copies
+      for (const [contKey, jamiKey] of Object.entries(CONT_TO_JAMI_KONT)){
+        const totCont = getInputByName(table, `${prefix}__total__${contKey}`);
+        const totJami = getInputByName(table, `${prefix}__total__${jamiKey}`);
+        if (totCont && totJami) setVal(totJami, num(totCont.value));
+      }
+    }
+
+    function initTable(table){
+      const anyInput = table.querySelector('input[name^="b"]');
+      if (!anyInput) return;
+
+      // prefix = b1 / b2 ...
+      const prefix = prefixFromInputName(anyInput.name);
+      if (!prefix) return;
+
+      // first calculate on load
+      // sync kont->jami for both day/night before totals
+      for (const contKey of Object.keys(CONT_TO_JAMI_KONT)){
+        syncKontToJamiKont(table, prefix, "day", contKey);
+        syncKontToJamiKont(table, prefix, "night", contKey);
+      }
+      recalcTotals(table, prefix);
+
+      // live updates
+      table.addEventListener("input", (e)=>{
+        const t = e.target;
+        if (!(t instanceof HTMLInputElement)) return;
+        if (!t.name || !t.name.startsWith(prefix + "__")) return;
+
+        const row = rowFromInputName(t.name);   // day/night/...
+        const key = nameKeyFromInputName(t.name);
+
+        if (!row || !key) return;
+
+        // when kont changes, copy to jami kont (same row)
+        if ((row === "day" || row === "night") && CONT_TO_JAMI_KONT[key]){
+          syncKontToJamiKont(table, prefix, row, key);
+        }
+
+        // totals always recalc (day+night)
+        recalcTotals(table, prefix);
+      });
+    }
+
+    // Apply for every terminal block table
+    document.querySelectorAll("table.t1-table").forEach(initTable);
+  })();
+
+  
+</script>
+
+<script>
+  (function () {
+    // -------- helpers ----------
+    const num = (v) => {
+      v = (v ?? "").toString().replace(/\s+/g, "").replace(",", ".");
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const setVal = (inp, v) => {
+      if (!inp) return;
+      const s = String(Math.trunc(v)); // butun son
+      if (inp.value !== s) inp.value = s;
+    };
+
+    // 4 ta blok uchun mapping:
+    // jami = ft+kr+pv+proch  -> itogo
+    // jami kont = cont       -> itogo_kon
+    const BLOCKS = [
+      { ft: "vygr_ft",    cont: "vygr_cont",    kr: "vygr_kr",    pv: "vygr_pv",    proch: "vygr_proch",    itogo: "vygr_itogo",    itogo_kon: "vygr_itogo_kon" },
+      { ft: "pod_vygr_ft",cont: "pod_vygr_cont",kr: "pod_vygr_kr",pv: "pod_vygr_pv",proch:"pod_vygr_proch", itogo: "pod_vygr_itogo", itogo_kon: "pod_vygr_itogo_kon" },
+      { ft: "pogr_ft",    cont: "pogr_cont",    kr: "pogr_kr",    pv: "pogr_pv",    proch: "pogr_proch",    itogo: "pogr_itogo",    itogo_kon: "pogr_itogo_kon" },
+      { ft: "pod_pogr_ft",cont: "pod_pogr_cont",kr: "pod_pogr_kr",pv: "pod_pogr_pv",proch:"pod_pogr_proch", itogo: "pod_pogr_itogo", itogo_kon: "pod_pogr_itogo_kon" },
+    ];
+
+    function updateRowForBlock(tr, block) {
+      const get = (k) => tr.querySelector(`input[data-key="${k}"]`);
+      const ft = num(get(block.ft)?.value);
+      const kr = num(get(block.kr)?.value);
+      const pv = num(get(block.pv)?.value);
+      const proch = num(get(block.proch)?.value);
+      const cont = num(get(block.cont)?.value);
+
+      // jami
+      setVal(get(block.itogo), ft + kr + pv + proch);
+      // jami kont (kont -> jami kont)
+      setVal(get(block.itogo_kon), cont);
+    }
+
+    function updateTotals(table) {
+      const day = table.querySelector('tr[data-row="day"]');
+      const night = table.querySelector('tr[data-row="night"]'); // status bo'lmasa null
+      const totalRow = table.querySelector('tr[data-row="total"]');
+      if (!totalRow) return;
+
+      // total row inputlar data-total-key bilan kelgan
+      totalRow.querySelectorAll("input[data-total-key]").forEach((tout) => {
+        const key = tout.getAttribute("data-total-key");
+
+        const d = day ? num(day.querySelector(`input[data-key="${key}"]`)?.value) : 0;
+        const n = night ? num(night.querySelector(`input[data-key="${key}"]`)?.value) : 0;
+
+        setVal(tout, d + n);
+      });
+    }
+
+    function updateByInput(input) {
+      const table = input.closest("table.t1-table");
+      if (!table) return;
+
+      const tr = input.closest('tr[data-row="day"], tr[data-row="night"]');
+      if (tr) {
+        // shu row ichida 4 blokni ham qayta hisoblaymiz (tez va ishonchli)
+        for (const b of BLOCKS) updateRowForBlock(tr, b);
+      }
+
+      // har inputdan keyin total ham yangilansin
+      updateTotals(table);
+    }
+
+    // ✅ event delegation: yangi qo'shilgan jadvallarda ham ishlaydi
+    document.addEventListener("input", (e) => {
+      const inp = e.target;
+      if (!(inp instanceof HTMLInputElement)) return;
+      // faqat bizning jadval inputlari
+      if (!inp.closest("table.t1-table")) return;
+
+      // data-key bo'lganlar (ft/kont/kr/pv/boshqa) o'zgarsa hisoblaymiz
+      if (inp.hasAttribute("data-key")) updateByInput(inp);
+    }, true);
+
+    // page ochilganda ham bir marta hammasini hisoblab qo'yamiz
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("table.t1-table").forEach((t) => updateTotals(t));
+      document.querySelectorAll('table.t1-table tr[data-row="day"], table.t1-table tr[data-row="night"]').forEach((tr) => {
+        const table = tr.closest("table.t1-table");
+        if (!table) return;
+        for (const b of BLOCKS) updateRowForBlock(tr, b);
+        updateTotals(table);
+      });
+    });
+  })();
+</script>
 
 {% endblock %}
