@@ -431,7 +431,7 @@
                            {% if mode == "view" %}disabled{% endif %}
                            name="b{{ b }}__terminal__name"
                            value="{% if term_val %}{{ term_val }}{% else %}{{ day_obj|data_val:'terminal_name' }}{% endif %}"
-                           placeholder="Название терминала">
+                           placeholder="Terminal nomi" required>
                   </td>
 
                   <td class="xshift" data-i18n="t1_shift_day">kun</td>
