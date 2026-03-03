@@ -299,6 +299,60 @@
   }
   .t1a-line:last-child{ border-bottom:0; }
   .t1a-line b{ font-weight:750; }
+
+  /* =========================
+   FIX: sticky layers + 2-row sticky THEAD
+   ========================= */
+
+/* 1) THEAD qatlamini tanaga yopib, tagidagi data ko‘rinib qolmasin */
+table.t1a-table thead th{
+  background: var(--surface) !important;
+  z-index: 120; /* oddiy headerlar */
+}
+
+/* 2) 1-qator header (blok nomlari) doim top=0 */
+table.t1a-table thead tr:first-child th{
+  top: 0;
+  z-index: 140;
+}
+
+/* 3) 2-qator header (ft/kont/kr/...) 1-qator balandligi kadar pastda tursin
+      Bu qiymatni kerak bo‘lsa 44/48/52 qilib moslaysiz */
+:root{
+  --t1a-head-row1-h: 48px; /* ✅ shu yerda moslang */
+}
+table.t1a-table thead tr:nth-child(2) th{
+  top: var(--t1a-head-row1-h);
+  z-index: 130;
+}
+
+/* 4) Chapdagi sticky 3 ustun har doim hammasidan ustun tursin (thead ham, tbody ham) */
+table.t1a-table th.t1a-stickyA,
+table.t1a-table td.t1a-stickyA{ z-index: 500 !important; }
+
+table.t1a-table th.t1a-stickyB,
+table.t1a-table td.t1a-stickyB{ z-index: 490 !important; }
+
+table.t1a-table th.t1a-stickyC,
+table.t1a-table td.t1a-stickyC{ z-index: 480 !important; }
+
+/* 5) Sticky chap ustunlar fonini 100% yopiq qiling (tagidan yozuv ko‘rinmasin) */
+table.t1a-table th.t1a-stickyA,
+table.t1a-table th.t1a-stickyB,
+table.t1a-table th.t1a-stickyC{
+  background: rgba(255,255,255,.92) !important;
+}
+html[data-theme="dark"] table.t1a-table th.t1a-stickyA,
+html[data-theme="dark"] table.t1a-table th.t1a-stickyB,
+html[data-theme="dark"] table.t1a-table th.t1a-stickyC{
+  background: rgba(17,24,39,.92) !important;
+}
+
+/* 6) Vertikal scroll paytida tbody ma’lumotlari header “orqasida” ko‘rinib qolmasin */
+table.t1a-table thead{
+  position: relative;
+  z-index: 2000;
+}
 </style>
 
 <div class="t1a-panel">
@@ -876,6 +930,15 @@
   });
 })();
 </script>
-
+<script>
+(function(){
+  const table = document.getElementById("t1admin");
+  if(!table) return;
+  const firstRow = table.querySelector("thead tr:first-child");
+  if(!firstRow) return;
+  const h = firstRow.getBoundingClientRect().height;
+  document.documentElement.style.setProperty("--t1a-head-row1-h", Math.ceil(h) + "px");
+})();
+</script>
 {{ block.super }}
 {% endblock %}
