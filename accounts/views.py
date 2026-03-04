@@ -417,8 +417,8 @@ def admin_settings_stacked_top5_json_cont(request):
 
     for row in qs:
         d = row.data or {}
-        agg[row.station_user_id]['pogr']+=d['pod_pogr_cont']
-        agg[row.station_user_id]['vygr']+=d['pod_vygr_cont']
+        agg[row.station_user_id]['pogr']+=d['pogr_cont']
+        agg[row.station_user_id]['vygr']+=d['vygr_cont']
 
     top5 = sorted(
         agg.items(),

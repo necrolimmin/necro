@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import KPI, KPIValue, StationDailyTable1
+from .models import KPI, KPIValue, StationDailyTable1, StationDailyTable2
 
 @admin.register(KPI)
 class KPIAdmin(admin.ModelAdmin):
@@ -20,4 +20,9 @@ class KPIValueAdmin(admin.ModelAdmin):
 class StationDailyTable1Admin(admin.ModelAdmin):
     list_display = ('date', 'shift', 'station_user', 'submitted_at')
     list_filter = ('date', 'shift')
+    search_fields = ('station_user__username',)
+
+@admin.register(StationDailyTable2)
+class StationDailyTable2Admin(admin.ModelAdmin):
+    list_display = ('date', 'station_user', 'submitted_at')
     search_fields = ('station_user__username',)
