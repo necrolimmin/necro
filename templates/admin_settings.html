@@ -265,107 +265,144 @@
 
 
   /* ---- KPI card (image pinned to right, like sample) ---- */
-.card.card-3d { overflow: hidden; } /* rasm tashqariga chiqmasin */
+  .card.card-3d { overflow: hidden; } /* rasm tashqariga chiqmasin */
 
 
-/* KPI card: text can overlay image */
-.kpi{
-  position: relative;
-  display:flex;
-  align-items:flex-start;
-  min-height: 118px;
-  padding: 0;                /* ✅ padding-right yo'q */
-}
+  /* KPI card: text can overlay image */
+  .kpi{
+    position: relative;
+    display:flex;
+    align-items:flex-start;
+    min-height: 118px;
+    padding: 0;                /* ✅ padding-right yo'q */
+  }
 
-/* Text always above */
-.kpi-left{
-  position: relative;
-  z-index: 2;                /* ✅ text rasm ustida */
-  max-width: 68%;            /* ixtiyoriy: chap blokni biroz cheklab qo'yadi */
-  padding: var(--db-pad);
-}
+  /* Text always above */
+  .kpi-left{
+    position: relative;
+    z-index: 2;                /* ✅ text rasm ustida */
+    max-width: 68%;            /* ixtiyoriy: chap blokni biroz cheklab qo'yadi */
+    padding: var(--db-pad);
+    
+  }
 
-.kpi-left .card-title{
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  .kpi-left .card-title{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.kpi-left .val{
-  font-size: 25px;
-  font-weight: 1100;
-  letter-spacing: -.02em;
-  color: var(--text);
-  margin-top: 10px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  .kpi-left .val{
+    font-size: 25px;
+    font-weight: 1100;
+    letter-spacing: -.02em;
+    color: var(--text);
+    margin-top: 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
-.kpi-left .meta{
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 12.5px;
-}
+    display:flex;
+    align-items: baseline;
+    gap: 6px;                 /* ✅ oralig'i kichik */
+    margin-top: 10px;
+    line-height: 1;
+  }
 
-/* Right image area fills right side */
-.kpi-media.kpi-bg{
-  position: absolute;
-  top: -22px;
-  right: -10px;
-  bottom: 0;
-  width: 33%;                /* ✅ o'ng tarafni to'ldiradi (kerak bo'lsa 55-65% o'ynat) */
-  z-index: 1;
-  background-repeat: no-repeat;
-  background-position: right top;  /* ✅ o'ngga yopishadi */
-  background-size: cover;             /* ✅ o'ng tarafni to'liq to'ldiradi */
-  pointer-events: none;
-  opacity: 5;
-}
+  /* 2-qator biroz kichikroq va pastroq ko‘rinadi */
+  .kpi-val{ margin-top: 10px;}
+  .kpi-val-sub{
+    margin-top: 8px;
+    opacity: .95;
+  }
 
-/* Soft fade so left text reads well */
-.kpi-media.kpi-bg::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background: linear-gradient(90deg,
-    var(--surface) 0%,
-    rgba(255,255,255,.70) 35%,
-    rgba(255,255,255,.10) 70%,
-    rgba(255,255,255,0) 100%
-  );
-  opacity: .65;
-}
+  /* Professional number */
+  .kpi-num{
+    font-size: 26px;          /* asosiy raqam */
+    font-weight: 950;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+    
+  }
 
-html[data-theme="dark"] .kpi-media.kpi-bg::before{
-  background: linear-gradient(90deg,
-    rgba(2,6,23,.92) 0%,
-    rgba(2,6,23,.62) 35%,
-    rgba(2,6,23,.18) 70%,
-    rgba(2,6,23,0) 100%
-  );
-  opacity: .96;
-}
+  /* kont qatori raqami biroz kichikroq bo‘lsin */
+  .kpi-val-sub .kpi-num{
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.015em;
+  }
 
-/* optional: slightly round only the left, keep right clean */
-.kpi-media.kpi-bg{
-  border-top-right-radius: var(--db-radius);
-  border-bottom-right-radius: var(--db-radius);
-}
+  /* ✅ vag/kont oddiy kichik yozuv (chip emas) */
+  .kpi-suf{
+    font-size: 11px;
+    font-weight: 650;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
 
-/* Background images (your png) */
-.kpi-bg-1{ background-image: url("{% static 'images/card1.png' %}"); }
-.kpi-bg-2{ background-image: url("{% static 'images/card2.png' %}"); }
-.kpi-bg-3{ background-image: url("{% static 'images/card3.png' %}"); }
-.kpi-bg-4{ background-image: url("{% static 'images/card4.png' %}"); }
 
-/* Mobile: image becomes a bit smaller so text fits */
-@media (max-width: 600px){
-  .kpi-left{ max-width: 72%; }
-  .kpi-media.kpi-bg{ width: 62%; }
-}
+  /* Right image area fills right side */
+  .kpi-media.kpi-bg{
+    position: absolute;
+    top: -14.5px;
+    right: -10.5px;
+    bottom: 0;
+    width: 32%;                /* ✅ o'ng tarafni to'ldiradi (kerak bo'lsa 55-65% o'ynat) */
+    z-index: 1;
+    background-repeat: no-repeat;
+    background-position: right top;  /* ✅ o'ngga yopishadi */
+    background-size: cover;             /* ✅ o'ng tarafni to'liq to'ldiradi */
+    pointer-events: none;
+    opacity: 5;
+  }
+
+  /* Soft fade so left text reads well */
+  .kpi-media.kpi-bg::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: linear-gradient(90deg,
+      var(--surface) 0%,
+      rgba(255,255,255,.70) 35%,
+      rgba(255,255,255,.10) 70%,
+      rgba(255,255,255,0) 100%
+    );
+    opacity: .65;
+  }
+
+  html[data-theme="dark"] .kpi-media.kpi-bg::before{
+    background: linear-gradient(90deg,
+      rgba(2,6,23,.92) 0%,
+      rgba(2,6,23,.62) 35%,
+      rgba(2,6,23,.18) 70%,
+      rgba(2,6,23,0) 100%
+    );
+    opacity: .96;
+  }
+
+  /* optional: slightly round only the left, keep right clean */
+  .kpi-media.kpi-bg{
+    border-top-right-radius: var(--db-radius);
+    border-bottom-right-radius: var(--db-radius);
+  }
+
+  /* Background images (your png) */
+  .kpi-bg-1{ background-image: url("{% static 'images/card1.png' %}"); }
+  .kpi-bg-2{ background-image: url("{% static 'images/card2.png' %}"); }
+  .kpi-bg-3{ background-image: url("{% static 'images/card3.png' %}"); }
+  .kpi-bg-4{ background-image: url("{% static 'images/card4.png' %}"); }
+
+  /* Mobile: image becomes a bit smaller so text fits */
+  @media (max-width: 600px){
+    .kpi-left{ max-width: 72%; }
+    .kpi-media.kpi-bg{ width: 62%; }
+  }
+
+
 
 
   
@@ -492,6 +529,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
       0 22px 60px rgba(0,0,0,.25);
     padding: 10px;
   }
+
 </style>
 
 <div class="dbx">
@@ -534,9 +572,18 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Ortish / Pogruzka</div>
-          <div class="val mono" id="kpiOrtish">33 415</div>
-          <div class="val mono" id="kpiOrtishkont">33 415</div>
-          <div class="meta">Vagon</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiOrtish">0</span>
+            <span class="kpi-suf">vag</span>
+          </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiOrtishkont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
         </div>
 
         <div class="kpi-media kpi-bg kpi-bg-1" aria-hidden="true"></div>
@@ -548,9 +595,19 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Tushirish / Vigruzka</div>
-          <div class="val mono" id="kpiTushirish">27 794</div>
-          <div class="val mono" id="kpiTushirishkont">27 794</div>
-          <div class="meta">Vagon</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiTushirish">0</span>
+            <span class="kpi-suf">vag</span>
+          </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiTushirishkont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
+          
         </div>
 
         <div class="kpi-media kpi-bg kpi-bg-2" aria-hidden="true"></div>
@@ -562,9 +619,19 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Ortishda / Podpogruzka</div>
-          <div class="val mono" id="kpiPodpogruzka">15 245</div>
-          <div class="val mono" id="kpiPodpogruzkakont">15 245</div>
-          <div class="meta">Vagon</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiPodpogruzka">0</span>
+            <span class="kpi-suf">vag</span>
+          </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiPodpogruzkakont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
+          
         </div>
 
         <div class="kpi-media kpi-bg kpi-bg-3" aria-hidden="true"></div>
@@ -576,9 +643,19 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
       <div class="kpi">
         <div class="kpi-left">
           <div class="card-title">Tushirishda / Podvigruzka</div>
-          <div class="val mono" id="kpiPodvigruzka">10 321</div>
-          <div class="val mono" id="kpiPodvigruzkakont">10 321</div>
-          <div class="meta">Vagon</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiPodvigruzka">0</span>
+            <span class="kpi-suf">vag</span>
+          </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiPodvigruzkakont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
+          
         </div>
 
         <div class="kpi-media kpi-bg kpi-bg-4" aria-hidden="true"></div>
@@ -677,7 +754,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
     <div class="card">
       <div class="card-h">
         <div>
-          <h3 class="card-title">Tushirishda va Ortishda - KONTEYNER hisobida </h3>
+          <h3 class="card-title">Tushirish va Ortish - KONTEYNER hisobida </h3>
           <div class="card-sub">Tanlangan oraliq bo‘yicha ortishda/tushirishda ma'lumotlarining filiallari kesimida tahlili</div>
         </div>
         <div class="chip"><span class="dot"></span><span class="mono">Konteyner</span></div>
@@ -823,6 +900,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   if(elPodTush) elPodTush.textContent = spaced(totals.pod_vygr ?? 0);
   if(elPodTushk) elPodTushk.textContent = spaced(totals.pod_vygr_cont ?? 0);
 
+  
   // ============================================================
   // 4) Chart.js setup
   // ============================================================
