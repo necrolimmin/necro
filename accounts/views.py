@@ -336,13 +336,15 @@ def admin_settings_stacked_top5_json(request):
 
     for row in qs:
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("pogr") and not k.startswith("pod_pogr"):
-                agg[row.station_user_id]["pogr"] += float(v)
-            elif k.startswith("vygr") and not k.startswith("pod_vygr"):
-                agg[row.station_user_id]["vygr"] += float(v)
+        agg[row.station_user_id]['pogr']+=d['pod_pogr_itogo']
+        agg[row.station_user_id]['vygr']+=d['pod_vygr_itogo']
+        # for k, v in d.items():
+        #     if not isinstance(v, (int, float)):
+        #         continue
+        #     if k.startswith("pogr") and not k.startswith("pod_pogr"):
+        #         agg[row.station_user_id]["pogr"] += float(v)
+        #     elif k.startswith("vygr") and not k.startswith("pod_vygr"):
+        #         agg[row.station_user_id]["vygr"] += float(v)
 
     top5 = sorted(
         agg.items(),
