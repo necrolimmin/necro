@@ -1690,3 +1690,94 @@ def admin_table1_station_blocks(request, date_str, user_id: int):
         "sum_total": total_sum,
         "status": has_night,
     })
+
+
+
+import json
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_required
+
+from .models import Notification, NotificationRead
+
+
+@require_GET
+@login_required
+def notifications_latest(request):
+    """
+    Returns latest active notification and whether current user has read it.
+    """
+    notif = Notification.objects.filter(is_active=True).order_by("-created_at").first()
+    if not notif:
+        return JsonResponse({"ok": True, "notification": None})
+
+    read = NotificationRead.objects.filter(user=request.user, notification=notif).exists()
+
+    return JsonResponse({
+        "ok": True,
+        "notification": {
+            "id": notif.id,
+            "message": notif.message,
+            "created_at": notif.created_at.isoformat(),
+        },
+        "unread": (not read),
+    })
+
+
+@require_POST
+@login_required
+def notifications_ack(request):
+    """
+    Mark latest notification as read (or specified id).
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+
+    notif_id = body.get("id")
+    if notif_id:
+        notif = Notification.objects.filter(id=notif_id, is_active=True).first()
+    else:
+        notif = Notification.objects.filter(is_active=True).order_by("-created_at").first()
+
+    if not notif:
+        return JsonResponse({"ok": True, "marked": False})
+
+    NotificationRead.objects.get_or_create(user=request.user, notification=notif)
+    return JsonResponse({"ok": True, "marked": True, "id": notif.id})
+
+
+@require_POST
+@login_required
+def notifications_send(request):
+    """
+    Admin/staff sends a notification to everyone.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"ok": False, "detail": "forbidden"}, status=403)
+
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+
+    msg = (body.get("message") or "").strip()
+    if not msg:
+        return JsonResponse({"ok": False, "detail": "empty_message"}, status=400)
+
+    notif = Notification.objects.create(
+        message=msg,
+        created_by=request.user,
+        is_active=True,
+    )
+    return JsonResponse({
+        "ok": True,
+        "notification": {"id": notif.id, "created_at": notif.created_at.isoformat()}
+    })
+
+
+
+
+
