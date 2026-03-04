@@ -587,7 +587,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
 
   </div>
 
-  <!-- ================= TOP SECTION ================= -->
+  <!-- ================= Daromad  SECTION ================= -->
   <div class="grid-top">
 
     <div class="card">
@@ -627,16 +627,16 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
 
   </div>
 
-  <!-- ================= MID SECTION ================= -->
+  <!-- ================= Ortish tushirish VAGONDA ================= -->
   <div class="grid-mid">
 
     <div class="card">
       <div class="card-h">
         <div>
-          <h3 class="card-title">Oylar bo‘yicha umumiy dinamika</h3>
+          <h3 class="card-title">Oylar bo‘yicha umumiy dinamika - VAGON hisobida</h3>
           <div class="card-sub">Ortish (yashil) va Tushirish (qizil) </div>
         </div>
-        <div class="chip"><span class="dot info"></span><span class="mono">Monthly</span></div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Vagon</span></div>
       </div>
       <div class="chart">
         <canvas id="chMonthly"></canvas>
@@ -646,13 +646,44 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
     <div class="card">
       <div class="card-h">
         <div>
-          <h3 class="card-title">Tushirishda va Ortishda </h3>
+          <h3 class="card-title">Tushirishda va Ortishda - VAGON hisobida </h3>
           <div class="card-sub">Tanlangan oraliq bo‘yicha ortishda/tushirishda ma'lumotlarining filiallari kesimida tahlili </div>
         </div>
-        <div class="chip"><span class="dot"></span><span class="mono">Stacked</span></div>
+        <div class="chip"><span class="dot"></span><span class="mono">Vagon</span></div>
       </div>
       <div class="chart">
         <canvas id="chDayNight"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= Ortish/tushurish KONTEYNERDA ================= -->
+  <div class="grid-mid">
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Oylar bo‘yicha umumiy dinamika - KONTEYNER hisobida</h3>
+          <div class="card-sub">Ortish (yashil) va Tushirish (qizil) </div>
+        </div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Konteyner</span></div>
+      </div>
+      <div class="chart">
+        <canvas id="chMonthlykont"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Tushirishda va Ortishda - KONTEYNER hisobida </h3>
+          <div class="card-sub">Tanlangan oraliq bo‘yicha ortishda/tushirishda ma'lumotlarining filiallari kesimida tahlili</div>
+        </div>
+        <div class="chip"><span class="dot"></span><span class="mono">Konteyner</span></div>
+      </div>
+      <div class="chart">
+        <canvas id="chDayNightkont"></canvas>
       </div>
     </div>
 
@@ -664,11 +695,11 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
     <div class="card">
       <div class="card-h">
         <div>
-          <h3 class="card-title">Filiallar kesimida Ortish va Tushirish umumiy grafik</h3>
+          <h3 class="card-title">Filiallar kesimida Ortish va Tushirish umumiy grafik - VAGON kesimida</h3>
           <div class="card-sub"> Ortish (ko‘k), Tushirish (pushti) </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <div class="chip"><span class="dot info"></span><span class="mono">Stations</span></div>
+          <div class="chip"><span class="dot info"></span><span class="mono">Filiallar</span></div>
           <button id="btnSortStations" class="btnx" type="button"><span>⇅</span><span>Sort</span></button>
         </div>
       </div>
@@ -910,10 +941,13 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   // ============================================================
   let chMonthly = null;
   let chDayNight = null;
+  let chMonthlykont = null;
+  let chDayNightkont = null;
   let chStations = null;
   let stationsSorted = false;
   let stationsRaw = null;
 
+  // ========Vagonda===========
   function renderMonthly(M){
     if(!M?.labels?.length) return;
     if(chMonthly) chMonthly.destroy();
@@ -948,6 +982,55 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
         datasets: [
           { label: "Podpogruzka", data: S.day || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 },
           { label: "Podvigruzka", data: S.night || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "bottom" } },
+        scales: {
+          x: { stacked:true, grid: { display:false } },
+          y: { stacked:true, beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  // ========KONTEYNERDA===========
+  function renderMonthlykont(M){
+    if(!M?.labels?.length) return;
+    if(chMonthlykont) chMonthlykont.destroy();
+    chMonthlykont = safeChart(()=> new Chart(document.getElementById("chMonthlykont"), {
+      type: "line",
+      data: {
+        labels: M.labels,
+        datasets: [
+          { label: "Ortish", data: M.ortish || [], tension: 0.30, borderWidth: 2, pointRadius: 3, fill: false },
+          { label: "Tushirish", data: M.tushirish || [], tension: 0.30, borderWidth: 2, pointRadius: 3, fill: false }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "top" } },
+        scales: {
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  function renderStacked(S){
+    if(!S?.labels?.length) return;
+    if(chDayNightkont) chDayNightkont.destroy();
+    chDayNightkont = safeChart(()=> new Chart(document.getElementById("chDayNightkont"), {
+      type: "bar",
+      data: {
+        labels: S.labels,
+        datasets: [
+          { label: "Pogruzka", data: S.day || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 },
+          { label: "Vigruzka", data: S.night || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 }
         ]
       },
       options: {
