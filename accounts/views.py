@@ -157,27 +157,15 @@ def admin_settings(request):
     totals = {"vygr": 0, "pod_vygr": 0, "pogr": 0, "pod_pogr": 0, "vygr_cont":0, "pod_vygr_cont":0, "pod_pogr_cont":0, "pogr_cont":0}
     for row in qs:
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("pod_vygr") and k != 'pod_vygr_cont':
-                totals["pod_vygr"] += v
-            elif k.startswith("vygr") and k != 'vygr_cont':
-                totals["vygr"] += v
-            elif k.startswith("pod_pogr") and k != 'pod_pogr_cont':
-                totals["pod_pogr"] += v
-            elif k.startswith("pogr") and k != 'pogr_cont':
-                totals["pogr"] += v
-            if k == "vygr_cont":
-                totals["vygr_cont"] +=v
-            elif k == "pod_pogr_cont":
-                totals["pod_pogr_cont"] +=v
-            elif k == "pod_vygr_cont":
-                totals["pod_vygr_cont"]+=v
-            elif k == "pogr_cont":
-                totals["pogr_cont"]+=v    
+        totals["vygr"]+=d["vygr_itogo"]
+        totals["pod_pogr"]+=d["pod_pogr_itogo"]
+        totals["pod_pogr_cont"]+=d["pod_pogr_cont"]
+        totals["pod_vygr"]+=d["pod_vygr_itogo"]
+        totals["pod_vygr_cont"]+=d["pod_vygr_cont"]
+        totals["vygr_cont"]+=d["vygr_cont"]
+        totals["pogr"]+=d["pogr_itogo"]
+        totals["pogr_cont"]+=d["pogr_cont"]
 
-    # --- Top 5 income_daily THIS MONTH (bar chart) ---
     today = timezone.localdate()
     month_start = today.replace(day=1)
 
