@@ -147,27 +147,35 @@ def admin_settings(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
-    qs = StationDailyTable1.objects.all().only("data", "date", "station_user")
+    qs = StationDailyTable1.objects.all().only("data", "date", "station_user").exclude(shift="total")
     if d_from:
         qs = qs.filter(date__gte=d_from)
     if d_to:
         qs = qs.filter(date__lte=d_to)
 
     # --- KPI totals (filtered) ---
-    totals = {"vygr": 0, "pod_vygr": 0, "pogr": 0, "pod_pogr": 0}
+    totals = {"vygr": 0, "pod_vygr": 0, "pogr": 0, "pod_pogr": 0, "vygr_cont":0, "pod_vygr_cont":0, "pod_pogr_cont":0, "pogr_cont":0}
     for row in qs:
         d = row.data or {}
         for k, v in d.items():
             if not isinstance(v, (int, float)):
                 continue
-            if k.startswith("pod_vygr"):
+            if k.startswith("pod_vygr") and k != 'pod_vygr_cont':
                 totals["pod_vygr"] += v
-            elif k.startswith("vygr"):
+            elif k.startswith("vygr") and k != 'vygr_cont':
                 totals["vygr"] += v
-            elif k.startswith("pod_pogr"):
+            elif k.startswith("pod_pogr") and k != 'pod_pogr_cont':
                 totals["pod_pogr"] += v
-            elif k.startswith("pogr"):
+            elif k.startswith("pogr") and k != 'pogr_cont':
                 totals["pogr"] += v
+            if k == "vygr_cont":
+                totals["vygr_cont"] +=v
+            elif k == "pod_pogr_cont":
+                totals["pod_pogr_cont"] +=v
+            elif k == "pod_vygr_cont":
+                totals["pod_vygr_cont"]+=v
+            elif k == "pogr_cont":
+                totals["pogr_cont"]+=v    
 
     # --- Top 5 income_daily THIS MONTH (bar chart) ---
     today = timezone.localdate()
@@ -177,7 +185,7 @@ def admin_settings(request):
         StationDailyTable1.objects
         .filter(date__gte=month_start, date__lte=today)
         .select_related("station_user")
-        .only("data", "station_user__username", "station_user__first_name", "station_user__last_name")
+        .only("data", "station_user__username", "station_user__first_name", "station_user__last_name").exclude(shift="total")
     )
 
     sums = defaultdict(float)
@@ -196,6 +204,7 @@ def admin_settings(request):
             continue
         structure_labels.append((f"{u.first_name} {u.last_name}".strip() or u.username))
         structure_values.append(int(total))
+    
 
     # --- incomeMini: LAST 10 days (static) ---
     start_10 = today - timedelta(days=9)
@@ -224,7 +233,6 @@ def admin_settings(request):
         "structure": {"labels": structure_labels, "values": structure_values},
         "incomeMini": {"labels": income_labels, "values": income_values},
     }
-
     return render(request, "admin_settings.html", {
         "dash_json": dash_json,
         "from": str(d_from) if d_from else "",
@@ -280,7 +288,7 @@ def admin_settings_stations_json(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
-    qs = StationDailyTable1.objects.all().only("date", "data", "station_user")
+    qs = StationDailyTable1.objects.all().only("date", "data", "station_user").exclude(shift="total")
     if d_from:
         qs = qs.filter(date__gte=d_from)
     if d_to:
@@ -330,7 +338,7 @@ def admin_settings_stacked_top5_json(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
-    qs = StationDailyTable1.objects.all().only("date", "data", "station_user")
+    qs = StationDailyTable1.objects.all().only("date", "data", "station_user").exclude(shift="total")
     if d_from:
         qs = qs.filter(date__gte=d_from)
     if d_to:

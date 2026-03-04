@@ -775,10 +775,10 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   const elPodOrt = document.getElementById("kpiPodpogruzka");
   const elPodTush = document.getElementById("kpiPodvigruzka");
 
-  if(elOrt) elOrt.textContent = spaced(totals.pogr ?? 0);
-  if(elTush) elTush.textContent = spaced(totals.vygr ?? 0);
-  if(elPodOrt) elPodOrt.textContent = spaced(totals.pod_pogr ?? 0);
-  if(elPodTush) elPodTush.textContent = spaced(totals.pod_vygr ?? 0);
+  if(elOrt) elOrt.textContent = spaced(totals.pogr ?? 0) +'/'+ spaced(totals.pogr_cont ?? 0);
+  if(elTush) elTush.textContent = spaced(totals.vygr ?? 0) +'/'+ spaced(totals.vygr_cont ?? 0);
+  if(elPodOrt) elPodOrt.textContent = spaced(totals.pod_pogr ?? 0) +'/'+ spaced(totals.pod_pogr_cont ?? 0);
+  if(elPodTush) elPodTush.textContent = spaced(totals.pod_vygr ?? 0)+'/'+ spaced(totals.pod_vygr_cont ?? 0);
 
   // ============================================================
   // 4) Chart.js setup
