@@ -535,6 +535,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
         <div class="kpi-left">
           <div class="card-title">Ortish / Pogruzka</div>
           <div class="val mono" id="kpiOrtish">33 415</div>
+          <div class="val mono" id="kpiOrtishkont">33 415</div>
           <div class="meta">Vagon</div>
         </div>
 
@@ -548,6 +549,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
         <div class="kpi-left">
           <div class="card-title">Tushirish / Vigruzka</div>
           <div class="val mono" id="kpiTushirish">27 794</div>
+          <div class="val mono" id="kpiTushirishkont">27 794</div>
           <div class="meta">Vagon</div>
         </div>
 
@@ -561,6 +563,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
         <div class="kpi-left">
           <div class="card-title">Ortishda / Podpogruzka</div>
           <div class="val mono" id="kpiPodpogruzka">15 245</div>
+          <div class="val mono" id="kpiPodpogruzkakont">15 245</div>
           <div class="meta">Vagon</div>
         </div>
 
@@ -574,6 +577,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
         <div class="kpi-left">
           <div class="card-title">Tushirishda / Podvigruzka</div>
           <div class="val mono" id="kpiPodvigruzka">10 321</div>
+          <div class="val mono" id="kpiPodvigruzkakont">10 321</div>
           <div class="meta">Vagon</div>
         </div>
 
@@ -771,14 +775,22 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   // ============================================================
   const totals = D.totals || {};
   const elOrt = document.getElementById("kpiOrtish");
+  const elOrtk = document.getElementById("kpiOrtishkont");
   const elTush = document.getElementById("kpiTushirish");
+  const elTushk = document.getElementById("kpiTushirishkont");
   const elPodOrt = document.getElementById("kpiPodpogruzka");
+  const elPodOrtk = document.getElementById("kpiPodpogruzkakont");
   const elPodTush = document.getElementById("kpiPodvigruzka");
+  const elPodTushk = document.getElementById("kpiPodvigruzkakont");
 
-  if(elOrt) elOrt.textContent = spaced(totals.pogr ?? 0) +'/'+ spaced(totals.pogr_cont ?? 0);
-  if(elTush) elTush.textContent = spaced(totals.vygr ?? 0) +'/'+ spaced(totals.vygr_cont ?? 0);
-  if(elPodOrt) elPodOrt.textContent = spaced(totals.pod_pogr ?? 0) +'/'+ spaced(totals.pod_pogr_cont ?? 0);
-  if(elPodTush) elPodTush.textContent = spaced(totals.pod_vygr ?? 0)+'/'+ spaced(totals.pod_vygr_cont ?? 0);
+  if(elOrt) elOrt.textContent = spaced(totals.pogr ?? 0) ;
+  if(elOrtk) elOrtk.textContent =  spaced(totals.pogr_cont ?? 0);
+  if(elTush) elTush.textContent = spaced(totals.vygr ?? 0) ;
+  if(elTushk) elTushk.textContent =  spaced(totals.vygr_cont ?? 0);
+  if(elPodOrt) elPodOrt.textContent = spaced(totals.pod_pogr ?? 0) ;
+  if(elPodOrtk) elPodOrtk.textContent = spaced(totals.pod_pogr_cont ?? 0);
+  if(elPodTush) elPodTush.textContent = spaced(totals.pod_vygr ?? 0);
+  if(elPodTushk) elPodTushk.textContent = spaced(totals.pod_vygr_cont ?? 0);
 
   // ============================================================
   // 4) Chart.js setup
