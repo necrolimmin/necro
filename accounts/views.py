@@ -245,13 +245,8 @@ def admin_settings_monthly_json(request):
     for row in qs_6m:
         mkey = row.date.replace(day=1)
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("vygr") and not k.startswith("pod_vygr"):
-                by_month[mkey]["vygr"] += float(v)
-            elif k.startswith("pogr") and not k.startswith("pod_pogr"):
-                by_month[mkey]["pogr"] += float(v)
+        by_month[mkey]['vygr']+= d['vygr_itogo']
+        by_month[mkey]['pogr']+= d['pogr_itogo']
 
     labels, ortish, tushirish = [], [], []
     cur = six_months_start
@@ -262,6 +257,41 @@ def admin_settings_monthly_json(request):
         cur = _month_add(cur, 1)
 
     return JsonResponse({"monthly": {"labels": labels, "ortish": ortish, "tushirish": tushirish}})
+
+
+
+def admin_settings_monthly_json_cont(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"detail": "forbidden"}, status=403)
+
+    today = timezone.localdate()
+    this_month_start = today.replace(day=1)
+    six_months_start = _month_add(this_month_start, -5)
+
+    qs_6m = (
+        StationDailyTable1.objects
+        .filter(date__gte=six_months_start, date__lte=today)
+        .only("date", "data")
+    )
+
+    by_month = defaultdict(lambda: {"pogr": 0.0, "vygr": 0.0})
+    for row in qs_6m:
+        mkey = row.date.replace(day=1)
+        d = row.data or {}
+        by_month[mkey]['vygr']+= d['vygr_cont']
+        by_month[mkey]['pogr']+= d['pogr_cont']
+
+    labels, ortish, tushirish = [], [], []
+    cur = six_months_start
+    for _ in range(6):
+        labels.append(calendar.month_name[cur.month])
+        ortish.append(int(by_month[cur]["pogr"]))
+        tushirish.append(int(by_month[cur]["vygr"]))
+        cur = _month_add(cur, 1)
+
+    return JsonResponse({"monthly": {"labels": labels, "ortish": ortish, "tushirish": tushirish}})
+
+
 
 def _station_name(u: User) -> str:
     sp = getattr(u, "station_profile", None)
@@ -336,13 +366,8 @@ def admin_settings_stacked_top5_json(request):
 
     for row in qs:
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("pogr") and not k.startswith("pod_pogr"):
-                agg[row.station_user_id]["pogr"] += float(v)
-            elif k.startswith("vygr") and not k.startswith("pod_vygr"):
-                agg[row.station_user_id]["vygr"] += float(v)
+        agg[row.station_user_id]['pogr']+=d['pod_pogr_itogo']
+        agg[row.station_user_id]['vygr']+=d['pod_vygr_itogo']
 
     top5 = sorted(
         agg.items(),
@@ -373,6 +398,58 @@ def admin_settings_stacked_top5_json(request):
             "night": night,
         }
     })
+
+
+def admin_settings_stacked_top5_json_cont(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"detail": "forbidden"}, status=403)
+
+    d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
+    d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
+
+    qs = StationDailyTable1.objects.all().only("date", "data", "station_user").exclude(shift="total")
+    if d_from:
+        qs = qs.filter(date__gte=d_from)
+    if d_to:
+        qs = qs.filter(date__lte=d_to)
+
+    agg = defaultdict(lambda: {"pogr": 0.0, "vygr": 0.0})
+
+    for row in qs:
+        d = row.data or {}
+        agg[row.station_user_id]['pogr']+=d['pod_pogr_cont']
+        agg[row.station_user_id]['vygr']+=d['pod_vygr_cont']
+
+    top5 = sorted(
+        agg.items(),
+        key=lambda x: x[1]["pogr"] + x[1]["vygr"],
+        reverse=True
+    )[:5]
+
+    users = (
+        User.objects.filter(id__in=[uid for uid, _ in top5])
+        .select_related("station_profile")
+        .only("id", "username", "station_profile__station_name")
+    )
+    u_map = {u.id: u for u in users}
+
+    labels, day, night = [], [], []
+    for uid, vals in top5:
+        u = u_map.get(uid)
+        if not u:
+            continue
+        labels.append(_station_name(u))
+        day.append(int(vals["pogr"]))    # blue
+        night.append(int(vals["vygr"]))  # pink
+
+    return JsonResponse({
+        "dayNightTop": {
+            "labels": labels,
+            "day": day,
+            "night": night,
+        }
+    })
+
 def admin_settings_online_users_json(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({"detail": "forbidden"}, status=403)

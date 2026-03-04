@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AppLoginView, AppLogoutView, admin_settings_monthly_json, admin_settings_online_users_json, admin_settings_stacked_top5_json, admin_settings_stations_json, router, admin_stations, admin_settings, station_heartbeat, station_settings,admin_station_delete
+from .views import AppLoginView, AppLogoutView, admin_settings_monthly_json, admin_settings_monthly_json_cont, admin_settings_online_users_json, admin_settings_stacked_top5_json, admin_settings_stacked_top5_json_cont, admin_settings_stations_json, router, admin_stations, admin_settings, station_heartbeat, station_settings,admin_station_delete
 from .views import logout_get
 
 urlpatterns = [
@@ -17,9 +17,12 @@ urlpatterns = [
     path('logout/', logout_get, name='logout'),
     path("admin/settings/monthly.json", admin_settings_monthly_json, name="admin_settings_monthly_json"),
 
+    path("admin/settings/monthly.json/cont", admin_settings_monthly_json_cont, name="admin_settings_monthly_json_cont"),
+
 
     path("admin/settings/stations.json", admin_settings_stations_json, name="admin_settings_stations_json"),
     path("admin/settings/stacked-top5.json", admin_settings_stacked_top5_json, name="admin_settings_stacked_top5_json"),
+    path("admin/settings/stacked-top5.json/cont", admin_settings_stacked_top5_json_cont, name="admin_settings_stacked_top5_json_cont"),
     path("admin/settings/online-users.json", admin_settings_online_users_json, name="admin_settings_online_users_json"),
     path("heartbeat/", station_heartbeat, name="station_heartbeat"),
 ]
