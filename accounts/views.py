@@ -147,11 +147,17 @@ def admin_settings(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    # Find the last day of the current month
+    last_day = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+
+    # 2. Set defaults if d_from or d_to are None/empty
+    start_date = d_from if d_from else first_day
+    end_date = d_to if d_to else last_day
+
     qs = StationDailyTable1.objects.all().only("data", "date", "station_user").exclude(shift="total")
-    if d_from:
-        qs = qs.filter(date__gte=d_from)
-    if d_to:
-        qs = qs.filter(date__lte=d_to)
+    qs = qs.filter(date__range=(start_date, end_date))
 
     # --- KPI totals (filtered) ---
     totals = {"vygr": 0, "pod_vygr": 0, "pogr": 0, "pod_pogr": 0, "vygr_cont":0, "pod_vygr_cont":0, "pod_pogr_cont":0, "pogr_cont":0}
