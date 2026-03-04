@@ -972,7 +972,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
     }));
   }
 
-  function renderStacked(S){
+  function renderStackeds(S){
     if(!S?.labels?.length) return;
     if(chDayNight) chDayNight.destroy();
     chDayNight = safeChart(()=> new Chart(document.getElementById("chDayNight"), {
@@ -997,7 +997,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   }
 
   // ========KONTEYNERDA===========
-  function renderMonthlykont(M){
+  function renderMonthly_kont(M){
     if(!M?.labels?.length) return;
     if(chMonthlykont) chMonthlykont.destroy();
     chMonthlykont = safeChart(()=> new Chart(document.getElementById("chMonthlykont"), {
@@ -1114,6 +1114,11 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
     renderMonthly(data.monthly);
   }
 
+  async function loadMonthlykont(){
+    const data = await fetchJSON("{% url 'admin_settings_monthly_json_cont' %}");
+    renderMonthly_kont(data.monthly);
+  }
+
   async function loadStations(){
     const data = await fetchJSON("{% url 'admin_settings_stations_json' %}" + rangeQS());
     stationsRaw = data.stations;
@@ -1121,9 +1126,14 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   }
 
   async function loadStacked(){
-    const data = await fetchJSON("{% url 'admin_settings_stacked_top5_json' %}" + rangeQS());
+    const data = await fetchJSON("{% url 'admin_settings_stacked_top5_json_cont' %}" + rangeQS());
     renderStacked(data.dayNightTop);
   }
+  async function loadStackeds(){
+    const data = await fetchJSON("{% url 'admin_settings_stacked_top5_json' %}" + rangeQS());
+    renderStackeds(data.dayNightTop);
+  }
+
 
   async function loadOnline(){
     const data = await fetchJSON("{% url 'admin_settings_online_users_json' %}");
@@ -1131,7 +1141,7 @@ html[data-theme="dark"] .kpi-media.kpi-bg::before{
   }
 
   // initial background loads
-  Promise.allSettled([loadMonthly(), loadStations(), loadStacked(), loadOnline()]);
+  Promise.allSettled([loadMonthly(), loadStations(), loadStacked(), loadOnline(), loadStackeds(), loadMonthlykont()]);
 
   // sort button
   document.getElementById("btnSortStations")?.addEventListener("click", ()=>{
