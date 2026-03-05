@@ -393,6 +393,9 @@
 
                 {% else %}
                   <tr>
+                    {% if n == 35 %}
+
+                    {% else %}
                     <td class="t2-center t2-bold">
                       {% if n >= 21 %}
                         {{ n|add:"-2" }}
@@ -406,6 +409,7 @@
                     <td class="t2-center">{{ code }}</td>
                     <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
                     <td class="t2-center"><input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                    {% endif %}
                   </tr>
                 {% endif %}
 

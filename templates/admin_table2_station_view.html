@@ -285,6 +285,8 @@
 
     {% else %}
       <tr>
+        {% if n == 35 %}
+        {% else %}
         <td class="center bold">
           {% if n <= 8 %}
             {{ n }}
@@ -300,6 +302,7 @@
         <td class="center">{{ code }}</td>
         <td class="center"><input value="{{ obj|data_val:k_total }}" disabled></td>
         <td class="center"><input value="{{ obj|data_val:k_ktk }}" disabled></td>
+        {% endif %}
       </tr>
     {% endif %}
 
