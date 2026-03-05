@@ -250,24 +250,7 @@
               </form>
             </div>
 
-            <div class="rowgrid" style="display:none">
-              <div class="kv"><span data-i18n="col_date">Sana</span><b>{{ r.date|date:"d.m.Y" }}</b></div>
-              <div class="kv"><span data-i18n="col_year">Yil</span><b>{{ r.year }}</b></div>
-              <div class="kv"><span data-i18n="col_sent">Jo'natilgan</span>
-                <b>{% if r.submitted_at %}{{ r.submitted_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}</b>
-              </div>
-              <div class="actions">
-                <a class="btn-soft" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Ko'rish</a>
-                <a class="btn-soft" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Tahrirlash</a>
-                <form method="post"
-                      action="/station/table-1/delete/{{ r.date|date:'Y-m-d' }}/"
-                      style="display:inline;"
-                      onsubmit="return confirm(window.__t?.confirm_delete || 'Удалить отчёт?');">
-                  {% csrf_token %}
-                  <button class="btn-danger" type="submit" data-i18n="delete">O'chirish</button>
-                </form>
-              </div>
-            </div>
+            
           </td>
         </tr>
         {% empty %}
