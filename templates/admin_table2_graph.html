@@ -180,48 +180,232 @@
           <th rowspan="2" class="colLabel sticky2" data-i18n="col_metric">Наименование показателя</th>
           <th rowspan="2" class="colCode sticky3" data-i18n="col_code">Код</th>
 
+
           {% for st in stations %}
             {% if st.name == "Дорога" %}
               <th colspan="2" class="road">{{ st.name }}</th>
             {% else %}
-              <th colspan="2">{{ st.name }}</th>
+              <th colspan="2" >{{ st.name }}</th>
             {% endif %}
           {% endfor %}
         </tr>
+        
 
         <tr>
           {% for st in stations %}
             {% if st.name == "Дорога" %}
-              <th class="road"><div class="vtxt" data-i18n="col_total">всего</div></th>
-              <th class="road"><div class="vtxt" data-i18n="col_ktk">ктк</div></th>
+              <th class="road" ><div class="vtxt" data-i18n="col_total">всего</div></th>
+              <th class="road" ><div class="vtxt" data-i18n="col_ktk">ктк</div></th>
             {% else %}
-              <th><div class="vtxt" data-i18n="col_total">всего</div></th>
-              <th><div class="vtxt" data-i18n="col_ktk">ктк</div></th>
+              <th ><div class="vtxt" data-i18n="col_total">всего</div></th>
+              <th ><div class="vtxt" data-i18n="col_ktk">ктк</div></th>
             {% endif %}
           {% endfor %}
         </tr>
+
       </thead>
 
-      <tbody>
-        {% for r in grid %}
-          <tr>
-            <td class="sticky1"><b>{{ r.n }}</b></td>
-            <td class="colLabel sticky2">{{ r.label }}</td>
-            <td class="sticky3"><b>{{ r.code }}</b></td>
-
-            {% for c in r.cells %}
-              {% if forloop.last %}
-                <td class="road">{{ c.total }}</td>
-                <td class="road">{{ c.ktk }}</td>
-              {% else %}
-                <td>{{ c.total }}</td>
-                <td>{{ c.ktk }}</td>
-              {% endif %}
-            {% endfor %}
-          </tr>
-        {% endfor %}
+      <tbody id="t2gBody">
       </tbody>
+
+      {{ grid|json_script:"t2-grid-data" }}
     </table>
   </div>
 </div>
+
+
+<script>
+  (function(){
+    const body = document.getElementById("t2gBody");
+    const gridEl = document.getElementById("t2-grid-data");
+    if(!body || !gridEl) return;
+
+    const grid = JSON.parse(gridEl.textContent || "[]");
+
+    // ===== helpers =====
+    const norm = (s) => (s||"").toString().trim().replace(/\s+/g," ").toLowerCase();
+
+    function pickRowByLabelIncludes(words){
+      const keys = words.map(w => norm(w));
+      return grid.find(r => {
+        const lab = norm(r.label);
+        return keys.every(k => lab.includes(k));
+      }) || null;
+    }
+    function pickRowByCode(code){
+      const c = norm(code);
+      return grid.find(r => norm(r.code) === c) || null;
+    }
+    function getCells(row){ return (row && row.cells) ? row.cells : []; }
+
+    function td(html, cls){
+      const el = document.createElement("td");
+      if(cls) el.className = cls;
+      el.innerHTML = html;
+      return el;
+    }
+    function isRoadIndex(i, len){ return i === (len - 1); }
+    function makeValueTD(val, isRoad){
+      return td((val ?? 0).toString(), isRoad ? "road" : "");
+    }
+
+    // ===== structure (order) =====
+    const STRUCT = [
+      {label:"Прибыло всего:", code:"П"},
+      {label:"В том числе груж.всего", code:"ПГ"},
+      {label:"Из них под сортировку", code:"ПГС"},
+      {label:"Порожних", code:"ПП"},
+      {label:"Поступило из ремонта", code:"ИН"},
+      {label:"Поступило соб.(приват)", code:"ПС"},
+      {label:"Поступило новых", code:"Н"},
+
+      // ✅ 8 va 9 merge: 8 -> (ПБ + ПР)
+      {label:"Принято на баланс", code:"ПБ", span_with_next:true},
+      {label:"Изъято из резерва", code:"ПР", skip_number:true},
+
+      {label:"Изъято из запаса", code:"ПЗ"},
+      {label:"Завоз автотранспортом", code:"ПТ"},
+      {label:"Погружено-всего:", code:"С"},
+      {label:"В том числе груженых", code:"СГ"},
+      {label:"порожних", code:"СП"},
+      {label:"Поступило в ремонт", code:"СН"},
+      {label:"Выбыло соб.(приват)", code:"СС"},
+      {label:"Исключено", code:"ИН"},
+
+      // ✅ FIX #1:
+      // "Передано на баланс" alohida raqam bo‘lsin
+      {label:"Передано на баланс", code:"СБ"},
+
+      // ✅ 18–19 merge SHU YERDA:
+      {label:"Оставлено в резерве", code:"СР", span_with_next:true},
+      {label:"Оставание в запасе", code:"СЗ", skip_number:true},
+
+      {label:"Вывоз автотранспортом", code:"СТ"},
+
+      // ✅ FIX #2: "Загружено" sarlavhasi qaytadi (2 qatorli blok)
+      {type:"split_load"},
+
+      {label:"Разгружено", code:"Р"},
+      {label:"Наличие на КП", code:"В"},
+      {label:"В рабочем парке на п/л", code:"ВР"},
+      {label:"В том числе груженых", code:"ВРГ"},
+      {label:"Из них под сортировку", code:"ВРГС"},
+      {label:"Готовых к отправлению", code:"ВРГО"},
+      {label:"К вывозу", code:"ВРВ"},
+      {label:"Порожних", code:"ВРП"},
+      {label:"в нерабочем парке", code:"ВН"},
+      {label:"В том числе в резерве", code:"ВНР"},
+      {label:"Неисправных", code:"ВНИ"},
+      {label:"Наличие в запасе", code:"КЗ"},
+    ];
+
+    function resolveRow(def){
+      if(def.type === "split_load"){
+        // main row: Загружено (yoki kod: З/3)
+        let main = pickRowByLabelIncludes(["загруж"]);
+        if(!main) main = pickRowByCode("з") || pickRowByCode("3") || pickRowByCode("З");
+
+        // por row: Порожние (yaqinidan qidiramiz)
+        let por = null;
+        if(main){
+          const idx = grid.indexOf(main);
+          const near = idx >= 0 ? grid.slice(idx, idx + 10) : grid;
+          por = near.find(r => norm(r.label).includes("порожн")) || null;
+        }
+        if(!por) por = pickRowByLabelIncludes(["порожн"]);
+        return {main, por};
+      }
+
+      if(def.code === "ИН2"){
+        return pickRowByLabelIncludes(["исключ"]) || pickRowByCode("ИН2") || null;
+      }
+
+      let r = pickRowByCode(def.code);
+      if(!r) r = pickRowByLabelIncludes([def.label]);
+      return r;
+    }
+
+    // ===== render =====
+    body.innerHTML = "";
+    let n = 1;
+
+    for(const def of STRUCT){
+
+      // skip_number: raqamni chiqarmaymiz (ustidagi rowspan egallaydi)
+      const showNumber = !def.skip_number;
+
+      if(def.type === "split_load"){
+        const rr = resolveRow(def);
+        const mainCells = getCells(rr.main);
+        const porCells  = getCells(rr.por);
+
+        // 1-qator: Загружено / z/g
+        const tr1 = document.createElement("tr");
+        tr1.dataset.n = String(n);
+
+        // № (rowspan=2)
+        tr1.appendChild(td(`<b>${n}</b>`, "sticky1"));
+        tr1.children[0].setAttribute("rowspan", "2");
+
+        // ✅ "Загружено" sarlavhasi (rowspan=2)
+        tr1.appendChild(td(`<b>Загружено</b>`, "colLabel sticky2"));
+        tr1.children[1].setAttribute("rowspan", "2");
+
+        // code: z/g
+        tr1.appendChild(td(`<b>з/г</b>`, "sticky3"));
+
+        for(let i=0;i<mainCells.length;i++){
+          const c = mainCells[i] || {};
+          tr1.appendChild(makeValueTD(c.total ?? 0, isRoadIndex(i, mainCells.length)));
+          tr1.appendChild(makeValueTD(c.ktk   ?? 0, isRoadIndex(i, mainCells.length)));
+        }
+
+        // 2-qator: porozhnie / z/p
+        const tr2 = document.createElement("tr");
+        tr2.dataset.n = String(n);
+
+        tr2.appendChild(td(`<b>з/п</b>`, "sticky3"));
+
+        for(let i=0;i<porCells.length;i++){
+          const c = porCells[i] || {};
+          tr2.appendChild(makeValueTD(c.total ?? 0, isRoadIndex(i, porCells.length)));
+          tr2.appendChild(makeValueTD(c.ktk   ?? 0, isRoadIndex(i, porCells.length)));
+        }
+
+        body.appendChild(tr1);
+        body.appendChild(tr2);
+
+        n += 1;
+        continue;
+      }
+
+      const row = resolveRow(def);
+      const cells = getCells(row);
+
+      const tr = document.createElement("tr");
+      tr.dataset.n = String(n);
+
+      if(showNumber){
+        tr.appendChild(td(`<b>${n}</b>`, "sticky1"));
+        if(def.span_with_next){
+          tr.children[0].setAttribute("rowspan", "2");
+        }
+      }
+
+      tr.appendChild(td(def.label, "colLabel sticky2"));
+      tr.appendChild(td(`<b>${def.code}</b>`, "sticky3"));
+
+      for(let i=0;i<cells.length;i++){
+        const c = cells[i] || {};
+        tr.appendChild(makeValueTD(c.total ?? 0, isRoadIndex(i, cells.length)));
+        tr.appendChild(makeValueTD(c.ktk   ?? 0, isRoadIndex(i, cells.length)));
+      }
+
+      body.appendChild(tr);
+
+      if(showNumber) n += 1;
+    }
+
+  })();
+</script>
 {% endblock %}
