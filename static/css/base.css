@@ -379,7 +379,7 @@ main.page{
 
   .brand{ min-width: 0; }
   .brand-logo{ width:36px; height:36px; border-radius:12px; }
-  .brand-name b{ font-size:13px; }
+  .brand-name b{ font-size:13px;}
   .brand-name span{ display:none; }
 
   .right-tools{ min-width: 0; gap:8px; }
@@ -423,10 +423,12 @@ main.page{
 }
 
 /* extra small */
-@media (max-width: 420px){
-  .brand-name b{ font-size:12px; }
+@media (max-width: 470px){
+  .brand-name b{ display:none;}
   .icon-btn{ width:38px; height:38px; }
   .admin-text span{ display:none; }
+  .brand-logo {width:78px; height:48px;}
+  
 }
 
 
