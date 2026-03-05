@@ -35,9 +35,12 @@ urlpatterns = [
 
     path('admin-panel/station/promote/<int:pk>/' , promote_station , name="promote_station"),
     path("admin/table1/<date_str>/excel/", admin_table1_export_excel, name="admin_table1_export_excel"),
-    path("admin/table1/<str:date_str>/station/<int:user_id>/blocks/",admin_table1_station_blocks,name="admin_table1_station_blocks",
-),
+    path("admin/table1/<str:date_str>/station/<int:user_id>/blocks/",admin_table1_station_blocks,name="admin_table1_station_blocks"), 
 
-
-    
+    # ✅ Notifications API
+    path("api/notifications/latest/", notifications_latest, name="notifications_latest"),
+    path("api/notifications/ack/",    notifications_ack,    name="notifications_ack"),
+    path("api/notifications/send/",   notifications_send,   name="notifications_send"),
 ]
+
+

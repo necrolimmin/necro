@@ -26,3 +26,21 @@ class StationDailyTable1Admin(admin.ModelAdmin):
 class StationDailyTable2Admin(admin.ModelAdmin):
     list_display = ('date', 'station_user', 'submitted_at')
     search_fields = ('station_user__username',)
+
+
+
+
+from .models import Notification, NotificationRead
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ("id", "created_at", "created_by", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("message",)
+
+
+@admin.register(NotificationRead)
+class NotificationReadAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "notification", "read_at")
+    search_fields = ("user__username", "notification__message")

@@ -1193,5 +1193,119 @@ table.t1a-table thead{
     });
   })();
 </script>
+
+<script>
+(function(){
+  const ORDER = [
+    "Chukursoy LM",
+    "Toshkent LM",
+    "Sergeli LM",
+    "jizzax LM",
+    "Axangaron LM",
+    "Ulug'bek LM",
+    "Andijon LM",
+    "Asaka LM",
+    "Qo'qon LM",
+    "Rovuston LM",
+    "Marg'ilon LM",
+    "Buxoro LM",
+    "Tinchlik LM",
+    "Karmana LM",
+    "Yangi-Zarafshon LM",
+    "Qarshi LM",
+    "Termiz LM",
+    "Urganch LM",
+    "Dehqonobod LM",
+    "Nukus LM"
+  ];
+
+  const table = document.getElementById("t1admin");
+  if(!table) return;
+  const tbody = table.tBodies[0];
+  if(!tbody) return;
+
+  // "Umumiy" (grand_total) qatorini oxirida qoldiramiz
+  const grandRow = [...tbody.querySelectorAll("tr")]
+    .find(tr => (tr.querySelector("td.t1a-name")?.textContent || "").trim().toLowerCase() === "umumiy");
+
+  // barcha tr lar
+  const allRows = [...tbody.querySelectorAll("tr")];
+
+  // LM blok boshlanishi: birinchi t1a-name td bo‘lgan tr
+  const startRows = allRows.filter(tr => tr.querySelector("td.t1a-name"));
+
+  // helper: normalize (bo‘sh joy, registr, apostrof)
+  const norm = (s) => (s || "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+    .replace(/[ʻ’`]/g, "'");
+
+  // LM bloklarini yig‘ib olamiz
+  const blocks = [];
+  for(const tr of startRows){
+    const nameTd = tr.querySelector("td.t1a-name");
+    if(!nameTd) continue;
+
+    const rawName = nameTd.textContent.trim();
+    const name = norm(rawName);
+
+    // rowspan nechta qator blokka tegishli
+    const rs = parseInt(nameTd.getAttribute("rowspan") || "1", 10);
+
+    // blok tr larini ketma-ket olamiz:
+    const idx = allRows.indexOf(tr);
+    const rows = allRows.slice(idx, idx + rs);
+
+    // Agar bu "Umumiy" bo‘lsa o‘tkazib yuboramiz (oxirda qoladi)
+    if(name === "umumiy") continue;
+
+    blocks.push({ name, rawName, rows });
+  }
+
+  // order map
+  const orderMap = new Map(ORDER.map((n, i) => [norm(n), i]));
+
+  // bloklarni sort:
+  // 1) ORDER dagilar avval (o‘z tartibida)
+  // 2) qolganlar pastda (oldingi holatdagi tartibda)
+  const ordered = [];
+  const rest = [];
+
+  for(const b of blocks){
+    const k = orderMap.get(b.name);
+    if(k === undefined) rest.push(b);
+  }
+
+  blocks
+    .filter(b => orderMap.has(b.name))
+    .sort((a,b) => orderMap.get(a.name) - orderMap.get(b.name))
+    .forEach(b => ordered.push(b));
+
+  // "rest" ni original tartibda qoldiramiz
+  // (xohlasangiz bu yerni ham alphabet qilamiz)
+  const finalBlocks = [...ordered, ...rest];
+
+  // tbody ni tozalab qayta yig‘amiz:
+  // 1) grandRow bo‘lmagan hamma tr larni olib tashlaymiz
+  for(const tr of [...tbody.querySelectorAll("tr")]){
+    if(tr === grandRow) continue;
+    tbody.removeChild(tr);
+  }
+
+  // 2) qayta append
+  for(const b of finalBlocks){
+    for(const r of b.rows){
+      // Agar row oldin grandRow oldida bo‘lsa, u allaqachon DOM’dan uzilgan bo‘ladi, lekin reference saqlanadi.
+      tbody.appendChild(r);
+    }
+  }
+
+  // 3) Umumiy qatorni eng oxirga qaytarib qo‘yamiz
+  if(grandRow) tbody.appendChild(grandRow);
+
+})();
+</script>
 {{ block.super }}
 {% endblock %}
