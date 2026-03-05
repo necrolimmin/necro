@@ -125,7 +125,7 @@ img{ max-width:100%; }
   cursor: pointer;
 }
 .brand-logo{
-  width:42px; height:42px;
+  width:52px; height:42px;
   border-radius: 14px;
   object-fit: contain;
   background:#fff;
@@ -378,7 +378,7 @@ main.page{
   }
 
   .brand{ min-width: 0; }
-  .brand-logo{ width:36px; height:36px; border-radius:12px; }
+  .brand-logo{ width:56px; height:46px; border-radius:12px; }
   .brand-name b{ font-size:13px;}
   .brand-name span{ display:none; }
 
