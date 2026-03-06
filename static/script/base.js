@@ -198,6 +198,10 @@
   const LS_BY = "notif:last_sender";
   const LS_TOAST = "notif:last_admin_toast";
 
+  // faqat shu browser tab/session uchun
+  const SS_SEEN = "notif:session_seen_id";
+  const SS_SOUND_READY = "notif:session_sound_ready";
+
   const POLL_MS = 12000;
   const REM_H1 = 16;
   const REM_H2 = 19;
@@ -234,6 +238,22 @@
 
   function lastReadId() {
     return toInt(localStorage.getItem(LS_RD), 0);
+  }
+
+  function sessionSeenId() {
+    return toInt(sessionStorage.getItem(SS_SEEN), 0);
+  }
+
+  function setSessionSeenId(id) {
+    sessionStorage.setItem(SS_SEEN, String(toInt(id, 0)));
+  }
+
+  function isSoundReady() {
+    return sessionStorage.getItem(SS_SOUND_READY) === "1";
+  }
+
+  function setSoundReady() {
+    sessionStorage.setItem(SS_SOUND_READY, "1");
   }
 
   function isUnread() {
@@ -279,7 +299,7 @@
         <span class="notif-dot" id="notifDot" aria-hidden="true"></span>
         <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M18 16v-5a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" stroke="currentColor" stroke-width="2"/>
         </svg>
       `;
       tools.insertBefore(bell, tools.firstChild);
@@ -567,6 +587,23 @@
     bell.classList.toggle("glow", !!on);
   }
 
+  function refreshBellVisual() {
+    const unread = isUnread();
+    setUnreadUI(unread);
+
+    if (unread) {
+      setGlow(true);
+      return;
+    }
+
+    if (isAdmin()) {
+      setGlow(false);
+      return;
+    }
+
+    setGlow(nowInReminderWindow());
+  }
+
   async function fetchLatest() {
     try {
       const res = await fetch(API_LATEST, {
@@ -625,7 +662,6 @@
     }
   }
 
-  let prevUnread = false;
   let prevReadLogHash = "";
 
   async function tick() {
@@ -633,39 +669,25 @@
     if (!data) return;
 
     const n = data.notification;
+
     if (!n) {
-      setUnreadUI(false);
-      setGlow(nowInReminderWindow());
+      refreshBellVisual();
       return;
     }
 
     const incomingId = toInt(n.id, 0);
     const prevIn = lastIncomingId();
 
-    if (incomingId > prevIn) {
+    // cache latest payload
+    if (incomingId >= prevIn) {
       localStorage.setItem(LS_IN, String(incomingId));
       localStorage.setItem(LS_TX, String(n.message || ""));
       localStorage.setItem(LS_TM, String(n.created_at || ""));
       localStorage.setItem(LS_AV, String(n.avatar_url || ""));
       localStorage.setItem(LS_BY, String(n.created_by_name || "Admin"));
-    } else {
-      if (n.message) localStorage.setItem(LS_TX, String(n.message || ""));
-      if (n.created_at) localStorage.setItem(LS_TM, String(n.created_at || ""));
-      if (n.avatar_url) localStorage.setItem(LS_AV, String(n.avatar_url || ""));
-      if (n.created_by_name) localStorage.setItem(LS_BY, String(n.created_by_name || ""));
     }
 
-    const unread = !!data.unread;
-    setUnreadUI(unread);
-
-    if (!unread) setGlow(nowInReminderWindow());
-    else setGlow(true);
-
-    if (unread && !prevUnread) {
-      playSound("message");
-    }
-    prevUnread = unread;
-
+    // modal content
     setMessageCard(
       localStorage.getItem(LS_TX) || "",
       localStorage.getItem(LS_BY) || "Admin",
@@ -673,6 +695,7 @@
       localStorage.getItem(LS_AV) || "/static/images/admin-bot.png"
     );
 
+    // admin read log
     if (isAdmin()) {
       const readEvents = Array.isArray(data.read_events) ? data.read_events : [];
       setReadLog(readEvents);
@@ -682,6 +705,7 @@
         const latestRead = readEvents[0];
         const marker = `${latestRead.user_id}_${latestRead.read_at}`;
         const prevMarker = localStorage.getItem(LS_TOAST) || "";
+
         if (marker !== prevMarker) {
           localStorage.setItem(LS_TOAST, marker);
           showToast(`${latestRead.user_name} habarni o‘qidi`);
@@ -690,6 +714,34 @@
       }
       prevReadLogHash = hash;
     }
+
+    // ---- FAqat haqiqiy yangi habar kelsa ovoz ----
+    const seenId = sessionSeenId();
+
+    if (!isSoundReady()) {
+      setSessionSeenId(incomingId);
+      setSoundReady();
+    } else if (incomingId > seenId) {
+      setSessionSeenId(incomingId);
+
+      // admin o‘zi yuborgan habarga ovoz eshitmasin
+      const senderName = String(n.created_by_name || "").trim().toUpperCase();
+      const selfAdmin = isAdmin() && senderName === "ADMIN";
+
+      if (!selfAdmin) {
+        await playSound("message");
+      }
+    } else {
+      setSessionSeenId(Math.max(seenId, incomingId));
+    }
+
+    // unread marker faqat backend unread orqali sync qilinadi
+    if (data.unread === false && lastReadId() < incomingId) {
+      // bu yerga majburan read yozmaymiz
+      // chunki user "Tushunarli" bosmaguncha unread saqlanishi kerak
+    }
+
+    refreshBellVisual();
   }
 
   function wireEvents() {
@@ -735,8 +787,7 @@
         const res = await ackNotification(id);
         if (res && res.ok) {
           localStorage.setItem(LS_RD, String(id));
-          setUnreadUI(false);
-          setGlow(nowInReminderWindow());
+          refreshBellVisual();
           closeModal();
         }
       });
@@ -746,7 +797,9 @@
     const cancelBtn = $("#notifCancel");
     const input = $("#notifInput");
 
-    if (cancelBtn) cancelBtn.addEventListener("click", () => closeModal());
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => closeModal());
+    }
 
     if (sendBtn) {
       sendBtn.addEventListener("click", async () => {
@@ -757,20 +810,26 @@
           const data = await sendNotification(txt);
           if (data && data.ok && data.notification) {
             const n = data.notification;
+
             localStorage.setItem(LS_IN, String(n.id));
-            localStorage.setItem(LS_RD, String(n.id));
+            localStorage.setItem(LS_RD, String(n.id)); // admin o‘zi uchun unread emas
             localStorage.setItem(LS_TX, String(n.message || ""));
             localStorage.setItem(LS_TM, String(n.created_at || ""));
             localStorage.setItem(LS_AV, String(n.avatar_url || ""));
             localStorage.setItem(LS_BY, String(n.created_by_name || "Admin"));
 
+            setSessionSeenId(n.id);
+
             if (input) input.value = "";
+
             setMessageCard(
               n.message || "",
               n.created_by_name || "Admin",
               n.created_at || "",
               n.avatar_url || "/static/images/admin-bot.png"
             );
+
+            refreshBellVisual();
             closeModal();
           }
         } finally {
@@ -781,7 +840,13 @@
 
     window.addEventListener("storage", (e) => {
       if ([LS_IN, LS_RD, LS_TX, LS_TM, LS_AV, LS_BY, LS_TOAST].includes(e.key)) {
-        tick();
+        setMessageCard(
+          localStorage.getItem(LS_TX) || "",
+          localStorage.getItem(LS_BY) || "Admin",
+          localStorage.getItem(LS_TM) || "",
+          localStorage.getItem(LS_AV) || "/static/images/admin-bot.png"
+        );
+        refreshBellVisual();
       }
     });
   }
@@ -790,8 +855,30 @@
   if (!ui) return;
 
   wireEvents();
-  tick();
-  setInterval(tick, POLL_MS);
+
+  (async function init() {
+    const data = await fetchLatest();
+
+    if (data && data.notification) {
+      const n = data.notification;
+      const incomingId = toInt(n.id, 0);
+
+      if (incomingId) {
+        if (lastIncomingId() < incomingId) {
+          localStorage.setItem(LS_IN, String(incomingId));
+          localStorage.setItem(LS_TX, String(n.message || ""));
+          localStorage.setItem(LS_TM, String(n.created_at || ""));
+          localStorage.setItem(LS_AV, String(n.avatar_url || ""));
+          localStorage.setItem(LS_BY, String(n.created_by_name || "Admin"));
+        }
+
+        // birinchi yuklanganda eski habar uchun ovoz chiqmasin
+        setSessionSeenId(incomingId);
+      }
+    }
+
+    setSoundReady();
+    refreshBellVisual();
+    setInterval(tick, POLL_MS);
+  })();
 })();
-
-
