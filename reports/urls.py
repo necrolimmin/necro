@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import *
+from .views import notifications_latest, notifications_ack, notifications_send
 
 urlpatterns = [
     # path('station/table-1/', station_table_1, name='station_table_1'),
