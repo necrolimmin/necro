@@ -198,9 +198,10 @@
   const LS_BY = "notif:last_sender";
   const LS_TOAST = "notif:last_admin_toast";
 
-  // faqat shu browser tab/session uchun
-  const SS_SEEN = "notif:session_seen_id";
-  const SS_SOUND_READY = "notif:session_sound_ready";
+  // session only
+  const SS_USER_SOUND_SEEN = "notif:user_sound_seen_id";
+  const SS_ADMIN_READ_SEEN = "notif:admin_read_seen_marker";
+  const SS_ADMIN_READ_ALERT = "notif:admin_read_alert_open";
 
   const POLL_MS = 12000;
   const REM_H1 = 16;
@@ -240,24 +241,41 @@
     return toInt(localStorage.getItem(LS_RD), 0);
   }
 
-  function sessionSeenId() {
-    return toInt(sessionStorage.getItem(SS_SEEN), 0);
-  }
-
-  function setSessionSeenId(id) {
-    sessionStorage.setItem(SS_SEEN, String(toInt(id, 0)));
-  }
-
-  function isSoundReady() {
-    return sessionStorage.getItem(SS_SOUND_READY) === "1";
-  }
-
-  function setSoundReady() {
-    sessionStorage.setItem(SS_SOUND_READY, "1");
-  }
-
   function isUnread() {
     return lastIncomingId() > lastReadId();
+  }
+
+  function getUserSoundSeenId() {
+    return toInt(sessionStorage.getItem(SS_USER_SOUND_SEEN), 0);
+  }
+
+  function setUserSoundSeenId(id) {
+    sessionStorage.setItem(SS_USER_SOUND_SEEN, String(toInt(id, 0)));
+  }
+
+  function getAdminReadSeenMarker() {
+    return sessionStorage.getItem(SS_ADMIN_READ_SEEN) || "";
+  }
+
+  function setAdminReadSeenMarker(marker) {
+    sessionStorage.setItem(SS_ADMIN_READ_SEEN, marker || "");
+  }
+
+  function isAdminReadAlertOn() {
+    return sessionStorage.getItem(SS_ADMIN_READ_ALERT) === "1";
+  }
+
+  function setAdminReadAlert(on) {
+    sessionStorage.setItem(SS_ADMIN_READ_ALERT, on ? "1" : "0");
+  }
+
+  function escapeHtml(s) {
+    return String(s || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
   function formatMessageHtml(message, sender, timeText, avatarUrl) {
@@ -273,15 +291,6 @@
         </div>
       </div>
     `;
-  }
-
-  function escapeHtml(s) {
-    return String(s || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
   }
 
   function ensureBellUI() {
@@ -589,19 +598,22 @@
 
   function refreshBellVisual() {
     const unread = isUnread();
-    setUnreadUI(unread);
 
-    if (unread) {
-      setGlow(true);
+    // user unread -> dot + glow
+    if (!isAdmin()) {
+      setUnreadUI(unread);
+      if (unread) {
+        setGlow(true);
+      } else {
+        setGlow(nowInReminderWindow());
+      }
       return;
     }
 
-    if (isAdmin()) {
-      setGlow(false);
-      return;
-    }
-
-    setGlow(nowInReminderWindow());
+    // admin taraf
+    const adminReadAlert = isAdminReadAlertOn();
+    setUnreadUI(adminReadAlert);
+    setGlow(adminReadAlert);
   }
 
   async function fetchLatest() {
@@ -678,7 +690,6 @@
     const incomingId = toInt(n.id, 0);
     const prevIn = lastIncomingId();
 
-    // cache latest payload
     if (incomingId >= prevIn) {
       localStorage.setItem(LS_IN, String(incomingId));
       localStorage.setItem(LS_TX, String(n.message || ""));
@@ -687,7 +698,6 @@
       localStorage.setItem(LS_BY, String(n.created_by_name || "Admin"));
     }
 
-    // modal content
     setMessageCard(
       localStorage.getItem(LS_TX) || "",
       localStorage.getItem(LS_BY) || "Admin",
@@ -695,7 +705,6 @@
       localStorage.getItem(LS_AV) || "/static/images/admin-bot.png"
     );
 
-    // admin read log
     if (isAdmin()) {
       const readEvents = Array.isArray(data.read_events) ? data.read_events : [];
       setReadLog(readEvents);
@@ -704,41 +713,22 @@
       if (hash !== prevReadLogHash && readEvents.length) {
         const latestRead = readEvents[0];
         const marker = `${latestRead.user_id}_${latestRead.read_at}`;
-        const prevMarker = localStorage.getItem(LS_TOAST) || "";
+        const seenMarker = getAdminReadSeenMarker();
 
-        if (marker !== prevMarker) {
-          localStorage.setItem(LS_TOAST, marker);
+        if (marker !== seenMarker) {
+          setAdminReadAlert(true);
           showToast(`${latestRead.user_name} habarni o‘qidi`);
-          playSound("read");
+          await playSound("read");
         }
       }
       prevReadLogHash = hash;
-    }
-
-    // ---- FAqat haqiqiy yangi habar kelsa ovoz ----
-    const seenId = sessionSeenId();
-
-    if (!isSoundReady()) {
-      setSessionSeenId(incomingId);
-      setSoundReady();
-    } else if (incomingId > seenId) {
-      setSessionSeenId(incomingId);
-
-      // admin o‘zi yuborgan habarga ovoz eshitmasin
-      const senderName = String(n.created_by_name || "").trim().toUpperCase();
-      const selfAdmin = isAdmin() && senderName === "ADMIN";
-
-      if (!selfAdmin) {
+    } else {
+      // USER taraf: unread bo‘lsa va bu sessionda hali shu habar uchun signal chalinmagan bo‘lsa -> play
+      const seenSoundId = getUserSoundSeenId();
+      if (isUnread() && incomingId > seenSoundId) {
+        setUserSoundSeenId(incomingId);
         await playSound("message");
       }
-    } else {
-      setSessionSeenId(Math.max(seenId, incomingId));
-    }
-
-    // unread marker faqat backend unread orqali sync qilinadi
-    if (data.unread === false && lastReadId() < incomingId) {
-      // bu yerga majburan read yozmaymiz
-      // chunki user "Tushunarli" bosmaguncha unread saqlanishi kerak
     }
 
     refreshBellVisual();
@@ -774,6 +764,16 @@
     modal.addEventListener("click", (e) => {
       const t = e.target;
       if (t && t.getAttribute && t.getAttribute("data-close") === "1") {
+        if (isAdmin()) {
+          const currentHash = prevReadLogHash ? JSON.parse(prevReadLogHash) : [];
+          if (currentHash.length) {
+            const latestRead = currentHash[0];
+            const marker = `${latestRead.user_id}_${latestRead.read_at}`;
+            setAdminReadSeenMarker(marker);
+          }
+          setAdminReadAlert(false);
+          refreshBellVisual();
+        }
         closeModal();
       }
     });
@@ -798,7 +798,22 @@
     const input = $("#notifInput");
 
     if (cancelBtn) {
-      cancelBtn.addEventListener("click", () => closeModal());
+      cancelBtn.addEventListener("click", () => {
+        if (isAdmin()) {
+          const readEventsEl = $("#notifReadLog");
+          if (readEventsEl && prevReadLogHash) {
+            const arr = JSON.parse(prevReadLogHash);
+            if (arr.length) {
+              const latestRead = arr[0];
+              const marker = `${latestRead.user_id}_${latestRead.read_at}`;
+              setAdminReadSeenMarker(marker);
+            }
+          }
+          setAdminReadAlert(false);
+          refreshBellVisual();
+        }
+        closeModal();
+      });
     }
 
     if (sendBtn) {
@@ -817,8 +832,6 @@
             localStorage.setItem(LS_TM, String(n.created_at || ""));
             localStorage.setItem(LS_AV, String(n.avatar_url || ""));
             localStorage.setItem(LS_BY, String(n.created_by_name || "Admin"));
-
-            setSessionSeenId(n.id);
 
             if (input) input.value = "";
 
@@ -872,12 +885,24 @@
           localStorage.setItem(LS_BY, String(n.created_by_name || "Admin"));
         }
 
-        // birinchi yuklanganda eski habar uchun ovoz chiqmasin
-        setSessionSeenId(incomingId);
+        // USER: login qilganda unread bo‘lsa darrov signal berish
+        if (!isAdmin() && isUnread()) {
+          const seenId = getUserSoundSeenId();
+          if (incomingId > seenId) {
+            setUserSoundSeenId(incomingId);
+            await playSound("message");
+          }
+        }
+      }
+
+      // admin read log init
+      if (isAdmin()) {
+        const readEvents = Array.isArray(data.read_events) ? data.read_events : [];
+        setReadLog(readEvents);
+        prevReadLogHash = JSON.stringify(readEvents);
       }
     }
 
-    setSoundReady();
     refreshBellVisual();
     setInterval(tick, POLL_MS);
   })();
