@@ -1,0 +1,761 @@
+{% extends "base.html" %}
+{% load report_extras %}
+{% block title %}Оперативная информация{% endblock %}
+
+{% block content %}
+<style>
+  .op-card{
+    border:1px solid var(--stroke);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    padding:14px;
+    backdrop-filter:blur(14px);
+    background:var(--surface);
+  }
+
+  .op-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+
+  .op-title{
+    margin:0;
+    font-size:18px;
+    font-weight:900;
+    color:var(--text);
+  }
+
+  .op-muted{
+    margin:5px 0 0 0;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .op-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+
+  .op-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:220px;
+  }
+
+  .op-field label{
+    font-size:12px;
+    font-weight:900;
+    color:var(--muted);
+  }
+
+  .op-input{
+    height:44px;
+    border-radius:14px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.58);
+    color:var(--text);
+    padding:0 12px;
+    outline:none;
+    box-shadow:0 10px 28px rgba(15,23,42,.08);
+  }
+
+  html[data-theme="dark"] .op-input{
+    background:rgba(255,255,255,.06);
+  }
+
+  .op-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    height:44px;
+    padding:0 16px;
+    border-radius:14px;
+    border:1px solid var(--stroke);
+    text-decoration:none;
+    font-weight:900;
+    cursor:pointer;
+    transition:.15s ease;
+    white-space:nowrap;
+  }
+
+  .op-btn.primary{
+    color:#fff;
+    background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(34,197,94,.92));
+    box-shadow:0 12px 28px rgba(79,70,229,.22);
+  }
+
+  .op-btn.secondary{
+    color:var(--text);
+    background:rgba(255,255,255,.58);
+  }
+
+  html[data-theme="dark"] .op-btn.secondary{
+    background:rgba(255,255,255,.06);
+  }
+
+  .op-btn:hover{ transform:translateY(-1px); }
+
+  .op-wrap{
+    border:1px solid var(--stroke);
+    border-radius:18px;
+    overflow:hidden;
+    background:rgba(255,255,255,.28);
+  }
+
+  html[data-theme="dark"] .op-wrap{
+    background:rgba(255,255,255,.03);
+  }
+
+  .op-scroll{
+    overflow:auto;
+    max-width:100%;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .op-scroll::-webkit-scrollbar{ height:11px; width:11px; }
+  .op-scroll::-webkit-scrollbar-thumb{
+    background:rgba(15,23,42,.22);
+    border-radius:999px;
+  }
+  html[data-theme="dark"] .op-scroll::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.16);
+  }
+
+  .op-table{
+    border-collapse:collapse;
+    width:max-content;
+    min-width:1380px;
+    table-layout:fixed;
+    background:#fff;
+    font-family:"Times New Roman", serif;
+  }
+
+  .op-table th,
+  .op-table td{
+    border:1px solid #2f2f2f;
+    padding:2px 4px;
+    font-size:12px;
+    line-height:1.05;
+    text-align:center;
+    vertical-align:middle;
+    color:#000;
+    background:#fff;
+    white-space:nowrap;
+  }
+
+  .op-table thead th{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:#f2f2f2;
+    font-weight:700;
+  }
+
+  .op-main-title{
+    font-size:14px !important;
+    line-height:1.2 !important;
+    padding:8px 10px !important;
+    background:#f7f7f7 !important;
+    font-weight:700 !important;
+  }
+
+  .op-group{
+    background:#efefef !important;
+    font-size:13px !important;
+    font-weight:700 !important;
+  }
+
+  .op-sub{
+    background:#fafafa !important;
+    font-size:11px !important;
+    font-weight:700 !important;
+  }
+
+  .name-col{
+    position:sticky;
+    left:0;
+    z-index:11;
+    min-width:125px;
+    max-width:125px;
+    text-align:left !important;
+    padding-left:6px !important;
+    background:#fff !important;
+    font-weight:700;
+  }
+
+  .op-table thead .name-col{
+    background:#f2f2f2 !important;
+    z-index:12;
+    text-align:center !important;
+    padding-left:4px !important;
+  }
+
+  .purple{ color:#6a1fb1 !important; font-weight:700; }
+  .blue{ color:#165DCC !important; font-weight:700; }
+  .green{ color:#00A43A !important; font-weight:700; }
+  .red{ color:#ff0000 !important; font-weight:700; }
+
+  .subtotal td{
+    font-weight:700;
+  }
+
+  .subtotal .name-col{
+    color:#ff0000 !important;
+    font-weight:700;
+  }
+
+  .grandtotal td{
+    font-weight:700;
+    background:#fafafa;
+  }
+
+  .grandtotal .name-col{
+    color:#165DCC !important;
+    font-weight:700;
+  }
+
+  .edit-cell{
+    padding:1px !important;
+    background:#fff !important;
+  }
+
+  .edit-input{
+    width:100%;
+    max-width: 78px;
+    min-width: 85px;
+    height:24px;
+    border:none;
+    outline:none;
+    background:transparent;
+    text-align:center;
+    font-size:12px;
+    font-family:"Times New Roman", serif;
+    color:#000;
+  }
+
+  .edit-input.green{ color:#00A43A; font-weight:700; }
+  .edit-input.blue{ color:#165DCC; font-weight:700; }
+  .edit-input.red{ color:#ff0000; font-weight:700; }
+
+  .op-note{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:12px;
+  }
+
+  @media (max-width: 900px){
+    .op-card{ padding:12px; }
+    .op-field{ min-width:160px; flex:1 1 auto; }
+    .op-btn{ width:100%; }
+  }
+</style>
+
+<div class="op-card">
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="op-top">
+      <div>
+        <h2 class="op-title">Оперативная информация</h2>
+        <p class="op-muted">Только строки “Вес.хоз” доступны для ввода.</p>
+      </div>
+
+      <div class="op-actions">
+        <a class="op-btn secondary" href="{% url 'kvartalniy' %}">← Ortga</a>
+
+        <div class="op-field">
+          <label>Дата</label>
+          <input class="op-input" type="date" name="date" value="{{ date|date:'Y-m-d' }}" required>
+        </div>
+
+        <button class="op-btn primary" type="submit" name="save" value="1">Saqlash</button>
+      </div>
+    </div>
+
+    <div class="op-wrap">
+      <div class="op-scroll">
+        <table class="op-table">
+          <thead>
+            <tr>
+              <th class="op-main-title" colspan="17">
+                Оперативная информация о погрузке и выгрузке контейнеров, вагонов и доходах по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
+                на {{ date|date:"d.m.Y" }} г. / {{ prev_date_label|default:"2025 - 2024 г.г (за 7 дней)" }}
+              </th>
+            </tr>
+
+            <tr>
+              <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
+              <th class="op-group" colspan="3">Погрузка вагонов (шт)</th>
+              <th class="op-group" colspan="3">Выгрузка вагонов (шт)</th>
+              <th class="op-group" colspan="3">Погрузка кон (шт)</th>
+              <th class="op-group" colspan="3">Выгрузка конт</th>
+              <th class="op-group" colspan="3">Доходы (тыс)</th>
+            </tr>
+
+            <tr>
+              <th class="op-sub green">факт</th>
+              <th class="op-sub blue">факт</th>
+              <th class="op-sub red">+/-</th>
+
+              <th class="op-sub green">факт</th>
+              <th class="op-sub blue">факт</th>
+              <th class="op-sub red">+/-</th>
+
+              <th class="op-sub green">факт</th>
+              <th class="op-sub blue">факт</th>
+              <th class="op-sub red">+/-</th>
+
+              <th class="op-sub green">факт</th>
+              <th class="op-sub blue">факт</th>
+              <th class="op-sub red">+/-</th>
+
+              <th class="op-sub green">факт</th>
+              <th class="op-sub blue">факт</th>
+              <th class="op-sub red">+/-</th>
+            </tr>
+
+            <tr>
+              <th class="op-sub green">2026г.</th>
+              <th class="op-sub blue">2025г.</th>
+              <th class="op-sub red">к 2025г.</th>
+
+              <th class="op-sub green">2026г.</th>
+              <th class="op-sub blue">2025г.</th>
+              <th class="op-sub red">к 2025г.</th>
+
+              <th class="op-sub green">2026г.</th>
+              <th class="op-sub blue">2025г.</th>
+              <th class="op-sub red">к 2025г.</th>
+
+              <th class="op-sub green">2026г.</th>
+              <th class="op-sub blue">2025г.</th>
+              <th class="op-sub red">к 2025г.</th>
+
+              <th class="op-sub green">2026г.</th>
+              <th class="op-sub blue">2025г.</th>
+              <th class="op-sub red">к 2025г.</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {# ===== 1-GURUH ===== #}
+            <tr>
+              <td class="name-col purple">Чукурсай</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">44</td><td class="blue">41</td><td class="red">3</td>
+              <td class="green">0</td><td class="blue">0</td><td class="red">0</td>
+              <td class="green">52</td><td class="blue">75</td><td class="red"></td>
+              <td class="green">122 000</td><td class="blue">142 000</td><td class="red">#######</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Ташкент</td>
+              <td class="green">2</td><td class="blue"></td><td class="red">2</td>
+              <td class="green">129</td><td class="blue">59</td><td class="red">70</td>
+              <td class="green">4</td><td class="blue"></td><td class="red">4</td>
+              <td class="green">126</td><td class="blue">82</td><td class="red"></td>
+              <td class="green">74 589</td><td class="blue">113 000</td><td class="red">#######</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Сергели</td>
+              <td class="green">54</td><td class="blue"></td><td class="red">54</td>
+              <td class="green">21</td><td class="blue"></td><td class="red">21</td>
+              <td class="green">57</td><td class="blue"></td><td class="red">57</td>
+              <td class="green">28</td><td class="blue"></td><td class="red"></td>
+              <td class="green">86 000</td><td class="blue">19 711</td><td class="red">#######</td>
+            </tr>
+            <tr>
+              <td class="name-col">Ахангарaн</td>
+              <td class="green">5</td><td class="blue"></td><td class="red">5</td>
+              <td class="green">2</td><td class="blue"></td><td class="red">2</td>
+              <td class="green">4</td><td class="blue"></td><td class="red">4</td>
+              <td class="green">4</td><td class="blue"></td><td class="red"></td>
+              <td class="green">4 010</td><td class="blue"></td><td class="red">4 010,00</td>
+            </tr>
+            <tr>
+              <td class="name-col">Назарбек</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue">3 000</td><td class="red">-3 000,00</td>
+            </tr>
+            <tr>
+              <td class="name-col">Хаваст</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Джизак</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue">5</td><td class="red">-5</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">1 000</td><td class="blue">1 319</td><td class="red">-319,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Аблык</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">7</td><td class="blue">2</td><td class="red">5</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">16</td><td class="blue">4</td><td class="red"></td>
+              <td class="green">8 783</td><td class="blue">1 840</td><td class="red">6 943,00</td>
+            </tr>
+            <tr>
+              <td class="name-col blue">Вес.хоз</td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v1_load_2026" value="{{ form_data.v1_load_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v1_load_2025" value="{{ form_data.v1_load_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v1_load_diff" value="{{ form_data.v1_load_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v1_unload_2026" value="{{ form_data.v1_unload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v1_unload_2025" value="{{ form_data.v1_unload_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v1_unload_diff" value="{{ form_data.v1_unload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v1_contload_2026" value="{{ form_data.v1_contload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v1_contload_2025" value="{{ form_data.v1_contload_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v1_contload_diff" value="{{ form_data.v1_contload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v1_contunload_2026" value="{{ form_data.v1_contunload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v1_contunload_2025" value="{{ form_data.v1_contunload_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v1_contunload_diff" value="{{ form_data.v1_contunload_diff|default:'' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v1_income_2026" value="{{ form_data.v1_income_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v1_income_2025" value="{{ form_data.v1_income_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v1_income_diff" value="{{ form_data.v1_income_diff|default:'0,00' }}"></td>
+            </tr>
+            <tr class="subtotal">
+              <td class="name-col">ИТОГО</td>
+              <td>61</td><td class="green">0</td><td>61</td>
+              <td>203</td><td class="green">107</td><td>96</td>
+              <td>65</td><td class="green">0</td><td>65</td>
+              <td>226</td><td class="green">161</td><td></td>
+              <td>296 382</td><td class="green">280 870</td><td class="red">#######</td>
+            </tr>
+
+            {# ===== 2-GURUH ===== #}
+            <tr>
+              <td class="name-col purple">Коканд</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">1</td><td class="blue">2</td><td class="red">-1</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">2</td><td class="blue">2</td><td class="red"></td>
+              <td class="green">3 078</td><td class="blue">4 546</td><td class="red">-1 468,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Раустaн</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">2</td><td class="blue">2</td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">1</td><td class="blue"></td><td class="red"></td>
+              <td class="green">5 000</td><td class="blue">4 000</td><td class="red">1 000,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Маргилан</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">1</td><td class="blue"></td><td class="red">1</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">5 000</td><td class="blue">3 000</td><td class="red">2 000,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Ахтaчи</td>
+              <td class="green">7</td><td class="blue">15</td><td class="red">-8</td>
+              <td class="green">0</td><td class="blue">8</td><td class="red">-8</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue">16</td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Асакa</td>
+              <td class="green">7</td><td class="blue"></td><td class="red">7</td>
+              <td class="green">0</td><td class="blue">3</td><td class="red">-3</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue">6</td><td class="red"></td>
+              <td class="green">0</td><td class="blue">2 941</td><td class="red">-2 941,00</td>
+            </tr>
+            <tr>
+              <td class="name-col blue">Вес.хоз</td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v2_load_2026" value="{{ form_data.v2_load_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v2_load_2025" value="{{ form_data.v2_load_2025|default:'15' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v2_load_diff" value="{{ form_data.v2_load_diff|default:'-1' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v2_unload_2026" value="{{ form_data.v2_unload_2026|default:'4' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v2_unload_2025" value="{{ form_data.v2_unload_2025|default:'15' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v2_unload_diff" value="{{ form_data.v2_unload_diff|default:'-11' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v2_contload_2026" value="{{ form_data.v2_contload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v2_contload_2025" value="{{ form_data.v2_contload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v2_contload_diff" value="{{ form_data.v2_contload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v2_contunload_2026" value="{{ form_data.v2_contunload_2026|default:'3' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v2_contunload_2025" value="{{ form_data.v2_contunload_2025|default:'24' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v2_contunload_diff" value="{{ form_data.v2_contunload_diff|default:'' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v2_income_2026" value="{{ form_data.v2_income_2026|default:'13 078' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v2_income_2025" value="{{ form_data.v2_income_2025|default:'14 487' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v2_income_diff" value="{{ form_data.v2_income_diff|default:'-1 409,00' }}"></td>
+            </tr>
+            <tr class="subtotal">
+              <td class="name-col">ИТОГО</td>
+              <td>14</td><td class="green">15</td><td>-1</td>
+              <td>4</td><td class="green">15</td><td>-11</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>3</td><td class="green">24</td><td></td>
+              <td>13 078</td><td class="green">14 487</td><td class="red">-1 409,00</td>
+            </tr>
+
+            {# ===== 3-GURUH ===== #}
+            <tr>
+              <td class="name-col purple">Бухара-2</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">3 000</td><td class="blue">12 000</td><td class="red">-9 000,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Тинчлык</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Навои(Кармана)</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">2 000</td><td class="blue">5 400</td><td class="red">-3 400,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Янги-Зарафшан</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Улугбек</td>
+              <td class="green">14</td><td class="blue">3</td><td class="red">11</td>
+              <td class="green">73</td><td class="blue">10</td><td class="red">63</td>
+              <td class="green">28</td><td class="blue">6</td><td class="red">22</td>
+              <td class="green">87</td><td class="blue">20</td><td class="red"></td>
+              <td class="green">50 000</td><td class="blue">20 000</td><td class="red">#######</td>
+            </tr>
+            <tr>
+              <td class="name-col blue">Вес.хоз</td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v3_load_2026" value="{{ form_data.v3_load_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v3_load_2025" value="{{ form_data.v3_load_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v3_load_diff" value="{{ form_data.v3_load_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v3_unload_2026" value="{{ form_data.v3_unload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v3_unload_2025" value="{{ form_data.v3_unload_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v3_unload_diff" value="{{ form_data.v3_unload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v3_contload_2026" value="{{ form_data.v3_contload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v3_contload_2025" value="{{ form_data.v3_contload_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v3_contload_diff" value="{{ form_data.v3_contload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v3_contunload_2026" value="{{ form_data.v3_contunload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v3_contunload_2025" value="{{ form_data.v3_contunload_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v3_contunload_diff" value="{{ form_data.v3_contunload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v3_income_2026" value="{{ form_data.v3_income_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v3_income_2025" value="{{ form_data.v3_income_2025|default:'' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v3_income_diff" value="{{ form_data.v3_income_diff|default:'0,00' }}"></td>
+            </tr>
+            <tr class="subtotal">
+              <td class="name-col">ИТОГО</td>
+              <td>14</td><td class="green">3</td><td>11</td>
+              <td>73</td><td class="green">10</td><td>63</td>
+              <td>28</td><td class="green">6</td><td>22</td>
+              <td>87</td><td class="green">20</td><td></td>
+              <td>55 000</td><td class="green">37 400</td><td class="red">#######</td>
+            </tr>
+
+            {# ===== 4-GURUH ===== #}
+            <tr>
+              <td class="name-col purple">Карши</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">6</td><td class="blue"></td><td class="red">6</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">2 400</td><td class="blue"></td><td class="red">2 400,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Дехканабад</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col blue">Вес.хоз</td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v4_load_2026" value="{{ form_data.v4_load_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v4_load_2025" value="{{ form_data.v4_load_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v4_load_diff" value="{{ form_data.v4_load_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v4_unload_2026" value="{{ form_data.v4_unload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v4_unload_2025" value="{{ form_data.v4_unload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v4_unload_diff" value="{{ form_data.v4_unload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v4_contload_2026" value="{{ form_data.v4_contload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v4_contload_2025" value="{{ form_data.v4_contload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v4_contload_diff" value="{{ form_data.v4_contload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v4_contunload_2026" value="{{ form_data.v4_contunload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v4_contunload_2025" value="{{ form_data.v4_contunload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v4_contunload_diff" value="{{ form_data.v4_contunload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v4_income_2026" value="{{ form_data.v4_income_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v4_income_2025" value="{{ form_data.v4_income_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v4_income_diff" value="{{ form_data.v4_income_diff|default:'0,00' }}"></td>
+            </tr>
+            <tr class="subtotal">
+              <td class="name-col">ИТОГО</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>6</td><td class="green">0</td><td>6</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>0</td><td class="green">0</td><td></td>
+              <td>2 400</td><td class="green">0</td><td class="red">2 400,00</td>
+            </tr>
+
+            {# ===== 5-GURUH ===== #}
+            <tr>
+              <td class="name-col purple">Термез</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col blue">Вес.хоз</td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v5_load_2026" value="{{ form_data.v5_load_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v5_load_2025" value="{{ form_data.v5_load_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v5_load_diff" value="{{ form_data.v5_load_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v5_unload_2026" value="{{ form_data.v5_unload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v5_unload_2025" value="{{ form_data.v5_unload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v5_unload_diff" value="{{ form_data.v5_unload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v5_contload_2026" value="{{ form_data.v5_contload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v5_contload_2025" value="{{ form_data.v5_contload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v5_contload_diff" value="{{ form_data.v5_contload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v5_contunload_2026" value="{{ form_data.v5_contunload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v5_contunload_2025" value="{{ form_data.v5_contunload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v5_contunload_diff" value="{{ form_data.v5_contunload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v5_income_2026" value="{{ form_data.v5_income_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v5_income_2025" value="{{ form_data.v5_income_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v5_income_diff" value="{{ form_data.v5_income_diff|default:'0,00' }}"></td>
+            </tr>
+            <tr class="subtotal">
+              <td class="name-col">ИТОГО</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>0</td><td class="green">0</td><td></td>
+              <td>0</td><td class="green">0</td><td class="red">0,00</td>
+            </tr>
+
+            {# ===== 6-GURUH ===== #}
+            <tr>
+              <td class="name-col purple">Нукус</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Кирккыз</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Ургенч</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">2</td><td class="blue"></td><td class="red">2</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">1 500</td><td class="blue"></td><td class="red">1 500,00</td>
+            </tr>
+            <tr>
+              <td class="name-col purple">Питняк</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0</td>
+              <td class="green">0</td><td class="blue"></td><td class="red"></td>
+              <td class="green">0</td><td class="blue"></td><td class="red">0,00</td>
+            </tr>
+            <tr>
+              <td class="name-col blue">Вес.хоз</td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v6_load_2026" value="{{ form_data.v6_load_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v6_load_2025" value="{{ form_data.v6_load_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v6_load_diff" value="{{ form_data.v6_load_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v6_unload_2026" value="{{ form_data.v6_unload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v6_unload_2025" value="{{ form_data.v6_unload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v6_unload_diff" value="{{ form_data.v6_unload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v6_contload_2026" value="{{ form_data.v6_contload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v6_contload_2025" value="{{ form_data.v6_contload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v6_contload_diff" value="{{ form_data.v6_contload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v6_contunload_2026" value="{{ form_data.v6_contunload_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v6_contunload_2025" value="{{ form_data.v6_contunload_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v6_contunload_diff" value="{{ form_data.v6_contunload_diff|default:'0' }}"></td>
+
+              <td class="edit-cell"><input class="edit-input green" type="text" name="v6_income_2026" value="{{ form_data.v6_income_2026|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input blue" type="text" name="v6_income_2025" value="{{ form_data.v6_income_2025|default:'0' }}"></td>
+              <td class="edit-cell"><input class="edit-input red" type="text" name="v6_income_diff" value="{{ form_data.v6_income_diff|default:'0,00' }}"></td>
+            </tr>
+            <tr class="subtotal">
+              <td class="name-col">ИТОГО</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>2</td><td class="green">0</td><td>2</td>
+              <td>0</td><td class="green">0</td><td>0</td>
+              <td>0</td><td class="green">0</td><td></td>
+              <td>1 500</td><td class="green">0</td><td class="red">1 500,00</td>
+            </tr>
+
+            <tr class="grandtotal">
+              <td class="name-col">Всего по ЖДК</td>
+              <td>89</td><td class="green">18</td><td>71</td>
+              <td>288</td><td class="green">132</td><td>156</td>
+              <td>93</td><td class="green">6</td><td>87</td>
+              <td>316</td><td class="green">205</td><td></td>
+              <td>368 360</td><td class="blue">332 757,00</td><td class="red">#######</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

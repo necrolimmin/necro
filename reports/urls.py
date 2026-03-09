@@ -42,6 +42,11 @@ urlpatterns = [
     path("api/notifications/latest/", notifications_latest, name="notifications_latest"),
     path("api/notifications/ack/",    notifications_ack,    name="notifications_ack"),
     path("api/notifications/send/",   notifications_send,   name="notifications_send"),
+
+    path("kvartalniy/", kvartalniy, name="kvartalniy"),
+    path("kvartalniy/kun/", kvartalniy_kun, name="kvartalniy_kun"),
+    path("kvartalniy/umumiy/", kvartalniy_umumiy, name="kvartalniy_umumiy"),
+    
 ]
 
 
