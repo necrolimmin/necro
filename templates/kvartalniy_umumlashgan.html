@@ -1,410 +1,689 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load report_extras %}
-
 {% block title %}Umumlashgan hisobot jadvali{% endblock %}
 
 {% block content %}
 <style>
-  .sum-card{
+  .u2-card{
     border:1px solid var(--stroke);
-    border-radius:20px;
+    border-radius:18px;
     box-shadow:var(--shadow);
-    padding:14px;
+    padding:10px;
     backdrop-filter:blur(14px);
     background:var(--surface);
   }
 
-  .sum-top{
+  .u2-top{
     display:flex;
     justify-content:space-between;
     align-items:flex-end;
-    gap:12px;
+    gap:10px;
     flex-wrap:wrap;
-    margin-bottom:12px;
+    margin-bottom:10px;
   }
 
-  .sum-title{
+  .u2-title{
     margin:0;
-    font-size:18px;
+    font-size:17px;
     font-weight:950;
     color:var(--text);
     letter-spacing:-.02em;
   }
 
-  .sum-muted{
-    margin:5px 0 0 0;
+  .u2-sub{
+    margin:4px 0 0;
     color:var(--muted);
     font-size:12px;
-    line-height:1.4;
   }
 
-  .sum-form{
+  .u2-actions{
     display:flex;
-    gap:10px;
+    gap:8px;
     flex-wrap:wrap;
     align-items:flex-end;
   }
 
-  .sum-field{
+  .u2-field{
     display:flex;
     flex-direction:column;
-    gap:6px;
-    min-width:180px;
+    gap:5px;
+    min-width:150px;
   }
 
-  .sum-field label{
-    font-size:12px;
+  .u2-field label{
+    font-size:11px;
     font-weight:900;
     color:var(--muted);
   }
 
-  .sum-inp{
-    height:42px;
-    border-radius:12px;
+  .u2-inp{
+    height:38px;
+    border-radius:10px;
     border:1px solid var(--stroke);
-    background:rgba(255,255,255,.60);
+    background:rgba(255,255,255,.58);
     color:var(--text);
-    padding:0 12px;
+    padding:0 10px;
     outline:none;
-    box-shadow:0 12px 30px rgba(15,23,42,.06);
+    box-shadow:0 10px 24px rgba(15,23,42,.05);
   }
 
-  html[data-theme="dark"] .sum-inp{
+  html[data-theme="dark"] .u2-inp{
     background:rgba(255,255,255,.06);
   }
 
-  .sum-btn{
+  .u2-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
-    height:42px;
-    padding:0 14px;
-    border-radius:12px;
+    gap:7px;
+    height:38px;
+    padding:0 12px;
+    border-radius:10px;
     border:1px solid var(--stroke);
     text-decoration:none;
     font-weight:900;
     cursor:pointer;
     white-space:nowrap;
-    transition:.14s ease;
+    transition:.12s ease;
   }
 
-  .sum-btn:hover{ transform:translateY(-1px); }
+  .u2-btn:hover{ transform:translateY(-1px); }
 
-  .sum-btn.primary{
+  .u2-btn.primary{
     color:#fff;
     background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(34,197,94,.92));
-    box-shadow:0 12px 30px rgba(79,70,229,.18);
+    box-shadow:0 10px 24px rgba(79,70,229,.16);
   }
 
-  .sum-btn.secondary{
+  .u2-btn.secondary{
     color:var(--text);
     background:rgba(255,255,255,.58);
   }
 
-  html[data-theme="dark"] .sum-btn.secondary{
+  html[data-theme="dark"] .u2-btn.secondary{
     background:rgba(255,255,255,.06);
   }
 
-  .sheet-shell{
+  .u2-sheet-wrap{
     border:1px solid var(--stroke);
-    border-radius:18px;
+    border-radius:14px;
     overflow:hidden;
     background:#fff;
   }
 
-  .sheet-fit{
+  .u2-fit{
     width:100%;
-    padding:4px;
     overflow:hidden;
+    padding:2px;
   }
 
-  .sheet{
+  .u2-sheet{
     width:100%;
-    border-collapse:collapse;
     table-layout:fixed;
+    border-collapse:collapse;
     font-family:"Times New Roman", serif;
-    transform-origin: top left;
+    transform-origin:top left;
   }
 
-  .sheet th,
-  .sheet td{
+  .u2-sheet th,
+  .u2-sheet td{
     border:1px solid #222;
+    padding:2px 3px;
     text-align:center;
     vertical-align:middle;
-    padding:2px 3px;
-    font-size:11px;
-    line-height:1.05;
+    font-size:10px;
+    line-height:1.02;
     color:#000;
     background:#fff;
     word-break:break-word;
   }
 
-  .sheet thead th{
-    background:#f0f0f0;
+  .u2-sheet thead th{
+    background:#f1f1f1;
     font-weight:700;
   }
 
-  .sheet .main-head{
-    font-size:14px;
-    line-height:1.25;
-    padding:10px 8px;
-    font-weight:700;
-    background:#f8f8f8;
+  .u2-main{
+    font-size:12px !important;
+    line-height:1.2 !important;
+    padding:8px 6px !important;
+    background:#f8f8f8 !important;
+    font-weight:700 !important;
   }
 
-  .sheet .group-head{
-    font-size:12px;
-    font-weight:700;
-    background:#efefef;
+  .u2-group{
+    background:#ededed !important;
+    font-size:11px !important;
+    font-weight:700 !important;
   }
 
-  .sheet .sub-head{
-    font-size:10px;
-    font-weight:700;
-    background:#fafafa;
+  .u2-subhead{
+    background:#fafafa !important;
+    font-size:9px !important;
+    font-weight:700 !important;
   }
 
-  .sheet .name-col{
-    text-align:left;
-    padding-left:6px;
+  .u2-name{
+    text-align:left !important;
+    padding-left:6px !important;
+    width:108px;
     font-weight:700;
-    width:110px;
-    word-break:normal;
+    white-space:nowrap;
   }
 
-  .sheet .w60{ width:60px; }
-  .sheet .w66{ width:66px; }
-  .sheet .w72{ width:72px; }
-
-  .green{ color:#00a63c !important; font-weight:700; }
-  .blue{ color:#1660d6 !important; font-weight:700; }
-  .red{ color:#ff0000 !important; font-weight:700; }
-  .purple{ color:#6b21a8 !important; font-weight:700; }
+  .g{ color:#00a63c !important; font-weight:700; }
+  .b{ color:#135ed1 !important; font-weight:700; }
+  .r{ color:#ff0000 !important; font-weight:700; }
+  .p{ color:#6b21a8 !important; font-weight:700; }
+  .t{ color:#0f766e !important; font-weight:800; }
 
   .subtotal td{
     font-weight:700;
   }
 
-  .subtotal .name-col{
+  .subtotal .u2-name{
     color:#ff0000 !important;
   }
 
-  .grandtotal td{
+  .grand td{
     font-weight:800;
     background:#fbfbfb;
   }
 
-  .grandtotal .name-col{
+  .grand .u2-name{
     color:#0f766e !important;
   }
 
-  .excel-note{
+  .u2-note{
     margin-top:8px;
-    font-size:12px;
     color:var(--muted);
+    font-size:11px;
   }
 
-  /* 1600px - 1920px ekranlarda sig‘ishi uchun */
-  @media (max-width: 1700px){
-    .sheet{
-      transform:scale(.94);
-      width:106.4%;
-      margin-bottom:-36px;
-    }
-  }
+  .u2-sheet col.name { width:108px; }
+  .u2-sheet col.num  { width:62px; }
+  .u2-sheet col.numw { width:72px; }
 
-  @media (max-width: 1500px){
-    .sheet{
-      transform:scale(.88);
-      width:113.7%;
-      margin-bottom:-74px;
-    }
-    .sheet th,.sheet td{ font-size:10px; padding:2px 2px; }
-  }
-
-  @media (max-width: 1300px){
-    .sheet{
-      transform:scale(.80);
-      width:125%;
-      margin-bottom:-130px;
+  @media (max-width: 1920px){
+    .u2-sheet{
+      transform:scale(.98);
+      width:102.04%;
+      margin-bottom:-10px;
     }
   }
 
-  @media (max-width: 1100px){
-    .sheet-shell{
-      overflow:auto;
+  @media (max-width: 1680px){
+    .u2-sheet{
+      transform:scale(.92);
+      width:108.7%;
+      margin-bottom:-48px;
     }
-    .sheet-fit{
-      overflow:auto;
+  }
+
+  @media (max-width: 1440px){
+    .u2-sheet{
+      transform:scale(.84);
+      width:119.1%;
+      margin-bottom:-102px;
     }
-    .sheet{
+  }
+
+  @media (max-width: 1180px){
+    .u2-sheet-wrap{ overflow:auto; }
+    .u2-fit{ overflow:auto; }
+    .u2-sheet{
       transform:none;
-      width:1400px;
-      min-width:1400px;
+      width:1320px;
+      min-width:1320px;
       margin-bottom:0;
     }
   }
 </style>
 
-<div class="sum-card">
-  <div class="sum-top">
+<div class="u2-card">
+  <div class="u2-top">
     <div>
-      <h2 class="sum-title">Umumlashgan hisobot jadvali</h2>
-      <p class="sum-muted">
-        Admin 2 ta sana oralig‘ini tanlaydi va shu oraliq bo‘yicha rasmga o‘xshash umumiy jadval shakllanadi.
-      </p>
+      <h2 class="u2-title">Umumlashgan hisobot jadvali</h2>
+      <p class="u2-sub">2 ta sana oralig‘i bo‘yicha umumiy jadval</p>
     </div>
 
-    <form method="get" class="sum-form">
-      <div class="sum-field">
-        <label for="date_from">Boshlanish sanasi</label>
-        <input id="date_from" class="sum-inp" type="date" name="date_from" value="{{ date_from|date:'Y-m-d' }}" required>
+    <form method="get" class="u2-actions">
+      <div class="u2-field">
+        <label for="date_from">Boshlanish sana</label>
+        <input id="date_from" class="u2-inp" type="date" name="date_from">
       </div>
 
-      <div class="sum-field">
-        <label for="date_to">Tugash sanasi</label>
-        <input id="date_to" class="sum-inp" type="date" name="date_to" value="{{ date_to|date:'Y-m-d' }}" required>
+      <div class="u2-field">
+        <label for="date_to">Tugash sana</label>
+        <input id="date_to" class="u2-inp" type="date" name="date_to">
       </div>
 
-      <button type="submit" class="sum-btn primary">Hisobotni ko‘rsatish</button>
-
-      <a
-        class="sum-btn secondary"
-        href="?date_from={{ date_from|date:'Y-m-d' }}&date_to={{ date_to|date:'Y-m-d' }}&export=excel"
-      >
-        Excelga yuklab olish
-      </a>
+      <button type="submit" class="u2-btn primary">Hisobotni ko‘rsatish</button>
+      <a href="#" class="u2-btn secondary">Excelga yuklab olish</a>
     </form>
   </div>
 
-  <div class="sheet-shell">
-    <div class="sheet-fit">
-      <table class="sheet">
+  <div class="u2-sheet-wrap">
+    <div class="u2-fit">
+      <table class="u2-sheet">
         <colgroup>
-          <col style="width:110px;">
-
-          <col class="w66"><col class="w66"><col class="w66"><col class="w66">
-          <col class="w66"><col class="w66"><col class="w66"><col class="w66">
-          <col class="w66"><col class="w66"><col class="w66"><col class="w66">
-          <col class="w66"><col class="w66"><col class="w66">
-          <col class="w72"><col class="w72"><col class="w72">
+          <col class="name">
+          <col class="num"><col class="num"><col class="num"><col class="num">
+          <col class="num"><col class="num"><col class="num"><col class="num">
+          <col class="num"><col class="num"><col class="num"><col class="num">
+          <col class="num"><col class="num"><col class="num">
+          <col class="numw"><col class="numw"><col class="numw">
         </colgroup>
 
         <thead>
           <tr>
-            <th class="main-head" colspan="20">
-              Информация о погрузке и выгрузке контейнеров и вагонов по ЛЦ АО "Ўзтемирйўлконтейнер"
-              за {{ month_label|default:"январь" }} месяц {{ year_range_label|default:"2025-2026 гг." }}
+            <th class="u2-main" colspan="20">
+              Информация о погрузке и выгрузке контейнеров и вагонов по ЛЦ АО "Ўзтемирйўлконтейнер" за январь месяц 2025-2026 гг.
             </th>
           </tr>
 
           <tr>
             <th rowspan="3">Наименование ЛЦ</th>
 
-            <th class="group-head" colspan="4">Погрузка вагонов (шт)</th>
-            <th class="group-head" colspan="4">Выгрузка вагонов (шт)</th>
-            <th class="group-head" colspan="4">Погрузка конт (шт)</th>
-            <th class="group-head" colspan="3">Выгрузка конт</th>
-            <th class="group-head" colspan="3">Доход (тыс. сум)</th>
+            <th class="u2-group" colspan="4">Погрузка вагонов (шт)</th>
+            <th class="u2-group" colspan="4">Выгрузка вагонов (шт)</th>
+            <th class="u2-group" colspan="4">Погрузка конт (шт)</th>
+            <th class="u2-group" colspan="3">Выгрузка конт</th>
+            <th class="u2-group" colspan="3">Доход (тыс. сум)</th>
           </tr>
 
           <tr>
-            <th class="sub-head">план за<br>месяц</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head red">+/-</th>
+            <th class="u2-subhead">план за<br>месяц</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead r">+/-</th>
 
-            <th class="sub-head">план за<br>месяц</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head red">+/-</th>
+            <th class="u2-subhead">план за<br>месяц</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead r">+/-</th>
 
-            <th class="sub-head">план за<br>месяц</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head red">+/-</th>
+            <th class="u2-subhead">план за<br>месяц</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead r">+/-</th>
 
-            <th class="sub-head">факт</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head red">+/-</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead r">+/-</th>
 
-            <th class="sub-head">факт</th>
-            <th class="sub-head">факт</th>
-            <th class="sub-head red">+/-</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead">факт</th>
+            <th class="u2-subhead r">+/-</th>
           </tr>
 
           <tr>
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2025г.</th>
-            <th class="sub-head red">2025г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2025г.</th>
+            <th class="u2-subhead r">2025г.</th>
 
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2025г.</th>
-            <th class="sub-head red">2025г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2025г.</th>
+            <th class="u2-subhead r">2025г.</th>
 
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2025г.</th>
-            <th class="sub-head red">2025г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2025г.</th>
+            <th class="u2-subhead r">2025г.</th>
 
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2025г.</th>
-            <th class="sub-head red">2025г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2025г.</th>
+            <th class="u2-subhead r">2025г.</th>
 
-            <th class="sub-head">2026г.</th>
-            <th class="sub-head">2025г.</th>
-            <th class="sub-head red">2025г.</th>
+            <th class="u2-subhead">2026г.</th>
+            <th class="u2-subhead">2025г.</th>
+            <th class="u2-subhead r">2025г.</th>
           </tr>
         </thead>
 
         <tbody>
-          {% for row in rows %}
-            <tr class="{% if row.kind == 'subtotal' %}subtotal{% elif row.kind == 'grandtotal' %}grandtotal{% endif %}">
-              <td class="name-col {% if row.name_color == 'purple' %}purple{% endif %}">
-                {{ row.name }}
-              </td>
+          <tr>
+            <td class="u2-name p">Чукурсай</td>
+            <td>546</td><td>251</td><td>544</td><td class="r">-293</td>
+            <td>2 410</td><td>2 832</td><td>2 363</td><td>469</td>
+            <td>574</td><td>428</td><td>571</td><td class="r">-143</td>
+            <td>4 477</td><td>3 266</td><td>1 211</td>
+            <td>5 426 998</td><td>4 986 298</td><td>440 700</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Ташкент</td>
+            <td>382</td><td>499</td><td>381</td><td>118</td>
+            <td>2 926</td><td>2 710</td><td>2 869</td><td class="r">-159</td>
+            <td>538</td><td>762</td><td>535</td><td>227</td>
+            <td>3 345</td><td>3 344</td><td>1</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Сергели</td>
+            <td>775</td><td>1 001</td><td>773</td><td>228</td>
+            <td>1 294</td><td>633</td><td>1 269</td><td class="r">-636</td>
+            <td>878</td><td>1 366</td><td>874</td><td>492</td>
+            <td>1 069</td><td>2 021</td><td class="r">-952</td>
+            <td>2 125 265</td><td>2 193 762</td><td class="r">-68 497</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Жалоп</td>
+            <td>0</td><td>64</td><td>43</td><td>21</td>
+            <td>31</td><td>75</td><td>0</td><td>75</td>
+            <td>0</td><td>78</td><td>93</td><td class="r">-15</td>
+            <td>152</td><td>0</td><td>152</td>
+            <td>237 413</td><td>0</td><td>237 413</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Ангаран</td>
+            <td>8</td><td>33</td><td>8</td><td>25</td>
+            <td>0</td><td>59</td><td>30</td><td>29</td>
+            <td>10</td><td>32</td><td>10</td><td>22</td>
+            <td>32</td><td>28</td><td>4</td>
+            <td>102 865</td><td>58 059</td><td>44 806</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Урта-аул</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>323</td><td>0</td><td>323</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>551</td><td>0</td><td>551</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Хаваст</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Сырдарья</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>15</td><td>51</td><td class="r">-36</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>27</td><td>96</td><td class="r">-69</td>
+            <td>15 784</td><td>39 408</td><td class="r">-23 624</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Назарбек</td>
+            <td>0</td><td>126</td><td>229</td><td class="r">-103</td>
+            <td>0</td><td>64</td><td>39</td><td>25</td>
+            <td>0</td><td>245</td><td>312</td><td class="r">-67</td>
+            <td>128</td><td>78</td><td>50</td>
+            <td>58 923</td><td>36 189</td><td>22 734</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Джизак</td>
+            <td>4</td><td>0</td><td>0</td><td>0</td>
+            <td>239</td><td>34</td><td>234</td><td class="r">-200</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>22</td><td>349</td><td class="r">-327</td>
+            <td>57 511</td><td>262 757</td><td class="r">-205 246</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Аблык</td>
+            <td>124</td><td>449</td><td>124</td><td>325</td>
+            <td>308</td><td>432</td><td>302</td><td>130</td>
+            <td>244</td><td>839</td><td>243</td><td>596</td>
+            <td>780</td><td>447</td><td>333</td>
+            <td>1 071 804</td><td>455 682</td><td>616 122</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Другие станции</td>
+            <td>0</td><td>202</td><td>21</td><td>181</td>
+            <td>0</td><td>189</td><td>17</td><td>172</td>
+            <td>0</td><td>404</td><td>42</td><td>362</td>
+            <td>376</td><td>34</td><td>342</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr class="subtotal">
+            <td class="u2-name">ИТОГО</td>
+            <td>1 839</td><td>2 625</td><td>2 123</td><td>502</td>
+            <td>7 208</td><td>7 366</td><td>7 174</td><td>192</td>
+            <td>2 244</td><td>4 154</td><td>2 680</td><td>1 474</td>
+            <td>10 959</td><td>9 663</td><td>1 296</td>
+            <td>9 096 563</td><td>8 032 155</td><td>1 064 408</td>
+          </tr>
 
-              <td>{{ row.wagon_load_plan|default:"0" }}</td>
-              <td class="green">{{ row.wagon_load_2026|default:"0" }}</td>
-              <td class="blue">{{ row.wagon_load_2025|default:"0" }}</td>
-              <td class="red">{{ row.wagon_load_diff|default:"0" }}</td>
+          <tr>
+            <td class="u2-name p">Коканд</td>
+            <td>146</td><td>44</td><td>145</td><td class="r">-101</td>
+            <td>145</td><td>55</td><td>142</td><td class="r">-87</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>30</td><td>118</td><td class="r">-88</td>
+            <td>240 326</td><td>378 607</td><td class="r">-138 281</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Раустaн</td>
+            <td>39</td><td>43</td><td>39</td><td>4</td>
+            <td>86</td><td>41</td><td>84</td><td class="r">-43</td>
+            <td>2</td><td>0</td><td>0</td><td>0</td>
+            <td>2</td><td>10</td><td class="r">-8</td>
+            <td>112 000</td><td>100 000</td><td>12 000</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Маргилан</td>
+            <td>77</td><td>84</td><td>77</td><td>7</td>
+            <td>97</td><td>86</td><td>95</td><td class="r">-9</td>
+            <td>3</td><td>0</td><td>0</td><td>0</td>
+            <td>114</td><td>28</td><td>86</td>
+            <td>445 970</td><td>510 856</td><td class="r">-64 886</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Ахтачи</td>
+            <td>342</td><td>238</td><td>341</td><td class="r">-103</td>
+            <td>308</td><td>281</td><td>302</td><td class="r">-21</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>44</td><td>97</td><td class="r">-53</td>
+            <td>0</td><td>123 347</td><td class="r">-123 347</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Асака</td>
+            <td>251</td><td>103</td><td>250</td><td class="r">-147</td>
+            <td>285</td><td>71</td><td>279</td><td class="r">-208</td>
+            <td>8</td><td>0</td><td>8</td><td class="r">-8</td>
+            <td>124</td><td>558</td><td class="r">-434</td>
+            <td>0</td><td>384 761</td><td class="r">-384 761</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Другие станции</td>
+            <td>0</td><td>11</td><td>26</td><td class="r">-15</td>
+            <td>0</td><td>57</td><td>67</td><td class="r">-10</td>
+            <td>0</td><td>22</td><td>52</td><td class="r">-30</td>
+            <td>113</td><td>131</td><td class="r">-18</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr class="subtotal">
+            <td class="u2-name">ИТОГО</td>
+            <td>855</td><td>523</td><td>878</td><td class="r">-355</td>
+            <td>921</td><td>591</td><td>969</td><td class="r">-378</td>
+            <td>13</td><td>22</td><td>60</td><td class="r">-38</td>
+            <td>427</td><td>942</td><td class="r">-515</td>
+            <td>798 296</td><td>1 497 571</td><td class="r">-699 275</td>
+          </tr>
 
-              <td>{{ row.wagon_unload_plan|default:"0" }}</td>
-              <td class="green">{{ row.wagon_unload_2026|default:"0" }}</td>
-              <td class="blue">{{ row.wagon_unload_2025|default:"0" }}</td>
-              <td class="red">{{ row.wagon_unload_diff|default:"0" }}</td>
+          <tr>
+            <td class="u2-name p">Бухара-2</td>
+            <td>22</td><td>15</td><td>22</td><td class="r">-7</td>
+            <td>31</td><td>71</td><td>30</td><td>41</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>1</td><td>10</td><td class="r">-9</td>
+            <td>400 000</td><td>355 000</td><td>45 000</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Тинчлык</td>
+            <td>17</td><td>28</td><td>17</td><td>11</td>
+            <td>5</td><td>2</td><td>5</td><td class="r">-3</td>
+            <td>35</td><td>48</td><td>34</td><td>14</td>
+            <td>3</td><td>9</td><td class="r">-6</td>
+            <td>45 172</td><td>32 017</td><td>13 155</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Навои(Кармана)</td>
+            <td>4</td><td>0</td><td>0</td><td>0</td>
+            <td>2</td><td>0</td><td>2</td><td class="r">-2</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>1</td><td class="r">-1</td>
+            <td>80 870</td><td>71 038</td><td>9 832</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Янги-Зарафшан</td>
+            <td>2</td><td>21</td><td>0</td><td>21</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+            <td>15 413</td><td>2 218</td><td>13 195</td>
+          </tr>
+          <tr>
+            <td class="u2-name p">Улугбек</td>
+            <td>309</td><td>1 429</td><td>308</td><td>1 121</td>
+            <td>458</td><td>1 568</td><td>449</td><td>1 119</td>
+            <td>619</td><td>2 854</td><td>616</td><td>2 238</td>
+            <td>3 006</td><td>863</td><td>2 143</td>
+            <td>1 200 000</td><td>1 170 444</td><td>29 556</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Другие станции</td>
+            <td>0</td><td>15</td><td>0</td><td>15</td>
+            <td>0</td><td>54</td><td>0</td><td>54</td>
+            <td>0</td><td>29</td><td>0</td><td>29</td>
+            <td>107</td><td>0</td><td>107</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr class="subtotal">
+            <td class="u2-name">ИТОГО</td>
+            <td>354</td><td>1 508</td><td>347</td><td>1 161</td>
+            <td>496</td><td>1 695</td><td>486</td><td>1 209</td>
+            <td>654</td><td>2 931</td><td>650</td><td>2 281</td>
+            <td>3 117</td><td>883</td><td>2 234</td>
+            <td>1 741 455</td><td>1 630 717</td><td>110 738</td>
+          </tr>
 
-              <td>{{ row.cont_load_plan|default:"0" }}</td>
-              <td class="green">{{ row.cont_load_2026|default:"0" }}</td>
-              <td class="blue">{{ row.cont_load_2025|default:"0" }}</td>
-              <td class="red">{{ row.cont_load_diff|default:"0" }}</td>
+          <tr>
+            <td class="u2-name p">Карши</td>
+            <td>2</td><td>0</td><td>0</td><td>0</td>
+            <td>31</td><td>72</td><td>30</td><td>42</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>17</td><td>19</td><td class="r">-2</td>
+            <td>45 294</td><td>15 396</td><td>29 898</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Дехканабад</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>1</td><td>6</td><td class="r">-5</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+            <td>217 600</td><td>1 198</td><td>216 402</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Другие станции</td>
+            <td>0</td><td>0</td><td>1</td><td class="r">-1</td>
+            <td>0</td><td>3</td><td>2</td><td>1</td>
+            <td>0</td><td>0</td><td>2</td><td class="r">-2</td>
+            <td>6</td><td>4</td><td>2</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr class="subtotal">
+            <td class="u2-name">ИТОГО</td>
+            <td>2</td><td>0</td><td>1</td><td class="r">-1</td>
+            <td>31</td><td>76</td><td>38</td><td>38</td>
+            <td>0</td><td>0</td><td>2</td><td class="r">-2</td>
+            <td>23</td><td>23</td><td>0</td>
+            <td>262 894</td><td>16 594</td><td>246 300</td>
+          </tr>
 
-              <td class="green">{{ row.cont_unload_2026|default:"0" }}</td>
-              <td class="blue">{{ row.cont_unload_2025|default:"0" }}</td>
-              <td class="red">{{ row.cont_unload_diff|default:"0" }}</td>
+          <tr>
+            <td class="u2-name">Термез</td>
+            <td>10</td><td>11</td><td>1</td><td>10</td>
+            <td>39</td><td>24</td><td>38</td><td class="r">-14</td>
+            <td>2</td><td>0</td><td>0</td><td>0</td>
+            <td>2</td><td>25</td><td class="r">-23</td>
+            <td>61 444</td><td>54 714</td><td>6 730</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Другие станции</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>11</td><td>1</td><td>10</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>21</td><td>1</td><td>20</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr class="subtotal">
+            <td class="u2-name">ИТОГО</td>
+            <td>10</td><td>11</td><td>1</td><td>10</td>
+            <td>39</td><td>35</td><td>39</td><td class="r">-4</td>
+            <td>2</td><td>0</td><td>0</td><td>0</td>
+            <td>23</td><td>26</td><td class="r">-3</td>
+            <td>61 444</td><td>54 714</td><td>6 730</td>
+          </tr>
 
-              <td class="green">{{ row.income_2026|default:"0" }}</td>
-              <td class="blue">{{ row.income_2025|default:"0" }}</td>
-              <td class="red">{{ row.income_diff|default:"0" }}</td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="20" style="padding:20px; font-weight:700;">
-                Ma’lumot topilmadi
-              </td>
-            </tr>
-          {% endfor %}
+          <tr>
+            <td class="u2-name">Нукус</td>
+            <td>2</td><td>0</td><td>1</td><td class="r">-1</td>
+            <td>36</td><td>24</td><td>35</td><td class="r">-11</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>30</td><td class="r">-30</td>
+            <td>58 629</td><td>47 356</td><td>11 273</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Кырккыз</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Ургенч</td>
+            <td>17</td><td>2</td><td>3</td><td class="r">-1</td>
+            <td>29</td><td>71</td><td>28</td><td>43</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>2</td><td>17</td><td class="r">-15</td>
+            <td>68 967</td><td>50 049</td><td>18 918</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Питняк</td>
+            <td>0</td><td>5</td><td>0</td><td>5</td>
+            <td>88</td><td>63</td><td>86</td><td class="r">-23</td>
+            <td>0</td><td>10</td><td>0</td><td>10</td>
+            <td>126</td><td>172</td><td class="r">-46</td>
+            <td>73 589</td><td>94 422</td><td class="r">-20 833</td>
+          </tr>
+          <tr>
+            <td class="u2-name">Другие станции</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+            <td>0</td><td>0</td><td>0</td>
+          </tr>
+          <tr class="subtotal">
+            <td class="u2-name">ИТОГО</td>
+            <td>19</td><td>7</td><td>4</td><td>3</td>
+            <td>153</td><td>158</td><td>149</td><td>9</td>
+            <td>0</td><td>10</td><td>0</td><td>10</td>
+            <td>128</td><td>219</td><td class="r">-91</td>
+            <td>201 185</td><td>191 827</td><td>9 358</td>
+          </tr>
+
+          <tr class="grand">
+            <td class="u2-name">Всего по ЖДК</td>
+            <td>3 079</td><td>4 674</td><td>3 354</td><td>1 320</td>
+            <td>8 848</td><td>9 921</td><td>8 855</td><td>1 066</td>
+            <td>2 913</td><td>7 117</td><td>3 392</td><td>3 725</td>
+            <td>14 677</td><td>11 756</td><td>2 921</td>
+            <td>12 161 837</td><td>11 423 578</td><td>738 259</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <div class="excel-note">
-    Excel tugmasi `?export=excel` orqali ishlashga mo‘ljallangan. View ichida shu parametrni ushlab fayl qaytarasiz.
+  <div class="u2-note">
+    
   </div>
 </div>
 {% endblock %}
