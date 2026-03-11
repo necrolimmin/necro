@@ -13,10 +13,10 @@ DISPLAY_GROUPS = [
     {
         "title": "group1",
         "stations": [
-            "Чукурсай",
-            "Ташкент",
+            "Chukursoy LM",
+            "Toshkent LM",
             "Сергели",
-            "Ахангаран",
+            "Axangaron LM",
             "Назарбек",
             "Хаваст",
             "Джизак",
@@ -26,9 +26,9 @@ DISPLAY_GROUPS = [
     {
         "title": "group2",
         "stations": [
-            "Коканд",
-            "Раустан",
-            "Маргилан",
+            "Qo'qon LM",
+            "Rovustan LM",
+            "Marg'ilon",
             "Ахтачи",
             "Асака",
         ],
@@ -40,7 +40,7 @@ DISPLAY_GROUPS = [
             "Тинчлык",
             "Навои(Кармана)",
             "Янги-Зарафшан",
-            "Улугбек",
+            "Ulug'bek LM",
         ],
     },
     {
@@ -59,13 +59,19 @@ DISPLAY_GROUPS = [
     {
         "title": "group6",
         "stations": [
-            "Нукус",
+            "Nukus LM",
             "Кирккыз",
             "Ургенч",
             "Питняк",
         ],
     },
 ]
+from datetime import datetime
+
+from django.contrib import messages
+from django.db import transaction
+from django.shortcuts import render, redirect
+from django.utils import timezone
 
 
 def _safe_int(value, default=0):
@@ -79,13 +85,20 @@ def _safe_int(value, default=0):
         return default
 
 
+def _same_day_last_year(dt):
+    try:
+        return dt.replace(year=dt.year - 1)
+    except ValueError:
+        return dt.replace(year=dt.year - 1, day=28)
+
+
 def _get_station_profile_from_user(user):
     return StationProfile.objects.get(user=user)
 
 
 def _build_current_year_totals_by_station(report_date):
     """
-    Builds station totals from StationDailyTable1 JSON for selected date.
+    Current year values from StationDailyTable1 for the selected date.
 
     Mapping:
     - pogr_this_year      -> pogr_itogo
@@ -97,7 +110,7 @@ def _build_current_year_totals_by_station(report_date):
     qs = (
         StationDailyTable1.objects
         .filter(date=report_date)
-        .select_related("station_user")
+        .select_related("station_user").exclude(shift="total")
     )
 
     station_map = {}
@@ -129,7 +142,49 @@ def _build_current_year_totals_by_station(report_date):
     return station_map
 
 
-def _row_to_dict(row):
+def _build_last_year_totals_by_station_from_hisobot1(last_year_date):
+    """
+    Last year values from Hisobot 1 for the exact same day last year.
+
+    REPLACE Hisobot1Daily with your real Hisobot 1 model if needed.
+    Assumes same JSON keys as StationDailyTable1.
+    """
+    qs = (
+        StationDailyTable1.objects
+        .filter(date=last_year_date)
+        .select_related("station_user").exclude(shift="total")
+    )
+
+    station_map = {}
+
+    for obj in qs:
+        try:
+            station = _get_station_profile_from_user(obj.station_user)
+        except StationProfile.DoesNotExist:
+            continue
+
+        payload = obj.data or {}
+
+        if station.id not in station_map:
+            station_map[station.id] = {
+                "station": station,
+                "pogr_last_year": 0,
+                "vygr_last_year": 0,
+                "pogr_kont_last_year": 0,
+                "vygr_kont_last_year": 0,
+                "income_last_year": 0,
+            }
+
+        station_map[station.id]["pogr_last_year"] += _safe_int(payload.get("pogr_itogo", 0))
+        station_map[station.id]["vygr_last_year"] += _safe_int(payload.get("vygr_itogo", 0))
+        station_map[station.id]["pogr_kont_last_year"] += _safe_int(payload.get("pogr_itogo_kon", 0))
+        station_map[station.id]["vygr_kont_last_year"] += _safe_int(payload.get("vygr_itogo_kon", 0))
+        station_map[station.id]["income_last_year"] += _safe_int(payload.get("income_daily", 0))
+
+    return station_map
+
+
+def _row_to_dict(row, income_this_year=0, income_last_year=0):
     pogr_this = row.pogr_this_year or 0
     pogr_last = row.pogr_last_year or 0
     vygr_this = row.vygr_this_year or 0
@@ -139,14 +194,9 @@ def _row_to_dict(row):
     vygr_kont_this = row.vygr_kont_this_year or 0
     vygr_kont_last = row.vygr_kont_last_year or 0
 
-    income_this = getattr(row, "income_this_year", 0) or 0
-    income_last = getattr(row, "income_last_year", 0) or 0
-
-    station_name = row.station.station_name if row.station else ""
-
     return {
         "id": row.id,
-        "station_name": station_name,
+        "station_name": row.station.station_name,
         "is_other": False,
 
         "pogr_this_year": pogr_this,
@@ -165,9 +215,9 @@ def _row_to_dict(row):
         "vygr_kont_last_year": vygr_kont_last,
         "vygr_kont_diff": vygr_kont_this - vygr_kont_last,
 
-        "income_this_year": income_this,
-        "income_last_year": income_last,
-        "income_diff": income_this - income_last,
+        "income_this_year": income_this_year or 0,
+        "income_last_year": income_last_year or 0,
+        "income_diff": (income_this_year or 0) - (income_last_year or 0),
     }
 
 
@@ -255,9 +305,15 @@ def kvartalniy_kun(request, date_str=None):
         selected_date = timezone.localdate()
 
     current_year = selected_date.year
-    prev_year = current_year - 1
+    prev_year_date = _same_day_last_year(selected_date)
+    prev_year = prev_year_date.year
 
-    # SAVE ONLY LAST-YEAR FIELDS
+    # SOURCE DATA
+    current_year_data = _build_current_year_totals_by_station(selected_date)
+    last_year_data = _build_last_year_totals_by_station_from_hisobot1(prev_year_date)
+
+    # If you still want to allow manual editing of last-year values,
+    # this block saves manual overrides.
     if request.method == "POST" and request.POST.get("save") == "1":
         row_ids = request.POST.getlist("row_ids")
 
@@ -270,10 +326,10 @@ def kvartalniy_kun(request, date_str=None):
             except KvartalniyDaily.DoesNotExist:
                 continue
 
-            obj.pogr_last_year = _safe_int(request.POST.get(f"pogr_last_year_{row_id}"))
-            obj.vygr_last_year = _safe_int(request.POST.get(f"vygr_last_year_{row_id}"))
-            obj.pogr_kont_last_year = _safe_int(request.POST.get(f"pogr_kont_last_year_{row_id}"))
-            obj.vygr_kont_last_year = _safe_int(request.POST.get(f"vygr_kont_last_year_{row_id}"))
+            obj.pogr_last_year = _safe_int(request.POST.get(f"pogr_last_year_{row_id}"), obj.pogr_last_year or 0)
+            obj.vygr_last_year = _safe_int(request.POST.get(f"vygr_last_year_{row_id}"), obj.vygr_last_year or 0)
+            obj.pogr_kont_last_year = _safe_int(request.POST.get(f"pogr_kont_last_year_{row_id}"), obj.pogr_kont_last_year or 0)
+            obj.vygr_kont_last_year = _safe_int(request.POST.get(f"vygr_kont_last_year_{row_id}"), obj.vygr_kont_last_year or 0)
 
             obj.save(update_fields=[
                 "pogr_last_year",
@@ -285,22 +341,52 @@ def kvartalniy_kun(request, date_str=None):
         messages.success(request, "Saved successfully.")
         return redirect("kvartalniy_kun_by_date", date_str=selected_date.strftime("%Y-%m-%d"))
 
-    # SYNC THIS YEAR DATA FROM StationDailyTable1
-    current_year_data = _build_current_year_totals_by_station(selected_date)
+    # SYNC CURRENT YEAR + LAST YEAR INTO KvartalniyDaily
+    all_station_ids = set(current_year_data.keys()) | set(last_year_data.keys())
 
-    for item in current_year_data.values():
-        KvartalniyDaily.objects.update_or_create(
-            station=item["station"],
+    for station_id in all_station_ids:
+        current_item = current_year_data.get(station_id, {})
+        last_item = last_year_data.get(station_id, {})
+
+        station = current_item.get("station") or last_item.get("station")
+        if not station:
+            continue
+
+        obj, created = KvartalniyDaily.objects.get_or_create(
+            station=station,
             date=selected_date,
             defaults={
-                "pogr_this_year": item["pogr_this_year"],
-                "vygr_this_year": item["vygr_this_year"],
-                "pogr_kont_this_year": item["pogr_kont_this_year"],
-                "vygr_kont_this_year": item["vygr_kont_this_year"],
+                "pogr_this_year": current_item.get("pogr_this_year", 0),
+                "vygr_this_year": current_item.get("vygr_this_year", 0),
+                "pogr_kont_this_year": current_item.get("pogr_kont_this_year", 0),
+                "vygr_kont_this_year": current_item.get("vygr_kont_this_year", 0),
+
+                "pogr_last_year": last_item.get("pogr_last_year", 0),
+                "vygr_last_year": last_item.get("vygr_last_year", 0),
+                "pogr_kont_last_year": last_item.get("pogr_kont_last_year", 0),
+                "vygr_kont_last_year": last_item.get("vygr_kont_last_year", 0),
             }
         )
 
-    # LOAD TABLE DATA
+        # always refresh this year from StationDailyTable1
+        obj.pogr_this_year = current_item.get("pogr_this_year", 0)
+        obj.vygr_this_year = current_item.get("vygr_this_year", 0)
+        obj.pogr_kont_this_year = current_item.get("pogr_kont_this_year", 0)
+        obj.vygr_kont_this_year = current_item.get("vygr_kont_this_year", 0)
+
+        # auto-fill last year from Hisobot 1 only if empty/zero
+        if obj.pogr_last_year in (None, 0):
+            obj.pogr_last_year = last_item.get("pogr_last_year", 0)
+        if obj.vygr_last_year in (None, 0):
+            obj.vygr_last_year = last_item.get("vygr_last_year", 0)
+        if obj.pogr_kont_last_year in (None, 0):
+            obj.pogr_kont_last_year = last_item.get("pogr_kont_last_year", 0)
+        if obj.vygr_kont_last_year in (None, 0):
+            obj.vygr_kont_last_year = last_item.get("vygr_kont_last_year", 0)
+
+        obj.save()
+
+    # LOAD REPORT ROWS
     db_rows = (
         KvartalniyDaily.objects
         .filter(date=selected_date)
@@ -309,22 +395,25 @@ def kvartalniy_kun(request, date_str=None):
     )
 
     rows_by_name = {}
-    income_by_name = {}
+    income_this_by_name = {}
+    income_last_by_name = {}
 
     for row in db_rows:
         if row.station and row.station.station_name:
-            station_name = row.station.station_name.strip()
-            rows_by_name[station_name] = row
+            rows_by_name[row.station.station_name.strip()] = row
 
     for item in current_year_data.values():
         station_name = item["station"].station_name.strip()
-        income_by_name[station_name] = item.get("income_this_year", 0)
+        income_this_by_name[station_name] = item.get("income_this_year", 0)
+
+    for item in last_year_data.values():
+        station_name = item["station"].station_name.strip()
+        income_last_by_name[station_name] = item.get("income_last_year", 0)
 
     groups = []
     grand_total = _make_zero_totals("Всего по ЖДК")
     known_station_names = set()
 
-    # MAIN ORDERED GROUPS
     for idx, cfg in enumerate(DISPLAY_GROUPS, start=1):
         group_rows = []
         subtotal = _make_zero_totals("ИТОГО")
@@ -334,9 +423,11 @@ def kvartalniy_kun(request, date_str=None):
 
             row = rows_by_name.get(station_name)
             if row:
-                item = _row_to_dict(row)
-                item["income_this_year"] = income_by_name.get(station_name, 0)
-                item["income_diff"] = item["income_this_year"] - item["income_last_year"]
+                item = _row_to_dict(
+                    row,
+                    income_this_year=income_this_by_name.get(station_name, 0),
+                    income_last_year=income_last_by_name.get(station_name, 0),
+                )
             else:
                 item = _make_empty_station_row(station_name)
 
@@ -351,18 +442,19 @@ def kvartalniy_kun(request, date_str=None):
             "subtotal": subtotal,
         })
 
-    # UNMATCHED STATIONS
     unmatched_rows = []
     unmatched_total = _make_zero_totals("ИТОГО")
 
     for station_name, row in rows_by_name.items():
         if station_name not in known_station_names:
-            item = _row_to_dict(row)
+            item = _row_to_dict(
+                row,
+                income_this_year=income_this_by_name.get(station_name, 0),
+                income_last_year=income_last_by_name.get(station_name, 0),
+            )
             item["is_other"] = True
-            item["income_this_year"] = income_by_name.get(station_name, 0)
-            item["income_diff"] = item["income_this_year"] - item["income_last_year"]
-
             unmatched_rows.append(item)
+
             _add_to_totals(unmatched_total, item)
             _add_to_totals(grand_total, item)
 
