@@ -1694,35 +1694,104 @@ def admin_table1_station_blocks(request, date_str, user_id: int):
 
 
 
+
 import json
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
+from django.db.models import Exists, OuterRef
+from django.templatetags.static import static
 
 from .models import Notification, NotificationRead
+
+
+def _safe_user_name(user):
+    full_name = f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip()
+    if full_name:
+        return full_name
+    username = getattr(user, "username", "") or ""
+    if username:
+        return username
+    return f"User {user.id}"
+
+
+def _safe_avatar_url(notification):
+    try:
+        if notification.avatar and hasattr(notification.avatar, "url"):
+            return notification.avatar.url
+    except Exception:
+        pass
+
+    try:
+        creator = notification.created_by
+        if creator:
+            profile = getattr(creator, "profile", None)
+            if profile and getattr(profile, "photo", None) and hasattr(profile.photo, "url"):
+                return profile.photo.url
+    except Exception:
+        pass
+
+    return static("images/admin-bot.png")
 
 
 @require_GET
 @login_required
 def notifications_latest(request):
     """
-    Returns latest active notification and whether current user has read it.
+    User/admin uchun oxirgi aktiv habarnoma.
+    Admin uchun:
+      - xabar
+      - kimlar o'qiganini live ko'rsatish
+    User uchun:
+      - xabar
+      - unread holat
     """
-    notif = Notification.objects.filter(is_active=True).order_by("-created_at").first()
-    if not notif:
-        return JsonResponse({"ok": True, "notification": None})
+    latest_qs = Notification.objects.filter(is_active=True)
 
-    read = NotificationRead.objects.filter(user=request.user, notification=notif).exists()
+    read_subq = NotificationRead.objects.filter(
+        user=request.user,
+        notification=OuterRef("pk")
+    )
+
+    notif = latest_qs.annotate(
+        user_has_read=Exists(read_subq)
+    ).order_by("-created_at").select_related("created_by").first()
+
+    if not notif:
+        return JsonResponse({"ok": True, "notification": None, "unread": False})
+
+    unread = not bool(getattr(notif, "user_has_read", False))
+
+    read_events = []
+    if request.user.is_staff or request.user.is_superuser:
+        latest_reads = (
+            NotificationRead.objects
+            .filter(notification=notif)
+            .select_related("user")
+            .order_by("-read_at")[:20]
+        )
+
+        read_events = [
+            {
+                "user_id": r.user_id,
+                "user_name": _safe_user_name(r.user),
+                "read_at": timezone.localtime(r.read_at).strftime("%d.%m.%Y %H:%M:%S"),
+            }
+            for r in latest_reads
+        ]
 
     return JsonResponse({
         "ok": True,
         "notification": {
             "id": notif.id,
             "message": notif.message,
-            "created_at": notif.created_at.isoformat(),
+            "created_at": timezone.localtime(notif.created_at).strftime("%d.%m.%Y %H:%M:%S"),
+            "created_by_name": _safe_user_name(notif.created_by) if notif.created_by else "Admin",
+            "avatar_url": _safe_avatar_url(notif),
         },
-        "unread": (not read),
+        "unread": unread,
+        "read_events": read_events,
     })
 
 
@@ -1730,7 +1799,7 @@ def notifications_latest(request):
 @login_required
 def notifications_ack(request):
     """
-    Mark latest notification as read (or specified id).
+    User xabarni o'qib 'Tushunarli' bossa ishlaydi.
     """
     try:
         body = json.loads(request.body.decode("utf-8") or "{}")
@@ -1738,23 +1807,33 @@ def notifications_ack(request):
         body = {}
 
     notif_id = body.get("id")
-    if notif_id:
-        notif = Notification.objects.filter(id=notif_id, is_active=True).first()
-    else:
-        notif = Notification.objects.filter(is_active=True).order_by("-created_at").first()
+    if not notif_id:
+        return JsonResponse({"ok": False, "detail": "notification_id_required"}, status=400)
 
+    notif = Notification.objects.filter(id=notif_id, is_active=True).first()
     if not notif:
-        return JsonResponse({"ok": True, "marked": False})
+        return JsonResponse({"ok": False, "detail": "notification_not_found"}, status=404)
 
-    NotificationRead.objects.get_or_create(user=request.user, notification=notif)
-    return JsonResponse({"ok": True, "marked": True, "id": notif.id})
+    obj, created = NotificationRead.objects.get_or_create(
+        user=request.user,
+        notification=notif
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "marked": True,
+        "created": created,
+        "id": notif.id,
+        "user_name": _safe_user_name(request.user),
+        "read_at": timezone.localtime(obj.read_at).strftime("%d.%m.%Y %H:%M:%S"),
+    })
 
 
 @require_POST
 @login_required
 def notifications_send(request):
     """
-    Admin/staff sends a notification to everyone.
+    Admin/staff -> barcha userlarga xabar yuboradi.
     """
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({"ok": False, "detail": "forbidden"}, status=403)
@@ -1773,12 +1852,25 @@ def notifications_send(request):
         created_by=request.user,
         is_active=True,
     )
+
     return JsonResponse({
         "ok": True,
-        "notification": {"id": notif.id, "created_at": notif.created_at.isoformat()}
+        "notification": {
+            "id": notif.id,
+            "message": notif.message,
+            "created_at": timezone.localtime(notif.created_at).strftime("%d.%m.%Y %H:%M:%S"),
+            "created_by_name": _safe_user_name(request.user),
+            "avatar_url": _safe_avatar_url(notif),
+        }
     })
 
 
 
+def kvartalniy(request):
+    return render(request, "kvartalniy.html")
 
+def kvartalniy_kun(request):
+    return render(request, "kvartalniy_day_report.html")
 
+def kvartalniy_umumiy(request):
+    return render(request, "kvartalniy_umumlashgan.html")

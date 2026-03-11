@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import *
+from .views import notifications_latest, notifications_ack, notifications_send
 
 urlpatterns = [
     # path('station/table-1/', station_table_1, name='station_table_1'),
@@ -41,6 +42,11 @@ urlpatterns = [
     path("api/notifications/latest/", notifications_latest, name="notifications_latest"),
     path("api/notifications/ack/",    notifications_ack,    name="notifications_ack"),
     path("api/notifications/send/",   notifications_send,   name="notifications_send"),
+
+    path("kvartalniy/", kvartalniy, name="kvartalniy"),
+    path("kvartalniy/kun/", kvartalniy_kun, name="kvartalniy_kun"),
+    path("kvartalniy/umumiy/", kvartalniy_umumiy, name="kvartalniy_umumiy"),
+    
 ]
 
 
