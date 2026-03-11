@@ -1,6 +1,6 @@
 from django.urls import path
 
-from reports.kvartalniy import kvartalniy_kun
+from reports.kvartalniy import kvartalniy, kvartalniy_kun
 from .views import *
 from .views import notifications_latest, notifications_ack, notifications_send
 
@@ -45,10 +45,11 @@ urlpatterns = [
     path("api/notifications/ack/",    notifications_ack,    name="notifications_ack"),
     path("api/notifications/send/",   notifications_send,   name="notifications_send"),
 
-    path("kvartalniy/", kvartalniy, name="kvartalniy"),
+    path("kvartalniy/", kvartalniy1, name="kvartalniy"),
     path("kvartalniy/kun/", kvartalniy_kun, name="kvartalniy_kun"),
     path("kvartalniy/kun/<str:date_str>/", kvartalniy_kun, name="kvartalniy_kun_by_date"),
-    path("kvartalniy/umumiy/", kvartalniy_umumiy, name="kvartalniy_umumiy"),
+    path("kvartalniy/umumiy/", kvartalniy, name="kvartalniy_umumiy"),
+    path("kvartalniy/umumiy/<str:month_str>/", kvartalniy, name="kvartalniy_month_by_date"),
     
 ]
 

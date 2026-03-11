@@ -1866,7 +1866,7 @@ def notifications_send(request):
 
 
 
-def kvartalniy(request):
+def kvartalniy1(request):
     return render(request, "kvartalniy.html")
 
 
