@@ -547,8 +547,7 @@ def _build_dates_for_selected_days(month_date: date, selected_days: list[int]) -
 
 def _sum_kvartal_daily_this_fields_for_dates(selected_dates: list[date]):
     """
-    Uses *_this_year fields from KvartalniyDaily rows for the exact dates passed in.
-    For previous year comparison, pass previous year's exact dates here too.
+    Sum current-year fields from selected daily rows.
     """
     if not selected_dates:
         return {}
@@ -577,6 +576,41 @@ def _sum_kvartal_daily_this_fields_for_dates(selected_dates: list[date]):
         station_map[station.id]["vygr"] += row.vygr_this_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_this_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_this_year or 0
+
+    return station_map
+
+
+def _sum_kvartal_daily_last_fields_for_dates(selected_dates: list[date]):
+    """
+    Sum last-year comparison fields from the SAME selected daily rows.
+    """
+    if not selected_dates:
+        return {}
+
+    qs = (
+        KvartalniyDaily.objects
+        .filter(date__in=selected_dates)
+        .select_related("station")
+    )
+
+    station_map = {}
+
+    for row in qs:
+        station = row.station
+
+        if station.id not in station_map:
+            station_map[station.id] = {
+                "station": station,
+                "pogr": 0,
+                "vygr": 0,
+                "pogr_kont": 0,
+                "vygr_kont": 0,
+            }
+
+        station_map[station.id]["pogr"] += row.pogr_last_year or 0
+        station_map[station.id]["vygr"] += row.vygr_last_year or 0
+        station_map[station.id]["pogr_kont"] += row.pogr_kont_last_year or 0
+        station_map[station.id]["vygr_kont"] += row.vygr_kont_last_year or 0
 
     return station_map
 
@@ -715,14 +749,11 @@ def _redirect_with_selection(request, selected_month, selected_days):
     )
     return HttpResponseRedirect(f"{request.path}?{query}")
 
-
 @transaction.atomic
 def kvartalniy(request, month_str=None):
     selected_month, selected_days, month_days = _selected_month_and_days(request, month_str)
-    prev_year_month = _same_month_last_year(selected_month)
 
     current_dates = _build_dates_for_selected_days(selected_month, selected_days)
-    prev_dates = _build_dates_for_selected_days(prev_year_month, selected_days)
 
     selected_count = len(selected_days)
     all_selected = selected_count == month_days
@@ -769,8 +800,11 @@ def kvartalniy(request, month_str=None):
         messages.success(request, "Monthly plans saved successfully.")
         return _redirect_with_selection(request, selected_month, selected_days)
 
+    # current year comes from *_this_year of the selected rows
     current_data = _sum_kvartal_daily_this_fields_for_dates(current_dates)
-    last_year_data = _sum_kvartal_daily_this_fields_for_dates(prev_dates)
+
+    # last year comparison comes from *_last_year of the SAME selected rows
+    last_year_data = _sum_kvartal_daily_last_fields_for_dates(current_dates)
 
     plan_qs = (
         KvartalniyMonthlyPlan.objects
@@ -859,7 +893,7 @@ def kvartalniy(request, month_str=None):
     context = {
         "month": selected_month,
         "current_year": selected_month.year,
-        "prev_year": prev_year_month.year,
+        "prev_year": selected_month.year - 1,
         "groups": groups,
         "grand_total": grand_total,
         "selected_days": selected_days,

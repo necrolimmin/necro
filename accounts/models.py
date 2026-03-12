@@ -79,3 +79,26 @@ class KvartalniyMonthlyPlan(models.Model):
 
     def __str__(self):
         return f"{self.monthly.date:%Y-%m} - {self.station}"
+    
+
+# accounts/models.py
+
+class KvartalniyGroupExtraPlan(models.Model):
+    monthly = models.ForeignKey(
+        KvartalniyMonthly,
+        on_delete=models.CASCADE,
+        related_name="group_extra_plans",
+    )
+    group_key = models.CharField(max_length=50)   # group1, group2, ...
+    row_name = models.CharField(max_length=100, default="Вес.хоз")
+
+    pogr_plan = models.IntegerField(default=0)
+    vygr_plan = models.IntegerField(default=0)
+    pogr_kont_plan = models.IntegerField(default=0)
+    vygr_kont_plan = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("monthly", "group_key", "row_name")
+
+    def __str__(self):
+        return f"{self.monthly.date:%Y-%m} | {self.group_key} | {self.row_name}"
