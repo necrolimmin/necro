@@ -40,6 +40,7 @@
     --accent2:#3b82f6;
     --danger:#f87171;
   }
+
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]) .t2-page{
       --bg: #070b18;
@@ -58,6 +59,7 @@
   }
 
   .t2-shell{ max-width: 1120px; margin: 0 auto; }
+
   .t2-card{
     border: 1px solid var(--stroke);
     border-radius: 18px;
@@ -74,6 +76,7 @@
     flex-wrap:wrap;
     margin-bottom: 12px;
   }
+
   .t2-title{
     margin:0;
     font-weight: 950;
@@ -82,6 +85,7 @@
     font-size: 18px;
     line-height: 1.15;
   }
+
   .t2-sub{
     margin:6px 0 0;
     color: var(--muted);
@@ -101,17 +105,20 @@
     border: 1px solid var(--stroke);
     box-shadow: var(--shadow2);
   }
+
   .t2-field{
     display:flex;
     flex-direction:column;
     gap:6px;
     min-width: 220px;
   }
+
   .t2-field label{
     font-weight: 900;
     font-size: 12px;
     color: var(--text);
   }
+
   .t2-input{
     height: 42px;
     padding: 0 12px;
@@ -122,19 +129,28 @@
     outline: none;
     transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
   }
+
   [data-theme="dark"] .t2-input,
   .dark .t2-input,
   :root:not([data-theme="light"]) .t2-input{
     background: rgba(2,6,23,.35);
     color: var(--text);
   }
+
   .t2-input:focus{
     border-color: rgba(37,99,235,.55);
     box-shadow: 0 0 0 4px rgba(37,99,235,.18);
   }
+
   .t2-input[disabled]{ opacity: .85; cursor: not-allowed; }
 
-  .t2-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .t2-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+
   .t2-btn{
     height: 42px;
     padding: 0 14px;
@@ -151,17 +167,21 @@
     transition: transform .06s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
     user-select:none;
   }
+
   [data-theme="dark"] .t2-btn,
   .dark .t2-btn,
   :root:not([data-theme="light"]) .t2-btn{
     background: rgba(2,6,23,.35);
   }
+
   .t2-btn:hover{
     transform: translateY(-1px);
     border-color: rgba(37,99,235,.45);
     box-shadow: 0 10px 20px rgba(2,6,23,.12);
   }
+
   .t2-btn:active{ transform: translateY(0px) scale(.99); }
+
   .t2-btn.primary{
     background: linear-gradient(135deg, rgba(37,99,235,.95), rgba(29,78,216,.95));
     border-color: rgba(37,99,235,.65);
@@ -183,6 +203,7 @@
     min-width: 980px;
     table-layout: fixed;
   }
+
   .t2-table th,
   .t2-table td{
     border: 1px solid var(--stroke2);
@@ -191,6 +212,7 @@
     vertical-align: middle;
     color: var(--text);
   }
+
   .t2-center{ text-align:center; }
   .t2-bold{ font-weight: 950; }
   .t2-danger{ color: var(--danger); font-weight: 950; }
@@ -202,6 +224,7 @@
     padding: 8px 8px;
     background: rgba(37,99,235,.08);
   }
+
   [data-theme="dark"] .t2-headDate,
   .dark .t2-headDate,
   :root:not([data-theme="light"]) .t2-headDate{
@@ -221,12 +244,14 @@
     color:#0f172a;
     outline:none;
   }
+
   [data-theme="dark"] .t2-cell-input,
   .dark .t2-cell-input,
   :root:not([data-theme="light"]) .t2-cell-input{
     background: rgba(2,6,23,.28);
     color: var(--text);
   }
+
   .t2-cell-input[disabled]{ opacity:.85; cursor:not-allowed; }
 
   .t2-secTitle{
@@ -234,6 +259,60 @@
     text-align:center;
     padding: 8px 8px;
     background: rgba(148,163,184,.12);
+  }
+
+  .kp-tools{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+
+  .kp-mini-btn{
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1px solid var(--stroke2);
+    background: rgba(255,255,255,.85);
+    color: var(--text);
+    font-weight: 950;
+    font-size: 16px;
+    line-height: 1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: .15s ease;
+    padding: 0;
+  }
+
+  .kp-mini-btn:hover{
+    transform: translateY(-1px);
+    border-color: rgba(37,99,235,.45);
+    box-shadow: 0 8px 16px rgba(2,6,23,.10);
+  }
+
+  .kp-mini-btn.kp-del{
+    color: var(--danger);
+    font-size: 18px;
+  }
+
+  [data-theme="dark"] .kp-mini-btn,
+  .dark .kp-mini-btn,
+  :root:not([data-theme="light"]) .kp-mini-btn{
+    background: rgba(2,6,23,.35);
+    color: var(--text);
+  }
+
+  [data-theme="dark"] .kp-mini-btn.kp-del,
+  .dark .kp-mini-btn.kp-del,
+  :root:not([data-theme="light"]) .kp-mini-btn.kp-del{
+    color: var(--danger);
+  }
+
+  .kp-name-input{
+    text-align:left;
+    padding-left:10px;
   }
 
   @media (max-width: 640px){
@@ -336,12 +415,9 @@
                 {% elif n == 9 %}
                   {# skip #}
 
-                {# ✅ NEW: ekranda 18 va 19 bo'lib ko'rinayotgan raqamlarni birlashtiramiz (n=19 va n=20) #}
                 {% elif n == 19 %}
                   <tr>
-                    {# bu yerda ekrandagi raqam 18 bo‘lishi kerak -> n-1 #}
                     <td class="t2-center t2-bold" rowspan="2">{{ n|add:"-1" }}</td>
-
                     <td colspan="2">{{ label }}</td>
                     <td class="t2-center">{{ code }}</td>
                     <td class="t2-center">
@@ -354,7 +430,6 @@
                     </td>
                   </tr>
 
-                  {# ikkinchi qator: n==20 ni chiqaramiz, lekin raqam ustuni bo‘lmaydi #}
                   {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
                     {% if n2 == 20 %}
                       <tr>
@@ -373,7 +448,7 @@
                   {% endfor %}
 
                 {% elif n == 20 %}
-                  {# ✅ skip: chunki u yuqorida merge ichida chiqarildi #}
+                  {# skip #}
 
                 {% elif n == 22 %}
                   <tr>
@@ -394,21 +469,20 @@
                 {% else %}
                   <tr>
                     {% if n == 35 %}
-
                     {% else %}
-                    <td class="t2-center t2-bold">
-                      {% if n >= 21 %}
-                        {{ n|add:"-2" }}
-                      {% elif n >= 10 %}
-                        {{ n|add:"-1" }}
-                      {% else %}
-                        {{ n }}
-                      {% endif %}
-                    </td>
-                    <td colspan="2">{{ label }}</td>
-                    <td class="t2-center">{{ code }}</td>
-                    <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                    <td class="t2-center"><input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                      <td class="t2-center t2-bold">
+                        {% if n >= 21 %}
+                          {{ n|add:"-2" }}
+                        {% elif n >= 10 %}
+                          {{ n|add:"-1" }}
+                        {% else %}
+                          {{ n }}
+                        {% endif %}
+                      </td>
+                      <td colspan="2">{{ label }}</td>
+                      <td class="t2-center">{{ code }}</td>
+                      <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                      <td class="t2-center"><input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
                     {% endif %}
                   </tr>
                 {% endif %}
@@ -417,7 +491,6 @@
             </tbody>
           </table>
 
-          <!-- ✅ bottom blocks with "Доход" column (НО cargo_income НЕТ) -->
           <table class="t2-table" style="margin-top:10px; min-width: 860px;">
             <colgroup>
               <col>
@@ -460,7 +533,6 @@
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.os_income }}" value="{{ obj|data_val:bottom.os_income }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
-              <!-- ✅ ПОГРУЖЕНО: доход НЕ нужен, последняя колонка пустая -->
               <tr>
                 <td rowspan="2" class="t2-bold">ПОГРУЖЕНО (наименование груза)</td>
                 <td rowspan="2" class="t2-center t2-bold">Объём</td>
@@ -473,40 +545,70 @@
             </tbody>
           </table>
 
-          <table class="t2-table" style="margin-top:10px; min-width: 760px;">
-            <colgroup><col style="width:140px;"><col><col><col></colgroup>
+          <table class="t2-table" style="margin-top:10px; min-width: 900px;" id="kp-sector-table">
+            <colgroup>
+              <col>
+              <col style="width:56px;">
+              <col style="width:160px;">
+              <col style="width:160px;">
+              <col style="width:160px;">
+            </colgroup>
+
             <thead>
-              <tr><th colspan="4" class="t2-secTitle">Наличие на КП по сектору</th></tr>
+              <tr><th colspan="5" class="t2-secTitle">Наличие на КП по сектору</th></tr>
               <tr>
-                <th></th>
+                <th class="t2-center t2-bold">Название сектора</th>
+                <th class="t2-center t2-bold">
+                  {% if mode != 'view' %}
+                    <div class="kp-tools">
+                      <button type="button" class="kp-mini-btn kp-add" id="kp-add-row">+</button>
+                    </div>
+                  {% endif %}
+                </th>
                 <th class="t2-center t2-bold">Вместимость</th>
                 <th class="t2-center t2-bold">Факт</th>
                 <th class="t2-center t2-bold">Свободно</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td class="t2-center t2-bold">ФТТ</td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_fp_capacity }}" value="{{ obj|data_val:bottom.kp_fp_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_fp_fact }}" value="{{ obj|data_val:bottom.kp_fp_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_fp_free }}" value="{{ obj|data_val:bottom.kp_fp_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
+
+            <tbody id="kp-sector-body">
+              {% for row in sector_rows %}
+              <tr class="kp-sector-row">
+                <td class="t2-center">
+                  <input
+                    class="t2-cell-input kp-name-input"
+                    name="kp_sector_name[]"
+                    value="{{ row.name }}"
+                    placeholder="Название сектора"
+                    {% if mode == 'view' %}disabled{% endif %}
+                  >
+                </td>
+                <td class="t2-center">
+                  {% if mode != 'view' %}
+                    <button type="button" class="kp-mini-btn kp-del" data-del-row>&times;</button>
+                  {% endif %}
+                </td>
+                <td class="t2-center">
+                  <input class="t2-cell-input" name="kp_sector_capacity[]" value="{{ row.capacity }}" {% if mode == 'view' %}disabled{% endif %}>
+                </td>
+                <td class="t2-center">
+                  <input class="t2-cell-input" name="kp_sector_fact[]" value="{{ row.fact }}" {% if mode == 'view' %}disabled{% endif %}>
+                </td>
+                <td class="t2-center">
+                  <input class="t2-cell-input" name="kp_sector_free[]" value="{{ row.free }}" {% if mode == 'view' %}disabled{% endif %}>
+                </td>
               </tr>
-              <tr>
-                <td class="t2-center t2-bold">УЛС</td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_uus_capacity }}" value="{{ obj|data_val:bottom.kp_uus_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_uus_fact }}" value="{{ obj|data_val:bottom.kp_uus_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_uus_free }}" value="{{ obj|data_val:bottom.kp_uus_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
-              </tr>
+              {% endfor %}
 
               <tr>
-                <td>Готовые контейнера к отправке на вагонах</td>
+                <td colspan="2">Готовые контейнера к отправке на вагонах</td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_send_capacity }}" value="{{ obj|data_val:bottom.kp_ready_send_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_send_fact }}" value="{{ obj|data_val:bottom.kp_ready_send_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_send_free }}" value="{{ obj|data_val:bottom.kp_ready_send_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
               <tr>
-                <td>Готовые контейнера к вывозу на автотранспортах</td>
+                <td colspan="2">Готовые контейнера к вывозу на автотранспортах</td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_autocar_capacity }}" value="{{ obj|data_val:bottom.kp_ready_autocar_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_autocar_fact }}" value="{{ obj|data_val:bottom.kp_ready_autocar_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_autocar_free }}" value="{{ obj|data_val:bottom.kp_ready_autocar_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
@@ -519,8 +621,74 @@
     </div>
   </div>
 </div>
+
 <script>
 setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 </script>
 
-{% endblock %}  
+<script>
+(function(){
+  const isView = "{{ mode }}" === "view";
+  if (isView) return;
+
+  const body = document.getElementById("kp-sector-body");
+  const addBtn = document.getElementById("kp-add-row");
+
+  function sectorRows(){
+    return Array.from(body.querySelectorAll("tr.kp-sector-row"));
+  }
+
+  function addRow(name="", capacity="", fact="", free=""){
+    const row = document.createElement("tr");
+    row.className = "kp-sector-row";
+    row.innerHTML = `
+      <td class="t2-center">
+        <input class="t2-cell-input kp-name-input" name="kp_sector_name[]" value="${name}" placeholder="Название сектора">
+      </td>
+      <td class="t2-center">
+        <button type="button" class="kp-mini-btn kp-del" data-del-row>&times;</button>
+      </td>
+      <td class="t2-center">
+        <input class="t2-cell-input" name="kp_sector_capacity[]" value="${capacity}">
+      </td>
+      <td class="t2-center">
+        <input class="t2-cell-input" name="kp_sector_fact[]" value="${fact}">
+      </td>
+      <td class="t2-center">
+        <input class="t2-cell-input" name="kp_sector_free[]" value="${free}">
+      </td>
+    `;
+    const staticRows = Array.from(body.querySelectorAll("tr:not(.kp-sector-row)"));
+    if (staticRows.length) {
+      body.insertBefore(row, staticRows[0]);
+    } else {
+      body.appendChild(row);
+    }
+  }
+
+  function ensureAtLeastOneRow(){
+    if (!sectorRows().length) {
+      addRow();
+    }
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener("click", function(){
+      addRow();
+    });
+  }
+
+  body.addEventListener("click", function(e){
+    const delBtn = e.target.closest("[data-del-row]");
+    if (!delBtn) return;
+
+    const row = delBtn.closest("tr.kp-sector-row");
+    if (row) row.remove();
+    ensureAtLeastOneRow();
+  });
+
+  ensureAtLeastOneRow();
+})();
+</script>
+
+{% endblock %}
