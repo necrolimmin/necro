@@ -80,10 +80,12 @@ class StationDailyTable2(models.Model):
 
 
 # =====habarnoma====
+from django.db import models
 from django.conf import settings
 
+
 class Notification(models.Model):
-    message = models.TextField()
+    message = models.TextField("Xabar matni")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -94,25 +96,48 @@ class Notification(models.Model):
     )
     is_active = models.BooleanField(default=True)
 
+    # frontendda admin rasmi chiqishi uchun
+    # hozircha bo'sh qolsa static fallback rasm ishlatamiz
+    avatar = models.ImageField(
+        upload_to="notification_avatars/",
+        null=True,
+        blank=True
+    )
+
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["is_active", "-created_at"]),
+        ]
 
     def __str__(self):
         return f"Notification #{self.id} ({self.created_at:%Y-%m-%d %H:%M})"
 
 
 class NotificationRead(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    notification = models.ForeignKey(Notification, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notification_reads",
+    )
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name="reads",
+    )
     read_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("user", "notification")
         indexes = [
             models.Index(fields=["user", "notification"]),
+            models.Index(fields=["notification", "read_at"]),
             models.Index(fields=["user", "read_at"]),
         ]
 
     def __str__(self):
         return f"{self.user_id} read {self.notification_id}"
     
+
+

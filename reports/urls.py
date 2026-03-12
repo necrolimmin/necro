@@ -1,5 +1,9 @@
 from django.urls import path
+
+from reports.kvartalniy import kvartalniy, kvartalniy_daily_list, kvartalniy_kun, kvartalniy_monthly_list
+from reports.umumiy import kvartalniy_range
 from .views import *
+from .views import notifications_latest, notifications_ack, notifications_send
 
 urlpatterns = [
     # path('station/table-1/', station_table_1, name='station_table_1'),
@@ -41,6 +45,14 @@ urlpatterns = [
     path("api/notifications/latest/", notifications_latest, name="notifications_latest"),
     path("api/notifications/ack/",    notifications_ack,    name="notifications_ack"),
     path("api/notifications/send/",   notifications_send,   name="notifications_send"),
+    path("kvartalniy/kun/", kvartalniy_kun, name="kvartalniy_kun"),
+    path("kvartalniy/kun/<str:date_str>/", kvartalniy_kun, name="kvartalniy_kun_by_date"),
+    path("kvartalniy/umumiy/", kvartalniy, name="kvartalniy_umumiy"),
+    path("kvartalniy/umumiy/<str:month_str>/", kvartalniy, name="kvartalniy_month_by_date"),
+    path("kvartalniy/u/", kvartalniy_range, name="kvartalniy_um"),
+
+    path("kvartalniy/daily/list/", kvartalniy_daily_list, name="kvartalniy_daily_list"),
+    path("kvartalniy/monthly/list/", kvartalniy_monthly_list, name="kvartalniy_monthly_list"),
 ]
 
 
