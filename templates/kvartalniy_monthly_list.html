@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Admin - Kvartalniy Monthly List{% endblock %}
+
+{% block content %}
+<style>
+  .panel{
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    padding: 16px;
+  }
+  .hdr{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .hdr h2{margin:0;font-size:18px;font-weight:950;color:var(--text);}
+  .muted{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4;}
+
+  .tableWrap{
+    margin-top:14px;
+    overflow:auto;
+    border-radius:18px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.30);
+  }
+  html[data-theme="dark"] .tableWrap{ background:rgba(255,255,255,.04); }
+
+  table{width:100%;border-collapse:separate;border-spacing:0;text-align:left;}
+  thead th{
+    position:sticky;top:0;z-index:2;
+    text-align:left;font-size:12.5px;font-weight:950;color:var(--text);
+    background:var(--surface);
+    border-bottom:1px solid var(--stroke);
+    padding:12px 12px;white-space:nowrap;
+  }
+  tbody td{
+    padding:12px 12px;
+    border-bottom:1px solid rgba(15,23,42,.06);
+    color:var(--text);
+    font-size:13px;
+    vertical-align:middle;
+    background:transparent;
+  }
+  html[data-theme="dark"] tbody td{ border-bottom:1px solid rgba(255,255,255,.08); }
+  tbody tr:hover td{ background:rgba(79,70,229,.06); }
+  html[data-theme="dark"] tbody tr:hover td{ background:rgba(99,102,241,.10); }
+
+  .num{font-weight:950;opacity:.85;width:70px;}
+  .date{font-weight:950;font-size:14px;}
+  .submeta{margin-top:2px;color:var(--muted);font-size:12px;}
+
+  .btnView{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:10px 12px;border-radius:14px;border:0;
+    font-weight:950;text-decoration:none;color:#fff;
+    background:linear-gradient(135deg, var(--g1), var(--g2), var(--g3));
+    box-shadow:0 14px 40px rgba(79,70,229,.18);
+    white-space:nowrap;
+    transition:transform .12s ease, filter .12s ease;
+    border:1px solid rgba(15,23,42,.12);
+  }
+  .btnView:hover{ filter:brightness(1.03); transform:translateY(-1px); }
+
+  .btnSecondary{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:10px 12px;border-radius:14px;
+    font-weight:950;text-decoration:none;color:var(--text);
+    background:rgba(255,255,255,.55);
+    border:1px solid var(--stroke);
+    white-space:nowrap;
+  }
+  html[data-theme="dark"] .btnSecondary{ background:rgba(255,255,255,.06); }
+
+  .btn-cta{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:6px 15px;border-radius:999px;
+    font-weight:700;text-decoration:none;color:#fff;
+    background:linear-gradient(135deg,#4f46e5,#22c55e);
+    box-shadow:0 14px 30px rgba(79,70,229,.28);
+    transition:.22s ease;
+    position:relative;overflow:hidden;
+    white-space:nowrap;
+  }
+  .btn-cta svg{width:18px;height:18px;stroke:#fff}
+  .btn-cta::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:translateX(-120%);transition:.65s ease;
+  }
+  .btn-cta:hover{transform:translateY(-2px);box-shadow:0 22px 42px rgba(79,70,229,.36)}
+  .btn-cta:hover::after{transform:translateX(120%)}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+  .search{
+    flex:1;min-width:280px;
+    display:flex;align-items:end;gap:10px;flex-wrap:wrap;
+    padding:10px 12px;border-radius:14px;
+    border:1px solid rgba(15,23,42,.12);
+    backdrop-filter:blur(10px);
+  }
+  .search .ico{font-weight:900;color:var(--muted,#64748b)}
+  .searchField{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .searchField label{
+    font-size:12px;
+    font-weight:800;
+    color:var(--muted);
+  }
+  .utk-lang{
+    border:1px solid rgba(173, 247, 35, 0.14);
+    background:rgba(31, 204, 25, 0.08);
+    color:var(--text);
+    border-radius:999px;
+    padding:8px 10px;
+    font-size:12px;
+    cursor:pointer;
+    outline:0;
+    min-width:150px;
+  }
+
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 12px;border-radius:14px;
+    border:1px solid rgba(15,23,42,.12);
+    backdrop-filter:blur(10px);
+    font-size:13px;color:var(--muted,#64748b);
+    white-space:nowrap;
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(15,23,42,.12);
+    background:linear-gradient(135deg, rgba(79,70,229,.14), rgba(34,197,94,.12), rgba(6,182,212,.12));
+    font-size:12px;
+    font-weight:900;
+  }
+
+  .pager{
+    margin-top:14px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .pager .left{color:var(--muted);font-size:12.5px;}
+  .pager .right{display:flex;gap:8px;flex-wrap:wrap;}
+  .pgBtn{
+    padding:9px 12px;border-radius:14px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.55);
+    color:var(--text);
+    font-weight:950;font-size:12.5px;
+    cursor:pointer;
+  }
+  html[data-theme="dark"] .pgBtn{ background:rgba(255,255,255,.06); }
+  .pgBtn:disabled{opacity:.5;cursor:not-allowed;}
+</style>
+
+<div class="panel">
+  <div class="hdr">
+    <div>
+      <h2>Kvartalniy oylik hisobotlar ro‘yxati</h2>
+      <div class="muted">
+        Oy oralig‘i bo‘yicha oylik kvartalniy yozuvlar ro‘yxati.
+      </div>
+    </div>
+    <div>
+      <h2>Umumiy hisobot</h2>
+      <div class="muted">
+        <a class="btn-cta" href="{% url 'kvartalniy_umumiy' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Oylik hisobot
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <form method="get" class="controls">
+    <div class="search">
+      <span class="ico">⌕</span>
+
+      <div class="searchField">
+        <label>Dan oy</label>
+        <input class="utk-lang" type="month" name="from_month" value="{{ from_month|date:'Y-m' }}">
+      </div>
+
+      <div class="searchField">
+        <label>Gacha oy</label>
+        <input class="utk-lang" type="month" name="to_month" value="{{ to_month|date:'Y-m' }}">
+      </div>
+
+      <button class="btnSecondary" type="submit">Ko‘rsatish</button>
+    </div>
+
+    <div class="chip">
+      Ko‘rsatilmoqda:
+      <b id="shownCount">{{ rows|length }}</b>
+    </div>
+
+    <div class="chip">
+      Jami:
+      <b id="totalCount">{{ rows|length }}</b>
+    </div>
+  </form>
+
+  <div class="tableWrap">
+    <table id="monthlyTable">
+      <thead>
+        <tr>
+          <th style="width:70px;">№</th>
+          <th>Oy / Yil</th>
+          <th>Amallar</th>
+        </tr>
+      </thead>
+      <tbody id="monthlyBody">
+        {% for it in rows %}
+          <tr class="list-row">
+            <td class="num row-num"></td>
+            <td>
+              <div class="date">{{ it.date|date:"m.Y" }}</div>
+              <div class="submeta">Oy bosh sanasi: {{ it.date|date:"d.m.Y" }}</div>
+            </td>
+            <td>
+              <a class="btnView" href="{% url 'kvartalniy_umumiy' %}?month={{ it.date|date:'Y-m' }}">
+                Ko‘rish
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="padding:16px;color:var(--muted);">
+              Oylik kvartalniy ma’lumot topilmadi.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pager">
+    <div class="left" id="pgInfo">—</div>
+    <div class="right">
+      <button class="pgBtn" id="pgPrev" type="button">‹ Oldingi</button>
+      <button class="pgBtn" id="pgNext" type="button">Keyingi ›</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const rows = Array.from(document.querySelectorAll('#monthlyBody .list-row'));
+  const perPage = 10;
+  let page = 1;
+  const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+
+  const pgInfo = document.getElementById('pgInfo');
+  const pgPrev = document.getElementById('pgPrev');
+  const pgNext = document.getElementById('pgNext');
+
+  function render(){
+    const start = (page - 1) * perPage;
+    const end = start + perPage;
+
+    rows.forEach((r, idx) => {
+      const show = idx >= start && idx < end;
+      r.style.display = show ? '' : 'none';
+      if (show) {
+        const nCell = r.querySelector('.row-num');
+        if (nCell) nCell.textContent = String(idx + 1);
+      }
+    });
+
+    pgInfo.textContent = `Sahifa ${page}/${totalPages} • Jami: ${rows.length}`;
+    pgPrev.disabled = page <= 1;
+    pgNext.disabled = page >= totalPages;
+  }
+
+  pgPrev?.addEventListener('click', ()=> {
+    if(page > 1){
+      page--;
+      render();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+  });
+
+  pgNext?.addEventListener('click', ()=> {
+    if(page < totalPages){
+      page++;
+      render();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

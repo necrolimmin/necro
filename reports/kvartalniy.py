@@ -9,7 +9,9 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 
 from .models import StationDailyTable1
-from accounts.models import KvartalniyMonthly, KvartalniyMonthlyPlan, StationProfile, KvartalniyDaily
+from accounts.models import KvartalniyMonthly, KvartalniyMonthlyPlan, StationProfile, KvartalniyDaily, KvartalniyGroupExtraPlan  # NEW
+
+from django.db.models import Count
 
 
 DISPLAY_GROUPS = [
@@ -22,19 +24,21 @@ DISPLAY_GROUPS = [
             "Axangaron LM",
             "Назарбек",
             "Хаваст",
-            "Джизак",
+            "Jizzax LM",
             "Аблык",
         ],
+        "has_veshoz": True,
     },
     {
         "title": "group2",
         "stations": [
             "Qo'qon LM",
             "Rovustan LM",
-            "Marg'ilon",
+            "Marg'ilon LM",
             "Ахтачи",
-            "Асака",
+            "Asaka LM",
         ],
+        "has_veshoz": True,
     },
     {
         "title": "group3",
@@ -45,6 +49,7 @@ DISPLAY_GROUPS = [
             "Янги-Зарафшан",
             "Ulug'bek LM",
         ],
+        "has_veshoz": True,
     },
     {
         "title": "group4",
@@ -52,12 +57,14 @@ DISPLAY_GROUPS = [
             "Карши",
             "Дехканабад",
         ],
+        "has_veshoz": True,
     },
     {
         "title": "group5",
         "stations": [
             "Термез",
         ],
+        "has_veshoz": True,
     },
     {
         "title": "group6",
@@ -67,6 +74,7 @@ DISPLAY_GROUPS = [
             "Ургенч",
             "Питняк",
         ],
+        "has_veshoz": True,
     },
 ]
 from datetime import datetime
@@ -143,6 +151,19 @@ def _build_current_year_totals_by_station(report_date):
         station_map[station.id]["income_this_year"] += _safe_int(payload.get("income_daily", 0))
 
     return station_map
+
+def _safe_date(date_str, fallback):
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else fallback
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _safe_month(month_str, fallback):
+    try:
+        return datetime.strptime(month_str, "%Y-%m").date().replace(day=1) if month_str else fallback
+    except (TypeError, ValueError):
+        return fallback
 
 
 def _build_last_year_totals_by_station_from_hisobot1(last_year_date):
@@ -296,6 +317,8 @@ def _make_zero_totals(label):
 
 @transaction.atomic
 def kvartalniy_kun(request, date_str=None):
+    if not request.user.is_superuser:
+        return redirect("station_table_1_list")
     if request.method == "POST":
         date_str = request.POST.get("date") or date_str
 
@@ -623,6 +646,77 @@ def _scaled_plan_value(raw_value, selected_count, month_days, all_selected):
         return 0
     return round((raw_value / month_days) * selected_count)
 
+def _veshoz_row_to_period_dict(
+    group_key,
+    extra_obj=None,
+    selected_count=0,
+    month_days=30,
+    all_selected=True,
+):
+    raw_pogr_plan = getattr(extra_obj, "pogr_plan", 0)
+    raw_vygr_plan = getattr(extra_obj, "vygr_plan", 0)
+    raw_pogr_kont_plan = getattr(extra_obj, "pogr_kont_plan", 0)
+    raw_vygr_kont_plan = getattr(extra_obj, "vygr_kont_plan", 0)
+
+    raw_pogr_this_year = getattr(extra_obj, "pogr_this_year", 0)
+    raw_pogr_last_year = getattr(extra_obj, "pogr_last_year", 0)
+
+    raw_vygr_this_year = getattr(extra_obj, "vygr_this_year", 0)
+    raw_vygr_last_year = getattr(extra_obj, "vygr_last_year", 0)
+
+    raw_pogr_kont_this_year = getattr(extra_obj, "pogr_kont_this_year", 0)
+    raw_pogr_kont_last_year = getattr(extra_obj, "pogr_kont_last_year", 0)
+
+    raw_vygr_kont_this_year = getattr(extra_obj, "vygr_kont_this_year", 0)
+    raw_vygr_kont_last_year = getattr(extra_obj, "vygr_kont_last_year", 0)
+
+    # when not all days selected, only plans are scaled
+    # manually entered fact values remain as stored monthly values
+    return {
+        "station_id": None,
+        "station_name": "Вес.хоз",
+        "is_veshoz": True,
+        "group_key": group_key,
+
+        "pogr_plan_raw": raw_pogr_plan,
+        "vygr_plan_raw": raw_vygr_plan,
+        "pogr_kont_plan_raw": raw_pogr_kont_plan,
+        "vygr_kont_plan_raw": raw_vygr_kont_plan,
+
+        "pogr_this_year_raw": raw_pogr_this_year,
+        "pogr_last_year_raw": raw_pogr_last_year,
+
+        "vygr_this_year_raw": raw_vygr_this_year,
+        "vygr_last_year_raw": raw_vygr_last_year,
+
+        "pogr_kont_this_year_raw": raw_pogr_kont_this_year,
+        "pogr_kont_last_year_raw": raw_pogr_kont_last_year,
+
+        "vygr_kont_this_year_raw": raw_vygr_kont_this_year,
+        "vygr_kont_last_year_raw": raw_vygr_kont_last_year,
+
+        "pogr_plan": _scaled_plan_value(raw_pogr_plan, selected_count, month_days, all_selected),
+        "vygr_plan": _scaled_plan_value(raw_vygr_plan, selected_count, month_days, all_selected),
+        "pogr_kont_plan": _scaled_plan_value(raw_pogr_kont_plan, selected_count, month_days, all_selected),
+        "vygr_kont_plan": _scaled_plan_value(raw_vygr_kont_plan, selected_count, month_days, all_selected),
+
+        "pogr_this_year": raw_pogr_this_year,
+        "pogr_last_year": raw_pogr_last_year,
+        "pogr_diff": raw_pogr_this_year - raw_pogr_last_year,
+
+        "vygr_this_year": raw_vygr_this_year,
+        "vygr_last_year": raw_vygr_last_year,
+        "vygr_diff": raw_vygr_this_year - raw_vygr_last_year,
+
+        "pogr_kont_this_year": raw_pogr_kont_this_year,
+        "pogr_kont_last_year": raw_pogr_kont_last_year,
+        "pogr_kont_diff": raw_pogr_kont_this_year - raw_pogr_kont_last_year,
+
+        "vygr_kont_this_year": raw_vygr_kont_this_year,
+        "vygr_kont_last_year": raw_vygr_kont_last_year,
+        "vygr_kont_diff": raw_vygr_kont_this_year - raw_vygr_kont_last_year,
+    }
+
 
 def _row_to_period_dict(
     station,
@@ -682,6 +776,9 @@ def _row_to_period_dict(
         "vygr_kont_diff": vygr_kont_this - vygr_kont_last,
     }
 
+def _group_extra_plans_by_key(monthly_obj):
+    qs = KvartalniyGroupExtraPlan.objects.filter(monthly=monthly_obj)
+    return {f"{x.group_key}:{x.row_name}": x for x in qs}
 
 def _make_empty_period_row(station_name, selected_count=0, month_days=30, all_selected=True):
     dummy_station = type("DummyStation", (), {"id": None, "station_name": station_name})()
@@ -751,8 +848,9 @@ def _redirect_with_selection(request, selected_month, selected_days):
 
 @transaction.atomic
 def kvartalniy(request, month_str=None):
+    if not request.user.is_superuser:
+        return redirect("station_table_1_list")
     selected_month, selected_days, month_days = _selected_month_and_days(request, month_str)
-
     current_dates = _build_dates_for_selected_days(selected_month, selected_days)
 
     selected_count = len(selected_days)
@@ -760,7 +858,6 @@ def kvartalniy(request, month_str=None):
 
     monthly_obj, _ = KvartalniyMonthly.objects.get_or_create(date=selected_month)
 
-    # SAVE monthly plan only when all month days are selected
     if request.method == "POST" and request.POST.get("save") == "1":
         if not all_selected:
             messages.error(
@@ -771,6 +868,7 @@ def kvartalniy(request, month_str=None):
 
         station_ids = request.POST.getlist("station_ids")
 
+        # save normal station rows
         for station_id in station_ids:
             if not str(station_id).isdigit():
                 continue
@@ -797,13 +895,56 @@ def kvartalniy(request, month_str=None):
             plan_obj.vygr_kont_plan = _safe_int(request.POST.get(f"vygr_kont_plan_{station_id}"))
             plan_obj.save()
 
+        # save Вес.хоз rows
+        for cfg in DISPLAY_GROUPS:
+            if not cfg.get("has_veshoz"):
+                continue
+
+            group_key = cfg["title"]
+
+            extra_obj, _ = KvartalniyGroupExtraPlan.objects.get_or_create(
+                monthly=monthly_obj,
+                group_key=group_key,
+                row_name="Вес.хоз",
+                defaults={
+                    "pogr_plan": 0,
+                    "vygr_plan": 0,
+                    "pogr_kont_plan": 0,
+                    "vygr_kont_plan": 0,
+                    "pogr_this_year": 0,
+                    "pogr_last_year": 0,
+                    "vygr_this_year": 0,
+                    "vygr_last_year": 0,
+                    "pogr_kont_this_year": 0,
+                    "pogr_kont_last_year": 0,
+                    "vygr_kont_this_year": 0,
+                    "vygr_kont_last_year": 0,
+                }
+            )
+
+            extra_obj.pogr_plan = _safe_int(request.POST.get(f"veshoz_pogr_plan_{group_key}"))
+            extra_obj.vygr_plan = _safe_int(request.POST.get(f"veshoz_vygr_plan_{group_key}"))
+            extra_obj.pogr_kont_plan = _safe_int(request.POST.get(f"veshoz_pogr_kont_plan_{group_key}"))
+            extra_obj.vygr_kont_plan = _safe_int(request.POST.get(f"veshoz_vygr_kont_plan_{group_key}"))
+
+            extra_obj.pogr_this_year = _safe_int(request.POST.get(f"veshoz_pogr_this_year_{group_key}"))
+            extra_obj.pogr_last_year = _safe_int(request.POST.get(f"veshoz_pogr_last_year_{group_key}"))
+
+            extra_obj.vygr_this_year = _safe_int(request.POST.get(f"veshoz_vygr_this_year_{group_key}"))
+            extra_obj.vygr_last_year = _safe_int(request.POST.get(f"veshoz_vygr_last_year_{group_key}"))
+
+            extra_obj.pogr_kont_this_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_this_year_{group_key}"))
+            extra_obj.pogr_kont_last_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_last_year_{group_key}"))
+
+            extra_obj.vygr_kont_this_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_this_year_{group_key}"))
+            extra_obj.vygr_kont_last_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_last_year_{group_key}"))
+
+            extra_obj.save()
+
         messages.success(request, "Monthly plans saved successfully.")
         return _redirect_with_selection(request, selected_month, selected_days)
 
-    # current year comes from *_this_year of the selected rows
     current_data = _sum_kvartal_daily_this_fields_for_dates(current_dates)
-
-    # last year comparison comes from *_last_year of the SAME selected rows
     last_year_data = _sum_kvartal_daily_last_fields_for_dates(current_dates)
 
     plan_qs = (
@@ -812,6 +953,9 @@ def kvartalniy(request, month_str=None):
         .select_related("station")
     )
     plans_by_station_id = {p.station_id: p for p in plan_qs}
+
+    extra_qs = KvartalniyGroupExtraPlan.objects.filter(monthly=monthly_obj)
+    extras_by_key = {f"{x.group_key}:{x.row_name}": x for x in extra_qs}
 
     stations_by_name = {
         s.station_name.strip(): s
@@ -825,10 +969,10 @@ def kvartalniy(request, month_str=None):
     for idx, cfg in enumerate(DISPLAY_GROUPS, start=1):
         group_rows = []
         subtotal = _make_zero_totals("ИТОГО")
+        group_key = cfg["title"]
 
         for station_name in cfg["stations"]:
             known_station_names.add(station_name)
-
             station = stations_by_name.get(station_name)
 
             if station:
@@ -852,6 +996,21 @@ def kvartalniy(request, month_str=None):
             group_rows.append(row)
             _add_to_totals(subtotal, row)
             _add_to_totals(grand_total, row)
+
+        if cfg.get("has_veshoz"):
+            extra_obj = extras_by_key.get(f"{group_key}:Вес.хоз")
+
+            veshoz_row = _veshoz_row_to_period_dict(
+                group_key=group_key,
+                extra_obj=extra_obj,
+                selected_count=selected_count,
+                month_days=month_days,
+                all_selected=all_selected,
+            )
+
+            group_rows.append(veshoz_row)
+            _add_to_totals(subtotal, veshoz_row)
+            _add_to_totals(grand_total, veshoz_row)
 
         groups.append({
             "index": idx,
@@ -903,3 +1062,82 @@ def kvartalniy(request, month_str=None):
         "calendar_days": list(range(1, month_days + 1)),
     }
     return render(request, "kvartalniy_umumlashgan.html", context)
+
+
+def kvartalniy_daily_list(request):
+    if not request.user.is_superuser:
+        return redirect("station_table_1_list")
+    today = timezone.localdate()
+    default_from = today.replace(day=1)
+    default_to = today
+
+    from_date = _safe_date(request.GET.get("from_date"), default_from)
+    to_date = _safe_date(request.GET.get("to_date"), default_to)
+
+    if from_date > to_date:
+        from_date, to_date = to_date, from_date
+
+    dates_qs = (
+        KvartalniyDaily.objects
+        .filter(date__range=[from_date, to_date])
+        .values("date")
+        .annotate(
+            rows_count=Count("id"),
+            stations_count=Count("station", distinct=True),
+        )
+        .order_by("-date")
+    )
+
+    rows = []
+    for item in dates_qs:
+        rows.append({
+            "date": item["date"],
+            "rows_count": item["rows_count"],
+            "stations_count": item["stations_count"],
+        })
+
+    context = {
+        "from_date": from_date,
+        "to_date": to_date,
+        "rows": rows,
+    }
+    return render(request, "kvartalniy_daily_list.html", context)
+
+def kvartalniy_monthly_list(request):
+    if not request.user.is_superuser:
+        return redirect("station_table_1_list")
+    today = timezone.localdate()
+    default_from = today.replace(day=1)
+    default_to = today.replace(day=1)
+
+    from_month = _safe_month(request.GET.get("from_month"), default_from)
+    to_month = _safe_month(request.GET.get("to_month"), default_to)
+
+    if from_month > to_month:
+        from_month, to_month = to_month, from_month
+
+    rows_qs = (
+        KvartalniyMonthly.objects
+        .filter(date__range=[from_month, to_month])
+        .prefetch_related("kunlik_list", "group_extra_plans")
+        .order_by("-date")
+    )
+
+    rows = []
+    for obj in rows_qs:
+        plan_count = KvartalniyMonthlyPlan.objects.filter(monthly=obj).count()
+
+        rows.append({
+            "id": obj.id,
+            "date": obj.date,
+            "daily_count": obj.kunlik_list.count(),
+            "plan_count": plan_count,
+            "veshoz_count": obj.group_extra_plans.count(),
+        })
+
+    context = {
+        "from_month": from_month,
+        "to_month": to_month,
+        "rows": rows,
+    }
+    return render(request, "kvartalniy_monthly_list.html", context)

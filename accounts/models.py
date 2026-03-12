@@ -97,6 +97,18 @@ class KvartalniyGroupExtraPlan(models.Model):
     pogr_kont_plan = models.IntegerField(default=0)
     vygr_kont_plan = models.IntegerField(default=0)
 
+    pogr_this_year = models.IntegerField(default=0)
+    pogr_last_year = models.IntegerField(default=0)
+
+    vygr_this_year = models.IntegerField(default=0)
+    vygr_last_year = models.IntegerField(default=0)
+
+    pogr_kont_this_year = models.IntegerField(default=0)
+    pogr_kont_last_year = models.IntegerField(default=0)
+
+    vygr_kont_this_year = models.IntegerField(default=0)
+    vygr_kont_last_year = models.IntegerField(default=0)
+
     class Meta:
         unique_together = ("monthly", "group_key", "row_name")
 

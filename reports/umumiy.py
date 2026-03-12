@@ -1,76 +1,22 @@
 from calendar import monthrange
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib import messages
 from django.db import transaction
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from accounts.models import (
+    KvartalniyGroupExtraPlan,
     StationProfile,
     KvartalniyDaily,
     KvartalniyMonthly,
     KvartalniyMonthlyPlan,
 )
+from reports.kvartalniy import DISPLAY_GROUPS, _safe_int
 
 
-DISPLAY_GROUPS = [
-    {
-        "title": "group1",
-        "stations": [
-            "Chukursoy LM",
-            "Toshkent LM",
-            "Сергели",
-            "Axangaron LM",
-            "Назарбек",
-            "Хаваст",
-            "Джизак",
-            "Аблык",
-        ],
-    },
-    {
-        "title": "group2",
-        "stations": [
-            "Qo'qon LM",
-            "Rovustan LM",
-            "Marg'ilon",
-            "Ахтачи",
-            "Асака",
-        ],
-    },
-    {
-        "title": "group3",
-        "stations": [
-            "Бухара-2",
-            "Тинчлык",
-            "Навои(Кармана)",
-            "Янги-Зарафшан",
-            "Ulug'bek LM",
-        ],
-    },
-    {
-        "title": "group4",
-        "stations": [
-            "Карши",
-            "Дехканабад",
-        ],
-    },
-    {
-        "title": "group5",
-        "stations": [
-            "Термез",
-        ],
-    },
-    {
-        "title": "group6",
-        "stations": [
-            "Nukus LM",
-            "Кирккыз",
-            "Ургенч",
-            "Питняк",
-        ],
-    },
-]
+
 
 
 def _safe_date(date_str, fallback):
@@ -286,6 +232,76 @@ def _make_zero_totals(label):
         "vygr_kont_diff": 0,
     }
 
+def _build_date_range(from_date: date, to_date: date) -> list[date]:
+    days = []
+    cur = from_date
+    while cur <= to_date:
+        days.append(cur)
+        cur = cur + timedelta(days=1)
+    return days
+
+def _sum_daily_this_fields_for_date_list(selected_dates: list[date]):
+    if not selected_dates:
+        return {}
+
+    qs = (
+        KvartalniyDaily.objects
+        .filter(date__in=selected_dates)
+        .select_related("station")
+    )
+
+    station_map = {}
+
+    for row in qs:
+        station = row.station
+
+        if station.id not in station_map:
+            station_map[station.id] = {
+                "station": station,
+                "pogr": 0,
+                "vygr": 0,
+                "pogr_kont": 0,
+                "vygr_kont": 0,
+            }
+
+        station_map[station.id]["pogr"] += row.pogr_this_year or 0
+        station_map[station.id]["vygr"] += row.vygr_this_year or 0
+        station_map[station.id]["pogr_kont"] += row.pogr_kont_this_year or 0
+        station_map[station.id]["vygr_kont"] += row.vygr_kont_this_year or 0
+
+    return station_map
+
+
+def _sum_daily_last_fields_for_date_list(selected_dates: list[date]):
+    if not selected_dates:
+        return {}
+
+    qs = (
+        KvartalniyDaily.objects
+        .filter(date__in=selected_dates)
+        .select_related("station")
+    )
+
+    station_map = {}
+
+    for row in qs:
+        station = row.station
+
+        if station.id not in station_map:
+            station_map[station.id] = {
+                "station": station,
+                "pogr": 0,
+                "vygr": 0,
+                "pogr_kont": 0,
+                "vygr_kont": 0,
+            }
+
+        station_map[station.id]["pogr"] += row.pogr_last_year or 0
+        station_map[station.id]["vygr"] += row.vygr_last_year or 0
+        station_map[station.id]["pogr_kont"] += row.pogr_kont_last_year or 0
+        station_map[station.id]["vygr_kont"] += row.vygr_kont_last_year or 0
+
+    return station_map
 
 def _add_to_totals(target, row):
     for key in [
@@ -305,6 +321,8 @@ def _add_to_totals(target, row):
 
 @transaction.atomic
 def kvartalniy_range(request):
+    if not request.user.is_superuser:
+        return redirect("station_table_1_list")
     if request.method == "POST":
         from_date_str = request.POST.get("from_date")
         to_date_str = request.POST.get("to_date")
@@ -325,18 +343,133 @@ def kvartalniy_range(request):
     prev_from_date = _same_day_last_year(from_date)
     prev_to_date = _same_day_last_year(to_date)
 
-    current_data = _sum_daily_this_fields_between(from_date, to_date)
-    last_year_data = _sum_daily_last_fields_between(from_date, to_date)
+    selected_dates = _build_date_range(from_date, to_date)
+
+    current_data = _sum_daily_this_fields_for_date_list(selected_dates)
+    last_year_data = _sum_daily_last_fields_for_date_list(selected_dates)
+
     scaled_plans, month_info, all_full_months = _sum_scaled_plans_between(from_date, to_date)
 
-    # save only if exactly one full month is selected
+    single_full_month = all_full_months and len(month_info) == 1
+    target_month = month_info[0]["month"] if single_full_month else None
+
+    def _sum_veshoz_between():
+        result = {}
+
+        for info in month_info:
+            month_date = info["month"]
+            selected_days = info["selected_days"]
+            days_in_month = info["days_in_month"]
+
+            monthly_obj, _ = KvartalniyMonthly.objects.get_or_create(date=month_date)
+
+            extra_qs = KvartalniyGroupExtraPlan.objects.filter(
+                monthly=monthly_obj,
+                row_name="Вес.хоз"
+            )
+
+            for extra_obj in extra_qs:
+                group_key = extra_obj.group_key
+
+                if group_key not in result:
+                    result[group_key] = {
+                        "station_id": None,
+                        "station_name": "Вес.хоз",
+                        "is_other": False,
+                        "is_veshoz": True,
+                        "group_key": group_key,
+                        "is_editable": bool(single_full_month),
+
+                        "pogr_plan": 0,
+                        "vygr_plan": 0,
+                        "pogr_kont_plan": 0,
+                        "vygr_kont_plan": 0,
+
+                        "pogr_plan_raw": 0,
+                        "vygr_plan_raw": 0,
+                        "pogr_kont_plan_raw": 0,
+                        "vygr_kont_plan_raw": 0,
+
+                        "pogr_this_year": 0,
+                        "pogr_last_year": 0,
+                        "pogr_diff": 0,
+
+                        "vygr_this_year": 0,
+                        "vygr_last_year": 0,
+                        "vygr_diff": 0,
+
+                        "pogr_kont_this_year": 0,
+                        "pogr_kont_last_year": 0,
+                        "pogr_kont_diff": 0,
+
+                        "vygr_kont_this_year": 0,
+                        "vygr_kont_last_year": 0,
+                        "vygr_kont_diff": 0,
+
+                        "pogr_this_year_raw": 0,
+                        "pogr_last_year_raw": 0,
+                        "vygr_this_year_raw": 0,
+                        "vygr_last_year_raw": 0,
+                        "pogr_kont_this_year_raw": 0,
+                        "pogr_kont_last_year_raw": 0,
+                        "vygr_kont_this_year_raw": 0,
+                        "vygr_kont_last_year_raw": 0,
+                    }
+
+                # for single full month, keep raw monthly values so inputs can edit them
+                if single_full_month and month_date == target_month:
+                    result[group_key]["pogr_plan_raw"] = extra_obj.pogr_plan or 0
+                    result[group_key]["vygr_plan_raw"] = extra_obj.vygr_plan or 0
+                    result[group_key]["pogr_kont_plan_raw"] = extra_obj.pogr_kont_plan or 0
+                    result[group_key]["vygr_kont_plan_raw"] = extra_obj.vygr_kont_plan or 0
+
+                    result[group_key]["pogr_this_year_raw"] = extra_obj.pogr_this_year or 0
+                    result[group_key]["pogr_last_year_raw"] = extra_obj.pogr_last_year or 0
+                    result[group_key]["vygr_this_year_raw"] = extra_obj.vygr_this_year or 0
+                    result[group_key]["vygr_last_year_raw"] = extra_obj.vygr_last_year or 0
+                    result[group_key]["pogr_kont_this_year_raw"] = extra_obj.pogr_kont_this_year or 0
+                    result[group_key]["pogr_kont_last_year_raw"] = extra_obj.pogr_kont_last_year or 0
+                    result[group_key]["vygr_kont_this_year_raw"] = extra_obj.vygr_kont_this_year or 0
+                    result[group_key]["vygr_kont_last_year_raw"] = extra_obj.vygr_kont_last_year or 0
+
+                # scale plans by month segment
+                result[group_key]["pogr_plan"] += round((extra_obj.pogr_plan or 0) / days_in_month * selected_days)
+                result[group_key]["vygr_plan"] += round((extra_obj.vygr_plan or 0) / days_in_month * selected_days)
+                result[group_key]["pogr_kont_plan"] += round((extra_obj.pogr_kont_plan or 0) / days_in_month * selected_days)
+                result[group_key]["vygr_kont_plan"] += round((extra_obj.vygr_kont_plan or 0) / days_in_month * selected_days)
+
+                # facts are stored monthly manual values; sum them across covered months
+                result[group_key]["pogr_this_year"] += extra_obj.pogr_this_year or 0
+                result[group_key]["pogr_last_year"] += extra_obj.pogr_last_year or 0
+                result[group_key]["vygr_this_year"] += extra_obj.vygr_this_year or 0
+                result[group_key]["vygr_last_year"] += extra_obj.vygr_last_year or 0
+                result[group_key]["pogr_kont_this_year"] += extra_obj.pogr_kont_this_year or 0
+                result[group_key]["pogr_kont_last_year"] += extra_obj.pogr_kont_last_year or 0
+                result[group_key]["vygr_kont_this_year"] += extra_obj.vygr_kont_this_year or 0
+                result[group_key]["vygr_kont_last_year"] += extra_obj.vygr_kont_last_year or 0
+
+        for group_key, row in result.items():
+            row["pogr_diff"] = row["pogr_this_year"] - row["pogr_last_year"]
+            row["vygr_diff"] = row["vygr_this_year"] - row["vygr_last_year"]
+            row["pogr_kont_diff"] = row["pogr_kont_this_year"] - row["pogr_kont_last_year"]
+            row["vygr_kont_diff"] = row["vygr_kont_this_year"] - row["vygr_kont_last_year"]
+
+        return result
+
+    veshoz_by_group = _sum_veshoz_between()
+
     if request.method == "POST" and request.POST.get("save") == "1":
         if not all_full_months:
-            messages.error(request, "Plans can be updated only when the selected range covers full month(s).")
+            messages.error(
+                request,
+                "Plans can be updated only when the selected range covers full month(s)."
+            )
         elif len(month_info) != 1:
-            messages.error(request, "Plan editing is allowed only for one full month at a time.")
+            messages.error(
+                request,
+                "Plan editing is allowed only for one full month at a time."
+            )
         else:
-            target_month = month_info[0]["month"]
             monthly_obj, _ = KvartalniyMonthly.objects.get_or_create(date=target_month)
 
             station_ids = request.POST.getlist("station_ids")
@@ -361,16 +494,59 @@ def kvartalniy_range(request):
                     }
                 )
 
-                plan_obj.pogr_plan = int(request.POST.get(f"pogr_plan_{station_id}") or 0)
-                plan_obj.vygr_plan = int(request.POST.get(f"vygr_plan_{station_id}") or 0)
-                plan_obj.pogr_kont_plan = int(request.POST.get(f"pogr_kont_plan_{station_id}") or 0)
-                plan_obj.vygr_kont_plan = int(request.POST.get(f"vygr_kont_plan_{station_id}") or 0)
+                plan_obj.pogr_plan = _safe_int(request.POST.get(f"pogr_plan_{station_id}"))
+                plan_obj.vygr_plan = _safe_int(request.POST.get(f"vygr_plan_{station_id}"))
+                plan_obj.pogr_kont_plan = _safe_int(request.POST.get(f"pogr_kont_plan_{station_id}"))
+                plan_obj.vygr_kont_plan = _safe_int(request.POST.get(f"vygr_kont_plan_{station_id}"))
                 plan_obj.save()
+
+            for cfg in DISPLAY_GROUPS:
+                if not cfg.get("has_veshoz"):
+                    continue
+
+                group_key = cfg["title"]
+
+                extra_obj, _ = KvartalniyGroupExtraPlan.objects.get_or_create(
+                    monthly=monthly_obj,
+                    group_key=group_key,
+                    row_name="Вес.хоз",
+                    defaults={
+                        "pogr_plan": 0,
+                        "vygr_plan": 0,
+                        "pogr_kont_plan": 0,
+                        "vygr_kont_plan": 0,
+                        "pogr_this_year": 0,
+                        "pogr_last_year": 0,
+                        "vygr_this_year": 0,
+                        "vygr_last_year": 0,
+                        "pogr_kont_this_year": 0,
+                        "pogr_kont_last_year": 0,
+                        "vygr_kont_this_year": 0,
+                        "vygr_kont_last_year": 0,
+                    }
+                )
+
+                extra_obj.pogr_plan = _safe_int(request.POST.get(f"veshoz_pogr_plan_{group_key}"))
+                extra_obj.vygr_plan = _safe_int(request.POST.get(f"veshoz_vygr_plan_{group_key}"))
+                extra_obj.pogr_kont_plan = _safe_int(request.POST.get(f"veshoz_pogr_kont_plan_{group_key}"))
+                extra_obj.vygr_kont_plan = _safe_int(request.POST.get(f"veshoz_vygr_kont_plan_{group_key}"))
+
+                extra_obj.pogr_this_year = _safe_int(request.POST.get(f"veshoz_pogr_this_year_{group_key}"))
+                extra_obj.pogr_last_year = _safe_int(request.POST.get(f"veshoz_pogr_last_year_{group_key}"))
+                extra_obj.vygr_this_year = _safe_int(request.POST.get(f"veshoz_vygr_this_year_{group_key}"))
+                extra_obj.vygr_last_year = _safe_int(request.POST.get(f"veshoz_vygr_last_year_{group_key}"))
+                extra_obj.pogr_kont_this_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_this_year_{group_key}"))
+                extra_obj.pogr_kont_last_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_last_year_{group_key}"))
+                extra_obj.vygr_kont_this_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_this_year_{group_key}"))
+                extra_obj.vygr_kont_last_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_last_year_{group_key}"))
+                extra_obj.save()
 
             messages.success(request, "Plans saved successfully.")
 
-            # refresh after save
             scaled_plans, month_info, all_full_months = _sum_scaled_plans_between(from_date, to_date)
+            single_full_month = all_full_months and len(month_info) == 1
+            target_month = month_info[0]["month"] if single_full_month else None
+            veshoz_by_group = _sum_veshoz_between()
 
     stations_by_name = {
         s.station_name.strip(): s
@@ -384,6 +560,7 @@ def kvartalniy_range(request):
     for idx, cfg in enumerate(DISPLAY_GROUPS, start=1):
         group_rows = []
         subtotal = _make_zero_totals("ИТОГО")
+        group_key = cfg["title"]
 
         for station_name in cfg["stations"]:
             known_station_names.add(station_name)
@@ -399,9 +576,65 @@ def kvartalniy_range(request):
             else:
                 row = _make_empty_range_row(station_name)
 
+            row["is_other"] = False
+            row["is_veshoz"] = False
+            row["group_key"] = group_key
+            row["is_editable"] = bool(single_full_month and row.get("station_id"))
+
             group_rows.append(row)
             _add_to_totals(subtotal, row)
             _add_to_totals(grand_total, row)
+
+        if cfg.get("has_veshoz"):
+            veshoz_row = veshoz_by_group.get(group_key)
+            if not veshoz_row:
+                veshoz_row = {
+                    "station_id": None,
+                    "station_name": "Вес.хоз",
+                    "is_other": False,
+                    "is_veshoz": True,
+                    "group_key": group_key,
+                    "is_editable": bool(single_full_month),
+
+                    "pogr_plan": 0,
+                    "vygr_plan": 0,
+                    "pogr_kont_plan": 0,
+                    "vygr_kont_plan": 0,
+
+                    "pogr_plan_raw": 0,
+                    "vygr_plan_raw": 0,
+                    "pogr_kont_plan_raw": 0,
+                    "vygr_kont_plan_raw": 0,
+
+                    "pogr_this_year": 0,
+                    "pogr_last_year": 0,
+                    "pogr_diff": 0,
+
+                    "vygr_this_year": 0,
+                    "vygr_last_year": 0,
+                    "vygr_diff": 0,
+
+                    "pogr_kont_this_year": 0,
+                    "pogr_kont_last_year": 0,
+                    "pogr_kont_diff": 0,
+
+                    "vygr_kont_this_year": 0,
+                    "vygr_kont_last_year": 0,
+                    "vygr_kont_diff": 0,
+
+                    "pogr_this_year_raw": 0,
+                    "pogr_last_year_raw": 0,
+                    "vygr_this_year_raw": 0,
+                    "vygr_last_year_raw": 0,
+                    "pogr_kont_this_year_raw": 0,
+                    "pogr_kont_last_year_raw": 0,
+                    "vygr_kont_this_year_raw": 0,
+                    "vygr_kont_last_year_raw": 0,
+                }
+
+            group_rows.append(veshoz_row)
+            _add_to_totals(subtotal, veshoz_row)
+            _add_to_totals(grand_total, veshoz_row)
 
         groups.append({
             "index": idx,
@@ -422,8 +655,11 @@ def kvartalniy_range(request):
                 plan_data=scaled_plans.get(station.id),
             )
             row["is_other"] = True
-            unmatched_rows.append(row)
+            row["is_veshoz"] = False
+            row["group_key"] = None
+            row["is_editable"] = bool(single_full_month and row.get("station_id"))
 
+            unmatched_rows.append(row)
             _add_to_totals(unmatched_total, row)
             _add_to_totals(grand_total, row)
 
@@ -445,7 +681,7 @@ def kvartalniy_range(request):
         "groups": groups,
         "grand_total": grand_total,
         "all_full_months": all_full_months,
-        "single_full_month": all_full_months and len(month_info) == 1,
+        "single_full_month": single_full_month,
         "month_info": month_info,
         "days_count": (to_date - from_date).days + 1,
     }
