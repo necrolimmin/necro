@@ -253,6 +253,10 @@
         <button class="kv-btn" type="submit" name="refresh" value="1">Ko‘rsatish</button>
         <button class="kv-btn" type="submit" name="save" value="1" {% if not single_full_month %}disabled{% endif %}>Saqlash</button>
       </div>
+
+      <a href="{% url 'kvartalniy_daily_list' %}">Kunlik</a>
+  <a href="{% url 'kvartalniy_monthly_list' %}">Oylik</a>
+
     </div>
 
     {% if single_full_month %}
