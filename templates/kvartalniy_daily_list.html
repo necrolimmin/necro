@@ -3,251 +3,677 @@
 
 {% block content %}
 <style>
-  .panel{
-    border: 1px solid var(--stroke);
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
+  .kvd-page{
+    --kvd-bg: linear-gradient(180deg, #f6f8ff 0%, #eef4ff 100%);
+    --kvd-surface: rgba(255,255,255,.82);
+    --kvd-surface-2: rgba(255,255,255,.94);
+    --kvd-text: #0f172a;
+    --kvd-muted: #64748b;
+    --kvd-stroke: rgba(15,23,42,.10);
+    --kvd-stroke-2: rgba(15,23,42,.16);
+    --kvd-shadow: 0 24px 60px rgba(2,6,23,.10);
+    --kvd-shadow-2: 0 10px 24px rgba(2,6,23,.08);
+    --kvd-accent: #4f46e5;
+    --kvd-accent-2: #22c55e;
+    --kvd-accent-3: #06b6d4;
+    --kvd-table-head: #f8fafc;
+    --kvd-table-row: rgba(79,70,229,.05);
+    --kvd-table-row-dark: rgba(99,102,241,.12);
+    --kvd-radius: 24px;
+    --kvd-radius-sm: 18px;
+    --kvd-danger: #dc2626;
+    --kvd-ok: #16a34a;
+
+    min-height: calc(100vh - 40px);
     padding: 16px;
+    background: var(--kvd-bg);
   }
-  .hdr{
-    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
-  }
-  .hdr h2{margin:0;font-size:18px;font-weight:950;color:var(--text);}
-  .muted{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4;}
 
-  .tableWrap{
-    margin-top:14px;
-    overflow:auto;
+  [data-theme="dark"] .kvd-page,
+  .dark .kvd-page{
+    --kvd-bg: radial-gradient(circle at top, #182235 0%, #0b1120 45%, #070b14 100%);
+    --kvd-surface: rgba(15,23,42,.64);
+    --kvd-surface-2: rgba(15,23,42,.84);
+    --kvd-text: #e5eefb;
+    --kvd-muted: #94a3b8;
+    --kvd-stroke: rgba(148,163,184,.16);
+    --kvd-stroke-2: rgba(148,163,184,.26);
+    --kvd-shadow: 0 28px 70px rgba(0,0,0,.42);
+    --kvd-shadow-2: 0 12px 32px rgba(0,0,0,.34);
+    --kvd-table-head: rgba(15,23,42,.98);
+    --kvd-table-row: rgba(99,102,241,.10);
+    --kvd-table-row-dark: rgba(99,102,241,.16);
+    --kvd-danger: #f87171;
+    --kvd-ok: #4ade80;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .kvd-page{
+      --kvd-bg: radial-gradient(circle at top, #182235 0%, #0b1120 45%, #070b14 100%);
+      --kvd-surface: rgba(15,23,42,.64);
+      --kvd-surface-2: rgba(15,23,42,.84);
+      --kvd-text: #e5eefb;
+      --kvd-muted: #94a3b8;
+      --kvd-stroke: rgba(148,163,184,.16);
+      --kvd-stroke-2: rgba(148,163,184,.26);
+      --kvd-shadow: 0 28px 70px rgba(0,0,0,.42);
+      --kvd-shadow-2: 0 12px 32px rgba(0,0,0,.34);
+      --kvd-table-head: rgba(15,23,42,.98);
+      --kvd-table-row: rgba(99,102,241,.10);
+      --kvd-table-row-dark: rgba(99,102,241,.16);
+      --kvd-danger: #f87171;
+      --kvd-ok: #4ade80;
+    }
+  }
+
+  .kvd-shell{
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+
+  .kvd-panel{
+    border: 1px solid var(--kvd-stroke);
+    border-radius: var(--kvd-radius);
+    box-shadow: var(--kvd-shadow);
+    backdrop-filter: blur(16px);
+    background: var(--kvd-surface);
+    padding: 18px;
+  }
+
+  .kvd-head{
+    display:grid;
+    grid-template-columns: 1.4fr .9fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .kvd-hero,
+  .kvd-cta-box{
+    border: 1px solid var(--kvd-stroke);
+    border-radius: 22px;
+    padding: 18px;
+    background: var(--kvd-surface-2);
+    box-shadow: var(--kvd-shadow-2);
+  }
+
+  .kvd-hero{
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kvd-hero::before{
+    content:"";
+    position:absolute;
+    inset:auto -40px -50px auto;
+    width:220px;
+    height:220px;
+    background: radial-gradient(circle, rgba(79,70,229,.18), transparent 70%);
+    pointer-events:none;
+  }
+
+  .kvd-title{
+    margin:0;
+    font-size: 23px;
+    line-height: 1.1;
+    font-weight: 950;
+    letter-spacing: -.02em;
+    color: var(--kvd-text);
+  }
+
+  .kvd-muted{
+    margin: 8px 0 0;
+    color: var(--kvd-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 760px;
+  }
+
+  .kvd-badges{
+    margin-top: 14px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  .kvd-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid var(--kvd-stroke);
+    background:linear-gradient(135deg, rgba(79,70,229,.12), rgba(34,197,94,.08), rgba(6,182,212,.10));
+    color:var(--kvd-text);
+    font-size:12px;
+    font-weight:900;
+    white-space:nowrap;
+  }
+
+  .kvd-cta-box{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    gap:14px;
+  }
+
+  .kvd-cta-title{
+    margin:0;
+    font-size:17px;
+    font-weight:950;
+    color:var(--kvd-text);
+  }
+
+  .kvd-cta-sub{
+    margin:6px 0 0;
+    font-size:13px;
+    color:var(--kvd-muted);
+    line-height:1.45;
+  }
+
+  .btn-cta{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    min-height:48px;
+    padding:0 18px;
+    border-radius:16px;
+    font-weight:900;
+    text-decoration:none;
+    color:#fff;
+    background:linear-gradient(135deg, var(--kvd-accent), var(--kvd-accent-2), var(--kvd-accent-3));
+    box-shadow:0 16px 36px rgba(79,70,229,.24);
+    transition:.2s ease;
+    position:relative;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+
+  .btn-cta svg{
+    width:18px;
+    height:18px;
+    stroke:#fff;
+    flex:0 0 auto;
+  }
+
+  .btn-cta::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,.32), transparent);
+    transform:translateX(-120%);
+    transition:.7s ease;
+  }
+
+  .btn-cta:hover{
+    transform:translateY(-2px);
+    box-shadow:0 22px 44px rgba(79,70,229,.32);
+  }
+
+  .btn-cta:hover::after{
+    transform:translateX(120%);
+  }
+
+  .kvd-filter{
+    margin-top: 6px;
+    display:grid;
+    grid-template-columns: minmax(0,1.2fr) auto auto;
+    gap:12px;
+    align-items:end;
+  }
+
+  .kvd-search{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:12px;
     border-radius:18px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.30);
+    border:1px solid var(--kvd-stroke);
+    background:var(--kvd-surface-2);
+    box-shadow:var(--kvd-shadow-2);
   }
-  html[data-theme="dark"] .tableWrap{ background:rgba(255,255,255,.04); }
 
-  table{width:100%;border-collapse:separate;border-spacing:0;text-align:left;}
-  thead th{
-    position:sticky;top:0;z-index:2;
-    text-align:left;font-size:12.5px;font-weight:950;color:var(--text);
-    background:var(--surface);
-    border-bottom:1px solid var(--stroke);
-    padding:12px 12px;white-space:nowrap;
+  .kvd-search-ico{
+    width:40px;
+    height:46px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:14px;
+    border:1px solid var(--kvd-stroke);
+    background:rgba(79,70,229,.08);
+    color:var(--kvd-accent);
+    font-size:16px;
+    font-weight:900;
   }
-  tbody td{
-    padding:12px 12px;
+
+  .kvd-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:170px;
+  }
+
+  .kvd-field label{
+    font-size:12px;
+    font-weight:900;
+    color:var(--kvd-muted);
+  }
+
+  .kvd-input{
+    height:46px;
+    border:1px solid var(--kvd-stroke-2);
+    background:var(--kvd-surface);
+    color:var(--kvd-text);
+    border-radius:14px;
+    padding:0 14px;
+    outline:none;
+    font-weight:800;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .kvd-input:focus{
+    border-color: rgba(79,70,229,.48);
+    box-shadow: 0 0 0 4px rgba(79,70,229,.14);
+  }
+
+  .btn-secondary{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:46px;
+    padding:0 16px;
+    border-radius:14px;
+    font-weight:900;
+    text-decoration:none;
+    color:var(--kvd-text);
+    background:var(--kvd-surface);
+    border:1px solid var(--kvd-stroke-2);
+    transition:.18s ease;
+    white-space:nowrap;
+  }
+
+  .btn-secondary:hover{
+    transform:translateY(-1px);
+    border-color:rgba(79,70,229,.38);
+    box-shadow:0 10px 20px rgba(2,6,23,.08);
+  }
+
+  .kvd-stat{
+    min-height:70px;
+    min-width:130px;
+    padding:12px 14px;
+    border-radius:18px;
+    border:1px solid var(--kvd-stroke);
+    background:var(--kvd-surface-2);
+    box-shadow:var(--kvd-shadow-2);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:6px;
+  }
+
+  .kvd-stat-label{
+    font-size:12px;
+    font-weight:800;
+    color:var(--kvd-muted);
+  }
+
+  .kvd-stat-value{
+    font-size:20px;
+    line-height:1;
+    font-weight:950;
+    color:var(--kvd-text);
+  }
+
+  .kvd-table-wrap{
+    margin-top:16px;
+    overflow:hidden;
+    border-radius:22px;
+    border:1px solid var(--kvd-stroke);
+    background:var(--kvd-surface-2);
+    box-shadow:var(--kvd-shadow-2);
+  }
+
+  .kvd-table-scroll{
+    overflow:auto;
+    max-width:100%;
+  }
+
+  .kvd-table{
+    width:100%;
+    min-width:780px;
+    border-collapse:separate;
+    border-spacing:0;
+    text-align:left;
+  }
+
+  .kvd-table thead th{
+    position:sticky;
+    top:0;
+    z-index:2;
+    text-align:left;
+    font-size:12.5px;
+    font-weight:950;
+    color:var(--kvd-text);
+    background:var(--kvd-table-head);
+    border-bottom:1px solid var(--kvd-stroke);
+    padding:14px 14px;
+    white-space:nowrap;
+  }
+
+  .kvd-table thead th:first-child{
+    border-top-left-radius:18px;
+  }
+
+  .kvd-table thead th:last-child{
+    border-top-right-radius:18px;
+  }
+
+  .kvd-table tbody td{
+    padding:14px 14px;
     border-bottom:1px solid rgba(15,23,42,.06);
-    color:var(--text);
+    color:var(--kvd-text);
     font-size:13px;
     vertical-align:middle;
     background:transparent;
   }
-  html[data-theme="dark"] tbody td{ border-bottom:1px solid rgba(255,255,255,.08); }
-  tbody tr:hover td{ background:rgba(79,70,229,.06); }
-  html[data-theme="dark"] tbody tr:hover td{ background:rgba(99,102,241,.10); }
 
-  .num{font-weight:950;opacity:.85;width:70px;}
-  .date{font-weight:950;font-size:14px;}
-  .submeta{margin-top:2px;color:var(--muted);font-size:12px;}
+  [data-theme="dark"] .kvd-table tbody td,
+  .dark .kvd-table tbody td,
+  :root:not([data-theme="light"]) .kvd-table tbody td{
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
 
-  .btnView{
-    display:inline-flex;align-items:center;justify-content:center;
-    padding:10px 12px;border-radius:14px;border:0;
-    font-weight:950;text-decoration:none;color:#fff;
-    background:linear-gradient(135deg, var(--g1), var(--g2), var(--g3));
-    box-shadow:0 14px 40px rgba(79,70,229,.18);
-    white-space:nowrap;
-    transition:transform .12s ease, filter .12s ease;
-    border:1px solid rgba(15,23,42,.12);
+  .kvd-table tbody tr:nth-child(even) td{
+    background:rgba(255,255,255,.12);
   }
-  .btnView:hover{ filter:brightness(1.03); transform:translateY(-1px); }
 
-  .btnSecondary{
-    display:inline-flex;align-items:center;justify-content:center;
-    padding:10px 12px;border-radius:14px;
-    font-weight:950;text-decoration:none;color:var(--text);
-    background:rgba(255,255,255,.55);
-    border:1px solid var(--stroke);
-    white-space:nowrap;
+  [data-theme="dark"] .kvd-table tbody tr:nth-child(even) td,
+  .dark .kvd-table tbody tr:nth-child(even) td,
+  :root:not([data-theme="light"]) .kvd-table tbody tr:nth-child(even) td{
+    background:rgba(255,255,255,.02);
   }
-  html[data-theme="dark"] .btnSecondary{ background:rgba(255,255,255,.06); }
 
-  .btn-cta{
-    display:inline-flex;align-items:center;gap:10px;
-    padding:6px 15px;border-radius:999px;
-    font-weight:700;text-decoration:none;color:#fff;
-    background:linear-gradient(135deg,#4f46e5,#22c55e);
-    box-shadow:0 14px 30px rgba(79,70,229,.28);
-    transition:.22s ease;
-    position:relative;overflow:hidden;
-    white-space:nowrap;
+  .kvd-table tbody tr:hover td{
+    background:var(--kvd-table-row);
   }
-  .btn-cta svg{width:18px;height:18px;stroke:#fff}
-  .btn-cta::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
-    transform:translateX(-120%);transition:.65s ease;
-  }
-  .btn-cta:hover{transform:translateY(-2px);box-shadow:0 22px 42px rgba(79,70,229,.36)}
-  .btn-cta:hover::after{transform:translateX(120%)}
 
-  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
-  .search{
-    flex:1;min-width:280px;
-    display:flex;align-items:end;gap:10px;flex-wrap:wrap;
-    padding:10px 12px;border-radius:14px;
-    border:1px solid rgba(15,23,42,.12);
-    backdrop-filter:blur(10px);
+  [data-theme="dark"] .kvd-table tbody tr:hover td,
+  .dark .kvd-table tbody tr:hover td,
+  :root:not([data-theme="light"]) .kvd-table tbody tr:hover td{
+    background:var(--kvd-table-row-dark);
   }
-  .search .ico{font-weight:900;color:var(--muted,#64748b)}
-  .searchField{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
+
+  .kvd-num{
+    width:72px;
+    font-weight:950;
+    opacity:.88;
   }
-  .searchField label{
+
+  .kvd-date{
+    font-weight:950;
+    font-size:15px;
+    color:var(--kvd-text);
+  }
+
+  .kvd-submeta{
+    margin-top:4px;
+    color:var(--kvd-muted);
     font-size:12px;
-    font-weight:800;
-    color:var(--muted);
-  }
-  .utk-lang{
-    border:1px solid rgba(173, 247, 35, 0.14);
-    background:rgba(31, 204, 25, 0.08);
-    color:var(--text);
-    border-radius:999px;
-    padding:8px 10px;
-    font-size:12px;
-    cursor:pointer;
-    outline:0;
-    min-width:150px;
+    line-height:1.4;
   }
 
-  .chip{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:10px 12px;border-radius:14px;
-    border:1px solid rgba(15,23,42,.12);
-    backdrop-filter:blur(10px);
-    font-size:13px;color:var(--muted,#64748b);
-    white-space:nowrap;
-  }
-
-  .badge{
+  .btn-view{
     display:inline-flex;
     align-items:center;
-    gap:8px;
-    padding:6px 10px;
-    border-radius:999px;
-    border:1px solid rgba(15,23,42,.12);
-    background:linear-gradient(135deg, rgba(79,70,229,.14), rgba(34,197,94,.12), rgba(6,182,212,.12));
-    font-size:12px;
+    justify-content:center;
+    min-height:42px;
+    padding:0 14px;
+    border-radius:14px;
+    border:1px solid rgba(79,70,229,.24);
     font-weight:900;
+    text-decoration:none;
+    color:#fff;
+    background:linear-gradient(135deg, var(--kvd-accent), var(--kvd-accent-2), var(--kvd-accent-3));
+    box-shadow:0 14px 40px rgba(79,70,229,.18);
+    white-space:nowrap;
+    transition:transform .12s ease, filter .12s ease, box-shadow .12s ease;
   }
 
-  .pager{
-    margin-top:14px;
-    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  .btn-view:hover{
+    filter:brightness(1.03);
+    transform:translateY(-1px);
+    box-shadow:0 18px 34px rgba(79,70,229,.24);
   }
-  .pager .left{color:var(--muted);font-size:12.5px;}
-  .pager .right{display:flex;gap:8px;flex-wrap:wrap;}
+
+  .kvd-empty{
+    padding:22px !important;
+    color:var(--kvd-muted) !important;
+    text-align:center;
+    font-weight:800;
+  }
+
+  .kvd-pager{
+    margin-top:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    padding:14px 16px;
+    border-radius:18px;
+    border:1px solid var(--kvd-stroke);
+    background:var(--kvd-surface-2);
+    box-shadow:var(--kvd-shadow-2);
+  }
+
+  .kvd-pager-left{
+    color:var(--kvd-muted);
+    font-size:13px;
+    font-weight:700;
+  }
+
+  .kvd-pager-right{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
   .pgBtn{
-    padding:9px 12px;border-radius:14px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.55);
-    color:var(--text);
-    font-weight:950;font-size:12.5px;
+    min-height:42px;
+    padding:0 14px;
+    border-radius:14px;
+    border:1px solid var(--kvd-stroke-2);
+    background:var(--kvd-surface);
+    color:var(--kvd-text);
+    font-weight:950;
+    font-size:12.5px;
     cursor:pointer;
+    transition:.18s ease;
   }
-  html[data-theme="dark"] .pgBtn{ background:rgba(255,255,255,.06); }
-  .pgBtn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .pgBtn:hover:not(:disabled){
+    transform:translateY(-1px);
+    border-color:rgba(79,70,229,.34);
+    box-shadow:0 10px 20px rgba(2,6,23,.08);
+  }
+
+  .pgBtn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+  }
+
+  @media (max-width: 1024px){
+    .kvd-head{
+      grid-template-columns:1fr;
+    }
+
+    .kvd-filter{
+      grid-template-columns:1fr;
+    }
+
+    .kvd-stat{
+      min-width:unset;
+    }
+  }
+
+  @media (max-width: 720px){
+    .kvd-page{
+      padding:12px;
+    }
+
+    .kvd-panel{
+      padding:14px;
+      border-radius:20px;
+    }
+
+    .kvd-title{
+      font-size:20px;
+    }
+
+    .kvd-search{
+      align-items:stretch;
+    }
+
+    .kvd-search-ico{
+      display:none;
+    }
+
+    .kvd-field{
+      width:100%;
+      min-width:100%;
+    }
+
+    .btn-secondary,
+    .btn-cta{
+      width:100%;
+    }
+
+    .kvd-table{
+      min-width:640px;
+    }
+
+    .kvd-table thead th,
+    .kvd-table tbody td{
+      padding:12px 10px;
+    }
+
+    .kvd-pager{
+      padding:12px;
+    }
+  }
 </style>
 
-<div class="panel">
-  <div class="hdr">
-    <div>
-      <h2>Kvartalniy kunlik hisobotlar ro‘yxati</h2>
-      <div class="muted">
-        Sana oralig‘i bo‘yicha kunlik kvartalniy yozuvlar ro‘yxati.
+<div class="kvd-page">
+  <div class="kvd-shell">
+    <div class="kvd-panel">
+
+      <div class="kvd-head">
+        <div class="kvd-hero">
+          <h2 class="kvd-title">Kvartalniy kunlik hisobotlar ro‘yxati</h2>
+          <div class="kvd-muted">
+            Sana oralig‘i bo‘yicha kunlik kvartalniy yozuvlar ro‘yxati. Bu bo‘lim orqali kerakli sanani tez topib, hisobotni ko‘rish sahifasiga o‘tishingiz mumkin.
+          </div>
+
+          <div class="kvd-badges">
+            <span class="kvd-badge">Kunlik yozuvlar</span>
+            <span class="kvd-badge">Sana bo‘yicha filtrlash</span>
+            <span class="kvd-badge">Tezkor ko‘rish</span>
+          </div>
+        </div>
+
+        <div class="kvd-cta-box">
+          <div>
+            <h3 class="kvd-cta-title">Yangi kunlik ko‘rish</h3>
+            <div class="kvd-cta-sub">
+              Yangi kunlik hisobot sahifasiga o‘tib, kerakli sana bo‘yicha ma’lumotlarni ko‘rishingiz mumkin.
+            </div>
+          </div>
+
+          <a class="btn-cta" href="{% url 'kvartalniy_kun' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Kunlik hisobot
+          </a>
+        </div>
       </div>
-    </div>
-    <div>
-      <h2>Yangi kunlik ko‘rish</h2>
-      <div class="muted">
-        <a class="btn-cta" href="{% url 'kvartalniy_kun' %}">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          Kunlik hisobot
-        </a>
+
+      <form method="get" class="kvd-filter">
+        <div class="kvd-search">
+          <span class="kvd-search-ico">⌕</span>
+
+          <div class="kvd-field">
+            <label>Dan</label>
+            <input class="kvd-input" type="date" name="from_date" value="{{ from_date|date:'Y-m-d' }}">
+          </div>
+
+          <div class="kvd-field">
+            <label>Gacha</label>
+            <input class="kvd-input" type="date" name="to_date" value="{{ to_date|date:'Y-m-d' }}">
+          </div>
+
+          <button class="btn-secondary" type="submit">Ko‘rsatish</button>
+        </div>
+
+        <div class="kvd-stat">
+          <div class="kvd-stat-label">Ko‘rsatilmoqda</div>
+          <div class="kvd-stat-value" id="shownCount">{{ rows|length }}</div>
+        </div>
+
+        <div class="kvd-stat">
+          <div class="kvd-stat-label">Jami</div>
+          <div class="kvd-stat-value" id="totalCount">{{ rows|length }}</div>
+        </div>
+      </form>
+
+      <div class="kvd-table-wrap">
+        <div class="kvd-table-scroll">
+          <table class="kvd-table" id="dailyTable">
+            <thead>
+              <tr>
+                <th style="width:72px;">№</th>
+                <th>Sana</th>
+                <th style="width:170px;">Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="dailyBody">
+              {% for it in rows %}
+                <tr class="list-row">
+                  <td class="kvd-num row-num"></td>
+                  <td>
+                    <div class="kvd-date">{{ it.date|date:"d.m.Y" }}</div>
+                    <div class="kvd-submeta">Kunlik hisobot sanasi</div>
+                  </td>
+                  <td>
+                    <a class="btn-view" href="{% url 'kvartalniy_kun_by_date' date_str=it.date|date:'Y-m-d' %}">
+                      Ko‘rish
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="kvd-empty">
+                    Kunlik kvartalniy ma’lumot topilmadi.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <form method="get" class="controls">
-    <div class="search">
-      <span class="ico">⌕</span>
-
-      <div class="searchField">
-        <label>Dan</label>
-        <input class="utk-lang" type="date" name="from_date" value="{{ from_date|date:'Y-m-d' }}">
+      <div class="kvd-pager">
+        <div class="kvd-pager-left" id="pgInfo">—</div>
+        <div class="kvd-pager-right">
+          <button class="pgBtn" id="pgPrev" type="button">‹ Oldingi</button>
+          <button class="pgBtn" id="pgNext" type="button">Keyingi ›</button>
+        </div>
       </div>
 
-      <div class="searchField">
-        <label>Gacha</label>
-        <input class="utk-lang" type="date" name="to_date" value="{{ to_date|date:'Y-m-d' }}">
-      </div>
-
-      <button class="btnSecondary" type="submit">Ko‘rsatish</button>
-    </div>
-
-    <div class="chip">
-      Ko‘rsatilmoqda:
-      <b id="shownCount">{{ rows|length }}</b>
-    </div>
-
-    <div class="chip">
-      Jami:
-      <b id="totalCount">{{ rows|length }}</b>
-    </div>
-  </form>
-
-  <div class="tableWrap">
-    <table id="dailyTable">
-      <thead>
-        <tr>
-          <th style="width:70px;">№</th>
-          <th>Sana</th>
-          <th>Amallar</th>
-        </tr>
-      </thead>
-      <tbody id="dailyBody">
-        {% for it in rows %}
-          <tr class="list-row">
-            <td class="num row-num"></td>
-            <td>
-              <div class="date">{{ it.date|date:"d.m.Y" }}</div>
-              <div class="submeta">Kunlik hisobot sanasi</div>
-            </td>
-            <td>
-              <a class="btnView" href="{% url 'kvartalniy_kun_by_date' date_str=it.date|date:'Y-m-d' %}">
-                Ko‘rish
-              </a>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" style="padding:16px;color:var(--muted);">
-              Kunlik kvartalniy ma’lumot topilmadi.
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="pager">
-    <div class="left" id="pgInfo">—</div>
-    <div class="right">
-      <button class="pgBtn" id="pgPrev" type="button">‹ Oldingi</button>
-      <button class="pgBtn" id="pgNext" type="button">Keyingi ›</button>
     </div>
   </div>
 </div>
@@ -262,21 +688,28 @@
   const pgInfo = document.getElementById('pgInfo');
   const pgPrev = document.getElementById('pgPrev');
   const pgNext = document.getElementById('pgNext');
+  const shownCount = document.getElementById('shownCount');
+  const totalCount = document.getElementById('totalCount');
 
   function render(){
     const start = (page - 1) * perPage;
     const end = start + perPage;
+    let shown = 0;
 
     rows.forEach((r, idx) => {
       const show = idx >= start && idx < end;
       r.style.display = show ? '' : 'none';
+
       if (show) {
+        shown++;
         const nCell = r.querySelector('.row-num');
         if (nCell) nCell.textContent = String(idx + 1);
       }
     });
 
-    pgInfo.textContent = `Sahifa ${page}/${totalPages} • Jami: ${rows.length}`;
+    if (shownCount) shownCount.textContent = shown;
+    if (totalCount) totalCount.textContent = rows.length;
+    pgInfo.textContent = `Sahifa ${page}/${totalPages} • Jami yozuvlar: ${rows.length}`;
     pgPrev.disabled = page <= 1;
     pgNext.disabled = page >= totalPages;
   }
