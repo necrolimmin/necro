@@ -3,7 +3,7 @@
 {% load report_extras %}
 
 {% block title %}
-Таблица 2 — {% if mode == 'view' %}Просмотр{% else %}Создание/Редактирование{% endif %}
+Jadval 2 — {% if mode == 'view' %}Ko'rish{% else %}Tahrirlash{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -40,6 +40,7 @@
     --accent2:#3b82f6;
     --danger:#f87171;
   }
+
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]) .t2-page{
       --bg: #070b18;
@@ -58,6 +59,7 @@
   }
 
   .t2-shell{ max-width: 1120px; margin: 0 auto; }
+
   .t2-card{
     border: 1px solid var(--stroke);
     border-radius: 18px;
@@ -74,6 +76,7 @@
     flex-wrap:wrap;
     margin-bottom: 12px;
   }
+
   .t2-title{
     margin:0;
     font-weight: 950;
@@ -82,6 +85,7 @@
     font-size: 18px;
     line-height: 1.15;
   }
+
   .t2-sub{
     margin:6px 0 0;
     color: var(--muted);
@@ -101,17 +105,20 @@
     border: 1px solid var(--stroke);
     box-shadow: var(--shadow2);
   }
+
   .t2-field{
     display:flex;
     flex-direction:column;
     gap:6px;
     min-width: 220px;
   }
+
   .t2-field label{
     font-weight: 900;
     font-size: 12px;
     color: var(--text);
   }
+
   .t2-input{
     height: 42px;
     padding: 0 12px;
@@ -122,19 +129,28 @@
     outline: none;
     transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
   }
+
   [data-theme="dark"] .t2-input,
   .dark .t2-input,
   :root:not([data-theme="light"]) .t2-input{
     background: rgba(2,6,23,.35);
     color: var(--text);
   }
+
   .t2-input:focus{
     border-color: rgba(37,99,235,.55);
     box-shadow: 0 0 0 4px rgba(37,99,235,.18);
   }
+
   .t2-input[disabled]{ opacity: .85; cursor: not-allowed; }
 
-  .t2-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .t2-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+
   .t2-btn{
     height: 42px;
     padding: 0 14px;
@@ -151,17 +167,21 @@
     transition: transform .06s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
     user-select:none;
   }
+
   [data-theme="dark"] .t2-btn,
   .dark .t2-btn,
   :root:not([data-theme="light"]) .t2-btn{
     background: rgba(2,6,23,.35);
   }
+
   .t2-btn:hover{
     transform: translateY(-1px);
     border-color: rgba(37,99,235,.45);
     box-shadow: 0 10px 20px rgba(2,6,23,.12);
   }
+
   .t2-btn:active{ transform: translateY(0px) scale(.99); }
+
   .t2-btn.primary{
     background: linear-gradient(135deg, rgba(37,99,235,.95), rgba(29,78,216,.95));
     border-color: rgba(37,99,235,.65);
@@ -180,9 +200,10 @@
   .t2-table{
     border-collapse: collapse;
     width: 100%;
-    min-width: 980px;
+    
     table-layout: fixed;
   }
+
   .t2-table th,
   .t2-table td{
     border: 1px solid var(--stroke2);
@@ -191,6 +212,7 @@
     vertical-align: middle;
     color: var(--text);
   }
+
   .t2-center{ text-align:center; }
   .t2-bold{ font-weight: 950; }
   .t2-danger{ color: var(--danger); font-weight: 950; }
@@ -202,6 +224,7 @@
     padding: 8px 8px;
     background: rgba(37,99,235,.08);
   }
+
   [data-theme="dark"] .t2-headDate,
   .dark .t2-headDate,
   :root:not([data-theme="light"]) .t2-headDate{
@@ -221,12 +244,14 @@
     color:#0f172a;
     outline:none;
   }
+
   [data-theme="dark"] .t2-cell-input,
   .dark .t2-cell-input,
   :root:not([data-theme="light"]) .t2-cell-input{
     background: rgba(2,6,23,.28);
     color: var(--text);
   }
+
   .t2-cell-input[disabled]{ opacity:.85; cursor:not-allowed; }
 
   .t2-secTitle{
@@ -234,6 +259,60 @@
     text-align:center;
     padding: 8px 8px;
     background: rgba(148,163,184,.12);
+  }
+
+  .kp-tools{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+
+  .kp-mini-btn{
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1px solid var(--stroke2);
+    background: rgba(255,255,255,.85);
+    color: var(--text);
+    font-weight: 950;
+    font-size: 16px;
+    line-height: 1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition: .15s ease;
+    padding: 0;
+  }
+
+  .kp-mini-btn:hover{
+    transform: translateY(-1px);
+    border-color: rgba(37,99,235,.45);
+    box-shadow: 0 8px 16px rgba(2,6,23,.10);
+  }
+
+  .kp-mini-btn.kp-del{
+    color: var(--danger);
+    font-size: 18px;
+  }
+
+  [data-theme="dark"] .kp-mini-btn,
+  .dark .kp-mini-btn,
+  :root:not([data-theme="light"]) .kp-mini-btn{
+    background: rgba(2,6,23,.35);
+    color: var(--text);
+  }
+
+  [data-theme="dark"] .kp-mini-btn.kp-del,
+  .dark .kp-mini-btn.kp-del,
+  :root:not([data-theme="light"]) .kp-mini-btn.kp-del{
+    color: var(--danger);
+  }
+
+  .kp-name-input{
+    text-align:left;
+    padding-left:10px;
   }
 
   @media (max-width: 640px){
@@ -266,9 +345,11 @@
         {% csrf_token %}
 
         <div class="t2-controls">
-          <div class="t2-field">
-            <label>Sana</label>
-            <input class="t2-input" type="date" name="date" value="{{ date|date:'Y-m-d' }}" {% if mode == 'view' %}disabled{% endif %}>
+          <div class="t2-actions">
+            {% if mode != 'view' %}
+              <button type="submit" class="t2-btn primary">Saqlash</button>
+            {% endif %}
+            <a href="{% url 'station_table_2_list' %}" class="t2-btn">← Ortga</a>
           </div>
 
           <div class="t2-field" style="min-width:260px;">
@@ -276,12 +357,18 @@
             <input class="t2-input" value="{{ station_name }}" disabled>
           </div>
 
-          <div class="t2-actions">
-            {% if mode != 'view' %}
-              <button type="submit" class="t2-btn primary">Saqlash</button>
-            {% endif %}
-            <a href="{% url 'station_table_2_list' %}" class="t2-btn">← Ortga</a>
+          <div class="t2-field">
+            <label>Sana</label>
+            <input class="t2-input" type="date" name="date" value="{{ date|date:'Y-m-d' }}" {% if mode == 'view' %}disabled{% endif %}>
           </div>
+
+          {% if mode == 'view' %}
+            <button type="button" id="exportExcelBtn" class="t2-btn primary">
+              Excel ga yuklab olish
+            </button>
+          {% endif %}
+
+          
         </div>
 
         <div class="t2-wrap">
@@ -336,12 +423,9 @@
                 {% elif n == 9 %}
                   {# skip #}
 
-                {# ✅ NEW: ekranda 18 va 19 bo'lib ko'rinayotgan raqamlarni birlashtiramiz (n=19 va n=20) #}
                 {% elif n == 19 %}
                   <tr>
-                    {# bu yerda ekrandagi raqam 18 bo‘lishi kerak -> n-1 #}
                     <td class="t2-center t2-bold" rowspan="2">{{ n|add:"-1" }}</td>
-
                     <td colspan="2">{{ label }}</td>
                     <td class="t2-center">{{ code }}</td>
                     <td class="t2-center">
@@ -354,7 +438,6 @@
                     </td>
                   </tr>
 
-                  {# ikkinchi qator: n==20 ni chiqaramiz, lekin raqam ustuni bo‘lmaydi #}
                   {% for n2,label2,code2,k_total2,k_ktk2 in rows_def %}
                     {% if n2 == 20 %}
                       <tr>
@@ -373,7 +456,7 @@
                   {% endfor %}
 
                 {% elif n == 20 %}
-                  {# ✅ skip: chunki u yuqorida merge ichida chiqarildi #}
+                  {# skip #}
 
                 {% elif n == 22 %}
                   <tr>
@@ -394,21 +477,20 @@
                 {% else %}
                   <tr>
                     {% if n == 35 %}
-
                     {% else %}
-                    <td class="t2-center t2-bold">
-                      {% if n >= 21 %}
-                        {{ n|add:"-2" }}
-                      {% elif n >= 10 %}
-                        {{ n|add:"-1" }}
-                      {% else %}
-                        {{ n }}
-                      {% endif %}
-                    </td>
-                    <td colspan="2">{{ label }}</td>
-                    <td class="t2-center">{{ code }}</td>
-                    <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                    <td class="t2-center"><input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                      <td class="t2-center t2-bold">
+                        {% if n >= 21 %}
+                          {{ n|add:"-2" }}
+                        {% elif n >= 10 %}
+                          {{ n|add:"-1" }}
+                        {% else %}
+                          {{ n }}
+                        {% endif %}
+                      </td>
+                      <td colspan="2">{{ label }}</td>
+                      <td class="t2-center">{{ code }}</td>
+                      <td class="t2-center"><input class="t2-cell-input" name="{{ k_total }}" value="{{ obj|data_val:k_total }}" {% if mode == 'view' %}disabled{% endif %}></td>
+                      <td class="t2-center"><input class="t2-cell-input" name="{{ k_ktk }}" value="{{ obj|data_val:k_ktk }}" {% if mode == 'view' %}disabled{% endif %}></td>
                     {% endif %}
                   </tr>
                 {% endif %}
@@ -417,8 +499,7 @@
             </tbody>
           </table>
 
-          <!-- ✅ bottom blocks with "Доход" column (НО cargo_income НЕТ) -->
-          <table class="t2-table" style="margin-top:10px; min-width: 860px;">
+          <table class="t2-table" style="margin-top:10px; ">
             <colgroup>
               <col>
               <col style="width:140px;">
@@ -460,7 +541,6 @@
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.os_income }}" value="{{ obj|data_val:bottom.os_income }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
-              <!-- ✅ ПОГРУЖЕНО: доход НЕ нужен, последняя колонка пустая -->
               <tr>
                 <td rowspan="2" class="t2-bold">ПОГРУЖЕНО (наименование груза)</td>
                 <td rowspan="2" class="t2-center t2-bold">Объём</td>
@@ -473,40 +553,81 @@
             </tbody>
           </table>
 
-          <table class="t2-table" style="margin-top:10px; min-width: 760px;">
-            <colgroup><col style="width:140px;"><col><col><col></colgroup>
+          <table class="t2-table" style="margin-top:10px; " id="kp-sector-table">
+            <colgroup>
+              <col>
+              {% if mode != 'view' %}
+                <col style="width:56px;">
+              {% endif %}
+              <col style="width:160px;">
+              <col style="width:160px;">
+              <col style="width:160px;">
+            </colgroup>
+
             <thead>
-              <tr><th colspan="4" class="t2-secTitle">Наличие на КП по сектору</th></tr>
+              <tr><th colspan="{% if mode == 'view' %}4{% else %}5{% endif %}" class="t2-secTitle">Наличие на КП по сектору</th></tr>
               <tr>
-                <th></th>
-                <th class="t2-center t2-bold">Вместимость</th>
-                <th class="t2-center t2-bold">Факт</th>
-                <th class="t2-center t2-bold">Свободно</th>
-              </tr>
+              <th class="t2-center t2-bold">Название сектора</th>
+
+              {% if mode != 'view' %}
+                <th class="t2-center t2-bold">
+                  <div class="kp-tools">
+                    <button type="button" class="kp-mini-btn kp-add" id="kp-add-row">+</button>
+                  </div>
+                </th>
+              {% endif %}
+
+              <th class="t2-center t2-bold">Вместимость</th>
+              <th class="t2-center t2-bold">Факт</th>
+              <th class="t2-center t2-bold">Свободно</th>
+            </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td class="t2-center t2-bold">ФТТ</td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_fp_capacity }}" value="{{ obj|data_val:bottom.kp_fp_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_fp_fact }}" value="{{ obj|data_val:bottom.kp_fp_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_fp_free }}" value="{{ obj|data_val:bottom.kp_fp_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
+
+            <tbody id="kp-sector-body">
+              {% for row in sector_rows %}
+              <tr class="kp-sector-row">
+                <td class="t2-center">
+                  <input
+                    class="t2-cell-input kp-name-input"
+                    name="kp_sector_name[]"
+                    value="{{ row.name }}"
+                    placeholder="Название Терминал"
+                    {% if mode == 'view' %}disabled{% endif %}
+                    required
+                  >
+                </td>
+
+                {% if mode != 'view' %}
+                  <td class="t2-center">
+                    <button type="button" class="kp-mini-btn kp-del" data-del-row>&times;</button>
+                  </td>
+                {% endif %}
+
+                <td class="t2-center">
+                  <input class="t2-cell-input" name="kp_sector_capacity[]" value="{{ row.capacity }}" {% if mode == 'view' %}disabled{% endif %}>
+                </td>
+                <td class="t2-center">
+                  <input class="t2-cell-input" name="kp_sector_fact[]" value="{{ row.fact }}" {% if mode == 'view' %}disabled{% endif %}>
+                </td>
+                <td class="t2-center">
+                  <input class="t2-cell-input" name="kp_sector_free[]" value="{{ row.free }}" {% if mode == 'view' %}disabled{% endif %}>
+                </td>
               </tr>
-              <tr>
-                <td class="t2-center t2-bold">УЛС</td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_uus_capacity }}" value="{{ obj|data_val:bottom.kp_uus_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_uus_fact }}" value="{{ obj|data_val:bottom.kp_uus_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
-                <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_uus_free }}" value="{{ obj|data_val:bottom.kp_uus_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
-              </tr>
+              {% endfor %}
 
               <tr>
-                <td>Готовые контейнера к отправке на вагонах</td>
+                <td colspan="{% if mode == 'view' %}1{% else %}2{% endif %}">
+                  Готовые контейнера к отправке на вагонах
+                </td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_send_capacity }}" value="{{ obj|data_val:bottom.kp_ready_send_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_send_fact }}" value="{{ obj|data_val:bottom.kp_ready_send_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_send_free }}" value="{{ obj|data_val:bottom.kp_ready_send_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
               </tr>
 
               <tr>
-                <td>Готовые контейнера к вывозу на автотранспортах</td>
+                <td colspan="{% if mode == 'view' %}1{% else %}2{% endif %}">
+                  Готовые контейнера к вывозу на автотранспортах
+                </td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_autocar_capacity }}" value="{{ obj|data_val:bottom.kp_ready_autocar_capacity }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_autocar_fact }}" value="{{ obj|data_val:bottom.kp_ready_autocar_fact }}" {% if mode == 'view' %}disabled{% endif %}></td>
                 <td class="t2-center"><input class="t2-cell-input" name="{{ bottom.kp_ready_autocar_free }}" value="{{ obj|data_val:bottom.kp_ready_autocar_free }}" {% if mode == 'view' %}disabled{% endif %}></td>
@@ -519,8 +640,346 @@
     </div>
   </div>
 </div>
+
 <script>
 setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 </script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
-{% endblock %}  
+<script>
+(function(){
+  const isView = "{{ mode }}" === "view";
+  if (isView) return;
+
+  const body = document.getElementById("kp-sector-body");
+  const addBtn = document.getElementById("kp-add-row");
+
+  function sectorRows(){
+    return Array.from(body.querySelectorAll("tr.kp-sector-row"));
+  }
+
+  function addRow(name="", capacity="", fact="", free=""){
+    const row = document.createElement("tr");
+    row.className = "kp-sector-row";
+    row.innerHTML = `
+      <td class="t2-center">
+        <input class="t2-cell-input kp-name-input" name="kp_sector_name[]" value="${name}" placeholder="Название сектора">
+      </td>
+      <td class="t2-center">
+        <button type="button" class="kp-mini-btn kp-del" data-del-row>&times;</button>
+      </td>
+      <td class="t2-center">
+        <input class="t2-cell-input" name="kp_sector_capacity[]" value="${capacity}">
+      </td>
+      <td class="t2-center">
+        <input class="t2-cell-input" name="kp_sector_fact[]" value="${fact}">
+      </td>
+      <td class="t2-center">
+        <input class="t2-cell-input" name="kp_sector_free[]" value="${free}">
+      </td>
+    `;
+    const staticRows = Array.from(body.querySelectorAll("tr:not(.kp-sector-row)"));
+    if (staticRows.length) {
+      body.insertBefore(row, staticRows[0]);
+    } else {
+      body.appendChild(row);
+    }
+  }
+
+  function ensureAtLeastOneRow(){
+    if (!sectorRows().length) {
+      addRow();
+    }
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener("click", function(){
+      addRow();
+    });
+  }
+
+  body.addEventListener("click", function(e){
+    const delBtn = e.target.closest("[data-del-row]");
+    if (!delBtn) return;
+
+    const row = delBtn.closest("tr.kp-sector-row");
+    if (row) row.remove();
+    ensureAtLeastOneRow();
+  });
+
+  ensureAtLeastOneRow();
+})();
+</script>
+
+{% if mode == 'view' %}
+<script>
+(function () {
+  const btn = document.getElementById("exportExcelBtn");
+  if (!btn || typeof XLSX === "undefined") return;
+
+  btn.addEventListener("click", function () {
+    const wb = XLSX.utils.book_new();
+    const ws = {};
+
+    const dateText = "{{ date|date:'d.m.Y' }}";
+    const stationName = `{{ station_name|escapejs }}`;
+
+    const rows = [];
+
+    // Title
+    rows.push(["Jadval N2", "", "", "", "Sana:", dateText]);
+    rows.push([]);
+
+    // ---------------- MAIN TABLE ----------------
+    rows.push(["№ п/п", "Наименование показателя", "", "Код", `${stationName} всего`, `${stationName} ктк`]);
+
+    const mainTable = document.querySelectorAll(".t2-wrap .t2-table")[0];
+    if (mainTable) {
+      const bodyRows = mainTable.querySelectorAll("tbody tr");
+      bodyRows.forEach(tr => {
+        const tds = tr.querySelectorAll("td");
+        if (!tds.length) return;
+
+        const rowData = [];
+        tds.forEach(td => {
+          const input = td.querySelector("input");
+          let text = input ? input.value : td.innerText.trim();
+          rowData.push(text);
+        });
+
+        while (rowData.length < 6) rowData.push("");
+        rows.push(rowData.slice(0, 6));
+      });
+    }
+
+    rows.push([]);
+
+    // ---------------- SECOND TABLE ----------------
+    rows.push(["", "КТК", "Тонн/Объём", "Доход"]);
+
+    const secondTable = document.querySelectorAll(".t2-wrap .t2-table")[1];
+    if (secondTable) {
+      const bodyRows = secondTable.querySelectorAll("tbody tr");
+      bodyRows.forEach(tr => {
+        const tds = tr.querySelectorAll("td");
+        if (!tds.length) return;
+
+        const rowData = [];
+        tds.forEach(td => {
+          const input = td.querySelector("input");
+          let text = input ? input.value : td.innerText.trim();
+          rowData.push(text);
+        });
+
+        while (rowData.length < 4) rowData.push("");
+        rows.push(rowData.slice(0, 4));
+      });
+    }
+
+    rows.push([]);
+
+    // ---------------- THIRD TABLE ----------------
+    rows.push(["Наличие на КП по сектору"]);
+    rows.push(["Название сектора", "Вместимость", "Факт", "Свободно"]);
+
+    const thirdTable = document.getElementById("kp-sector-table");
+    if (thirdTable) {
+      const bodyRows = thirdTable.querySelectorAll("tbody tr");
+      bodyRows.forEach(tr => {
+        const isSectorRow = tr.classList.contains("kp-sector-row");
+        const tds = tr.querySelectorAll("td");
+        if (!tds.length) return;
+
+        let rowData = [];
+
+        if (isSectorRow) {
+          const name = tds[0]?.querySelector("input")?.value || tds[0]?.innerText.trim() || "";
+          const capacityIndex = tds.length === 5 ? 2 : 1;
+          const factIndex = tds.length === 5 ? 3 : 2;
+          const freeIndex = tds.length === 5 ? 4 : 3;
+
+          const capacity = tds[capacityIndex]?.querySelector("input")?.value || tds[capacityIndex]?.innerText.trim() || "";
+          const fact = tds[factIndex]?.querySelector("input")?.value || tds[factIndex]?.innerText.trim() || "";
+          const free = tds[freeIndex]?.querySelector("input")?.value || tds[freeIndex]?.innerText.trim() || "";
+
+          rowData = [name, capacity, fact, free];
+        } else {
+          const first = tds[0]?.innerText.trim() || "";
+          const c1 = tds[1]?.querySelector("input")?.value || tds[1]?.innerText.trim() || "";
+          const c2 = tds[2]?.querySelector("input")?.value || tds[2]?.innerText.trim() || "";
+          const c3 = tds[3]?.querySelector("input")?.value || tds[3]?.innerText.trim() || "";
+
+          rowData = [first, c1, c2, c3];
+        }
+
+        while (rowData.length < 4) rowData.push("");
+        rows.push(rowData.slice(0, 4));
+      });
+    }
+
+    const sheet = XLSX.utils.aoa_to_sheet(rows);
+
+    // merge lar
+    sheet["!merges"] = [
+      XLSX.utils.decode_range("A1:D1"),
+      XLSX.utils.decode_range("A" + (rows.findIndex(r => r[0] === "Наличие на КП по сектору") + 1) + ":D" + (rows.findIndex(r => r[0] === "Наличие на КП по сектору") + 1))
+    ];
+
+    // column widths
+    sheet["!cols"] = [
+      { wch: 10 },
+      { wch: 38 },
+      { wch: 22 },
+      { wch: 14 },
+      { wch: 18 },
+      { wch: 18 }
+    ];
+
+    // helper
+    function setStyle(addr, style) {
+      if (!sheet[addr]) return;
+      sheet[addr].s = style;
+    }
+
+    const thickBorder = {
+      top: { style: "medium", color: { rgb: "000000" } },
+      bottom: { style: "medium", color: { rgb: "000000" } },
+      left: { style: "medium", color: { rgb: "000000" } },
+      right: { style: "medium", color: { rgb: "000000" } }
+    };
+
+    const normalBorder = {
+      top: { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left: { style: "thin", color: { rgb: "000000" } },
+      right: { style: "thin", color: { rgb: "000000" } }
+    };
+
+    const titleStyle = {
+      font: { bold: true, sz: 16, name: "Arial" },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    const dateStyle = {
+      font: { bold: true, sz: 12, name: "Arial" },
+      alignment: { horizontal: "center", vertical: "center" }
+    };
+
+    const headerStyle = {
+      font: { bold: true, sz: 11, name: "Arial" },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      fill: { fgColor: { rgb: "D9EAF7" } },
+      border: thickBorder
+    };
+
+    const sectionStyle = {
+      font: { bold: true, sz: 11, name: "Arial" },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      fill: { fgColor: { rgb: "EDEDED" } },
+      border: thickBorder
+    };
+
+    const cellStyle = {
+      font: { sz: 11, name: "Arial" },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: normalBorder
+    };
+
+    const leftCellStyle = {
+      font: { sz: 11, name: "Arial" },
+      alignment: { horizontal: "left", vertical: "center", wrapText: true },
+      border: normalBorder
+    };
+
+    const boldLeftStyle = {
+      font: { bold: true, sz: 11, name: "Arial" },
+      alignment: { horizontal: "left", vertical: "center", wrapText: true },
+      border: normalBorder
+    };
+
+    // Title
+    setStyle("A1", titleStyle);
+    setStyle("E1", dateStyle);
+    setStyle("F1", dateStyle);
+
+    const range = XLSX.utils.decode_range(sheet["!ref"]);
+
+    for (let R = 0; R <= range.e.r; ++R) {
+      for (let C = 0; C <= range.e.c; ++C) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!sheet[addr]) continue;
+
+        if (R === 2) {
+          setStyle(addr, headerStyle);
+        } else {
+          const value = sheet[addr].v;
+
+          if (value === "Наличие на КП по сектору") {
+            setStyle(addr, sectionStyle);
+          } else if (
+            value === "Название сектора" ||
+            value === "Вместимость" ||
+            value === "Факт" ||
+            value === "Свободно" ||
+            value === "КТК" ||
+            value === "Тонн/Объём" ||
+            value === "Доход"
+          ) {
+            setStyle(addr, sectionStyle);
+          } else {
+            if (C === 1 || C === 0) {
+              setStyle(addr, leftCellStyle);
+            } else {
+              setStyle(addr, cellStyle);
+            }
+          }
+        }
+      }
+    }
+
+    // Asosiy birinchi jadval tashqi borderini qalinroq qilish
+    function applyOuterBorder(startRow, endRow, startCol, endCol) {
+      for (let r = startRow; r <= endRow; r++) {
+        for (let c = startCol; c <= endCol; c++) {
+          const addr = XLSX.utils.encode_cell({ r, c });
+          if (!sheet[addr]) continue;
+
+          const s = sheet[addr].s || {};
+          s.border = s.border || {};
+
+          if (r === startRow) s.border.top = { style: "medium", color: { rgb: "000000" } };
+          if (r === endRow) s.border.bottom = { style: "medium", color: { rgb: "000000" } };
+          if (c === startCol) s.border.left = { style: "medium", color: { rgb: "000000" } };
+          if (c === endCol) s.border.right = { style: "medium", color: { rgb: "000000" } };
+
+          sheet[addr].s = s;
+        }
+      }
+    }
+
+    // 1-jadval
+    const mainStart = 2;
+    let thirdHeaderIndex = rows.findIndex(r => r[0] === "Наличие на КП по сектору");
+    let blankBeforeThird = thirdHeaderIndex - 2;
+    applyOuterBorder(mainStart, blankBeforeThird - 1, 0, 5);
+
+    // 2-jadval
+    const secondHeaderIndex = rows.findIndex((r, i) => i > 2 && r[1] === "КТК" && r[2] === "Тонн/Объём");
+    if (secondHeaderIndex !== -1) {
+      let secondEnd = thirdHeaderIndex - 2;
+      applyOuterBorder(secondHeaderIndex, secondEnd, 0, 3);
+    }
+
+    // 3-jadval
+    if (thirdHeaderIndex !== -1) {
+      applyOuterBorder(thirdHeaderIndex, rows.length - 1, 0, 3);
+    }
+
+    XLSX.utils.book_append_sheet(wb, sheet, "Jadval N2");
+    XLSX.writeFile(wb, `Jadval_N2_${dateText}.xlsx`);
+  });
+})();
+</script>
+{% endif %}
+
+{% endblock %}

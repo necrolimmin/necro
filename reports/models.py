@@ -139,3 +139,5 @@ class NotificationRead(models.Model):
     def __str__(self):
         return f"{self.user_id} read {self.notification_id}"
     
+
+
