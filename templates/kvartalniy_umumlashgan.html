@@ -637,7 +637,7 @@
         </div>
 
         <div class="kv-actions">
-          <button class="kv-btn" type="button" onclick="history.back()">← Ortga</button>
+          <button class="kv-btn" type="button" ><a href="{% url 'kvartalniy_monthly_list' %}">← Ortga</a></button>
           <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
             Saqlash
           </button>
