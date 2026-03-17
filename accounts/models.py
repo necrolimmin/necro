@@ -33,6 +33,9 @@ class KvartalniyDaily(models.Model):
     vygr_kont_this_year = models.IntegerField(default=0)
     vygr_kont_last_year = models.IntegerField(null=True, blank=True)
 
+    income_this_year = models.IntegerField(default=0)
+    income_last_year = models.IntegerField(null=True, blank=True, default=0)
+
     class Meta:
         unique_together = ("station", "date")
         ordering = ["date"]
@@ -57,6 +60,8 @@ class KvartalniyMonthly(models.Model):
             pogr_kont_last_year_total=Sum("pogr_kont_last_year"),
             vygr_kont_this_year_total=Sum("vygr_kont_this_year"),
             vygr_kont_last_year_total=Sum("vygr_kont_last_year"),
+            income_this_year_total=Sum("income_this_year"),
+            income_last_year_total=Sum("income_last_year"),
         )
     
 
@@ -73,6 +78,7 @@ class KvartalniyMonthlyPlan(models.Model):
     vygr_plan = models.IntegerField(default=0)
     pogr_kont_plan = models.IntegerField(default=0)
     vygr_kont_plan = models.IntegerField(default=0)
+    income_plan = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ("monthly", "station")
@@ -82,20 +88,20 @@ class KvartalniyMonthlyPlan(models.Model):
     
 
 # accounts/models.py
-
 class KvartalniyGroupExtraPlan(models.Model):
     monthly = models.ForeignKey(
         KvartalniyMonthly,
         on_delete=models.CASCADE,
         related_name="group_extra_plans",
     )
-    group_key = models.CharField(max_length=50)   # group1, group2, ...
+    group_key = models.CharField(max_length=50)
     row_name = models.CharField(max_length=100, default="Вес.хоз")
 
     pogr_plan = models.IntegerField(default=0)
     vygr_plan = models.IntegerField(default=0)
     pogr_kont_plan = models.IntegerField(default=0)
     vygr_kont_plan = models.IntegerField(default=0)
+    income_plan = models.IntegerField(default=0)
 
     pogr_this_year = models.IntegerField(default=0)
     pogr_last_year = models.IntegerField(default=0)
@@ -108,6 +114,9 @@ class KvartalniyGroupExtraPlan(models.Model):
 
     vygr_kont_this_year = models.IntegerField(default=0)
     vygr_kont_last_year = models.IntegerField(default=0)
+
+    income_this_year = models.IntegerField(default=0)
+    income_last_year = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ("monthly", "group_key", "row_name")

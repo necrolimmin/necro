@@ -71,15 +71,16 @@ def _sum_daily_this_fields_between(from_date: date, to_date: date):
                 "vygr": 0,
                 "pogr_kont": 0,
                 "vygr_kont": 0,
+                "income": 0,
             }
 
         station_map[station.id]["pogr"] += row.pogr_this_year or 0
         station_map[station.id]["vygr"] += row.vygr_this_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_this_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_this_year or 0
+        station_map[station.id]["income"] += getattr(row, "income_this_year", 0) or 0
 
     return station_map
-
 
 def _sum_daily_last_fields_between(from_date: date, to_date: date):
     qs = (
@@ -100,20 +101,18 @@ def _sum_daily_last_fields_between(from_date: date, to_date: date):
                 "vygr": 0,
                 "pogr_kont": 0,
                 "vygr_kont": 0,
+                "income": 0,
             }
 
         station_map[station.id]["pogr"] += row.pogr_last_year or 0
         station_map[station.id]["vygr"] += row.vygr_last_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_last_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_last_year or 0
+        station_map[station.id]["income"] += getattr(row, "income_last_year", 0) or 0
 
     return station_map
 
 def _sum_scaled_plans_between(from_date: date, to_date: date):
-    """
-    For every month segment inside selected range:
-        scaled_plan = monthly_plan / days_in_month * selected_days_in_that_month
-    """
     result = {}
     month_info = []
     all_full_months = True
@@ -159,15 +158,16 @@ def _sum_scaled_plans_between(from_date: date, to_date: date):
                     "vygr_plan": 0,
                     "pogr_kont_plan": 0,
                     "vygr_kont_plan": 0,
+                    "income_plan": 0,
                 }
 
             result[station.id]["pogr_plan"] += round((p.pogr_plan or 0) / days_in_month * selected_days)
             result[station.id]["vygr_plan"] += round((p.vygr_plan or 0) / days_in_month * selected_days)
             result[station.id]["pogr_kont_plan"] += round((p.pogr_kont_plan or 0) / days_in_month * selected_days)
             result[station.id]["vygr_kont_plan"] += round((p.vygr_kont_plan or 0) / days_in_month * selected_days)
+            result[station.id]["income_plan"] += round((getattr(p, "income_plan", 0) or 0) / days_in_month * selected_days)
 
     return result, month_info, all_full_months
-
 
 def _row_to_range_dict(station, fact_this=None, fact_last=None, plan_data=None):
     fact_this = fact_this or {}
@@ -178,11 +178,13 @@ def _row_to_range_dict(station, fact_this=None, fact_last=None, plan_data=None):
     vygr_this = fact_this.get("vygr", 0)
     pogr_kont_this = fact_this.get("pogr_kont", 0)
     vygr_kont_this = fact_this.get("vygr_kont", 0)
+    income_this = fact_this.get("income", 0)
 
     pogr_last = fact_last.get("pogr", 0)
     vygr_last = fact_last.get("vygr", 0)
     pogr_kont_last = fact_last.get("pogr_kont", 0)
     vygr_kont_last = fact_last.get("vygr_kont", 0)
+    income_last = fact_last.get("income", 0)
 
     return {
         "station_id": station.id if station else None,
@@ -191,25 +193,32 @@ def _row_to_range_dict(station, fact_this=None, fact_last=None, plan_data=None):
         "vygr_plan": plan_data.get("vygr_plan", 0),
         "pogr_kont_plan": plan_data.get("pogr_kont_plan", 0),
         "vygr_kont_plan": plan_data.get("vygr_kont_plan", 0),
+        "income_plan": plan_data.get("income_plan", 0),
+
         "pogr_this_year": pogr_this,
         "pogr_last_year": pogr_last,
         "pogr_diff": pogr_this - pogr_last,
+
         "vygr_this_year": vygr_this,
         "vygr_last_year": vygr_last,
         "vygr_diff": vygr_this - vygr_last,
+
         "pogr_kont_this_year": pogr_kont_this,
         "pogr_kont_last_year": pogr_kont_last,
         "pogr_kont_diff": pogr_kont_this - pogr_kont_last,
+
         "vygr_kont_this_year": vygr_kont_this,
         "vygr_kont_last_year": vygr_kont_last,
         "vygr_kont_diff": vygr_kont_this - vygr_kont_last,
-    }
 
+        "income_this_year": income_this,
+        "income_last_year": income_last,
+        "income_diff": income_this - income_last,
+    }
 
 def _make_empty_range_row(station_name):
     dummy_station = type("DummyStation", (), {"id": None, "station_name": station_name})()
     return _row_to_range_dict(dummy_station, {}, {}, {})
-
 
 def _make_zero_totals(label):
     return {
@@ -218,18 +227,27 @@ def _make_zero_totals(label):
         "vygr_plan": 0,
         "pogr_kont_plan": 0,
         "vygr_kont_plan": 0,
+        "income_plan": 0,
+
         "pogr_this_year": 0,
         "pogr_last_year": 0,
         "pogr_diff": 0,
+
         "vygr_this_year": 0,
         "vygr_last_year": 0,
         "vygr_diff": 0,
+
         "pogr_kont_this_year": 0,
         "pogr_kont_last_year": 0,
         "pogr_kont_diff": 0,
+
         "vygr_kont_this_year": 0,
         "vygr_kont_last_year": 0,
         "vygr_kont_diff": 0,
+
+        "income_this_year": 0,
+        "income_last_year": 0,
+        "income_diff": 0,
     }
 
 def _build_date_range(from_date: date, to_date: date) -> list[date]:
@@ -262,12 +280,14 @@ def _sum_daily_this_fields_for_date_list(selected_dates: list[date]):
                 "vygr": 0,
                 "pogr_kont": 0,
                 "vygr_kont": 0,
+                "income": 0,
             }
 
         station_map[station.id]["pogr"] += row.pogr_this_year or 0
         station_map[station.id]["vygr"] += row.vygr_this_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_this_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_this_year or 0
+        station_map[station.id]["income"] += getattr(row, "income_this_year", 0) or 0
 
     return station_map
 
@@ -294,22 +314,25 @@ def _sum_daily_last_fields_for_date_list(selected_dates: list[date]):
                 "vygr": 0,
                 "pogr_kont": 0,
                 "vygr_kont": 0,
+                "income": 0,
             }
 
         station_map[station.id]["pogr"] += row.pogr_last_year or 0
         station_map[station.id]["vygr"] += row.vygr_last_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_last_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_last_year or 0
+        station_map[station.id]["income"] += getattr(row, "income_last_year", 0) or 0
 
     return station_map
 
 def _add_to_totals(target, row):
     for key in [
-        "pogr_plan", "vygr_plan", "pogr_kont_plan", "vygr_kont_plan",
+        "pogr_plan", "vygr_plan", "pogr_kont_plan", "vygr_kont_plan", "income_plan",
         "pogr_this_year", "pogr_last_year",
         "vygr_this_year", "vygr_last_year",
         "pogr_kont_this_year", "pogr_kont_last_year",
         "vygr_kont_this_year", "vygr_kont_last_year",
+        "income_this_year", "income_last_year",
     ]:
         target[key] += row.get(key, 0) or 0
 
@@ -317,7 +340,7 @@ def _add_to_totals(target, row):
     target["vygr_diff"] = target["vygr_this_year"] - target["vygr_last_year"]
     target["pogr_kont_diff"] = target["pogr_kont_this_year"] - target["pogr_kont_last_year"]
     target["vygr_kont_diff"] = target["vygr_kont_this_year"] - target["vygr_kont_last_year"]
-
+    target["income_diff"] = target["income_this_year"] - target["income_last_year"]
 
 @transaction.atomic
 def kvartalniy_range(request):
@@ -414,6 +437,14 @@ def kvartalniy_range(request):
                         "pogr_kont_last_year_raw": 0,
                         "vygr_kont_this_year_raw": 0,
                         "vygr_kont_last_year_raw": 0,
+                        "income_plan": 0,
+                        "income_this_year": 0,
+                        "income_last_year": 0,
+                        "income_diff": 0,
+
+                        "income_plan_raw": 0,
+                        "income_this_year_raw": 0,
+                        "income_last_year_raw": 0,
                     }
 
                 # for single full month, keep raw monthly values so inputs can edit them
@@ -431,6 +462,9 @@ def kvartalniy_range(request):
                     result[group_key]["pogr_kont_last_year_raw"] = extra_obj.pogr_kont_last_year or 0
                     result[group_key]["vygr_kont_this_year_raw"] = extra_obj.vygr_kont_this_year or 0
                     result[group_key]["vygr_kont_last_year_raw"] = extra_obj.vygr_kont_last_year or 0
+                    result[group_key]["income_plan_raw"] = getattr(extra_obj, "income_plan", 0) or 0
+                    result[group_key]["income_this_year_raw"] = getattr(extra_obj, "income_this_year", 0) or 0
+                    result[group_key]["income_last_year_raw"] = getattr(extra_obj, "income_last_year", 0) or 0
 
                 # scale plans by month segment
                 result[group_key]["pogr_plan"] += round((extra_obj.pogr_plan or 0) / days_in_month * selected_days)
@@ -448,12 +482,17 @@ def kvartalniy_range(request):
                 result[group_key]["vygr_kont_this_year"] += extra_obj.vygr_kont_this_year or 0
                 result[group_key]["vygr_kont_last_year"] += extra_obj.vygr_kont_last_year or 0
 
+                result[group_key]["income_plan"] += round((getattr(extra_obj, "income_plan", 0) or 0) / days_in_month * selected_days)
+
+                result[group_key]["income_this_year"] += getattr(extra_obj, "income_this_year", 0) or 0
+                result[group_key]["income_last_year"] += getattr(extra_obj, "income_last_year", 0) or 0
+
         for group_key, row in result.items():
             row["pogr_diff"] = row["pogr_this_year"] - row["pogr_last_year"]
             row["vygr_diff"] = row["vygr_this_year"] - row["vygr_last_year"]
             row["pogr_kont_diff"] = row["pogr_kont_this_year"] - row["pogr_kont_last_year"]
             row["vygr_kont_diff"] = row["vygr_kont_this_year"] - row["vygr_kont_last_year"]
-
+            row["income_diff"] = row["income_this_year"] - row["income_last_year"]
         return result
 
     veshoz_by_group = _sum_veshoz_between()
@@ -491,6 +530,7 @@ def kvartalniy_range(request):
                         "vygr_plan": 0,
                         "pogr_kont_plan": 0,
                         "vygr_kont_plan": 0,
+                        "income_plan": 0,
                     }
                 )
 
@@ -498,6 +538,7 @@ def kvartalniy_range(request):
                 plan_obj.vygr_plan = _safe_int(request.POST.get(f"vygr_plan_{station_id}"))
                 plan_obj.pogr_kont_plan = _safe_int(request.POST.get(f"pogr_kont_plan_{station_id}"))
                 plan_obj.vygr_kont_plan = _safe_int(request.POST.get(f"vygr_kont_plan_{station_id}"))
+                plan_obj.income_plan = _safe_int(request.POST.get(f"income_plan_{station_id}"))
                 plan_obj.save()
 
             for cfg in DISPLAY_GROUPS:
@@ -539,6 +580,9 @@ def kvartalniy_range(request):
                 extra_obj.pogr_kont_last_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_last_year_{group_key}"))
                 extra_obj.vygr_kont_this_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_this_year_{group_key}"))
                 extra_obj.vygr_kont_last_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_last_year_{group_key}"))
+                extra_obj.income_plan = _safe_int(request.POST.get(f"veshoz_income_plan_{group_key}"))
+                extra_obj.income_this_year = _safe_int(request.POST.get(f"veshoz_income_this_year_{group_key}"))
+                extra_obj.income_last_year = _safe_int(request.POST.get(f"veshoz_income_last_year_{group_key}"))
                 extra_obj.save()
 
             messages.success(request, "Plans saved successfully.")
@@ -630,6 +674,14 @@ def kvartalniy_range(request):
                     "pogr_kont_last_year_raw": 0,
                     "vygr_kont_this_year_raw": 0,
                     "vygr_kont_last_year_raw": 0,
+                    "income_plan": 0,
+                    "income_this_year": 0,
+                    "income_last_year": 0,
+                    "income_diff": 0,
+
+                    "income_plan_raw": 0,
+                    "income_this_year_raw": 0,
+                    "income_last_year_raw": 0,
                 }
 
             group_rows.append(veshoz_row)

@@ -12,20 +12,40 @@ from .models import StationDailyTable1
 from accounts.models import KvartalniyMonthly, KvartalniyMonthlyPlan, StationProfile, KvartalniyDaily, KvartalniyGroupExtraPlan  # NEW
 
 from django.db.models import Count
+def _safe_date(date_str, fallback):
+    if not date_str:
+        return fallback
 
+    try:
+        date_str = str(date_str).strip()
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except Exception:
+        return fallback
+    
+def _safe_month(month_str, fallback):
+    if not month_str:
+        return fallback
 
+    try:
+        month_str = str(month_str).strip()
+        dt = datetime.strptime(month_str, "%Y-%m")
+        return dt.date().replace(day=1)
+    except Exception:
+        return fallback
+    
 DISPLAY_GROUPS = [
     {
         "title": "group1",
         "stations": [
             "Chukursoy LM",
             "Toshkent LM",
-            "Сергели",
+            "Sergeli LM",
             "Axangaron LM",
-            "Назарбек",
-            "Хаваст",
+            "Nazarbek LM",
+            "Xavast LM",
+            "Sirdaryo LM",
             "Jizzax LM",
-            "Аблык",
+            "Ablik LM",
         ],
         "has_veshoz": True,
     },
@@ -33,9 +53,9 @@ DISPLAY_GROUPS = [
         "title": "group2",
         "stations": [
             "Qo'qon LM",
-            "Rovustan LM",
+            "Rovuston LM",
             "Marg'ilon LM",
-            "Ахтачи",
+            "Axtachi LM",
             "Asaka LM",
         ],
         "has_veshoz": True,
@@ -43,10 +63,10 @@ DISPLAY_GROUPS = [
     {
         "title": "group3",
         "stations": [
-            "Бухара-2",
-            "Тинчлык",
-            "Навои(Кармана)",
-            "Янги-Зарафшан",
+            "Buxoro LM",
+            "Tinchlik LM",
+            "Karmana LM",
+            "Yangi-Zarafshon LM",
             "Ulug'bek LM",
         ],
         "has_veshoz": True,
@@ -54,15 +74,15 @@ DISPLAY_GROUPS = [
     {
         "title": "group4",
         "stations": [
-            "Карши",
-            "Дехканабад",
+            "Qarshi LM",
+            "Dehqonobod LM",
         ],
         "has_veshoz": True,
     },
     {
         "title": "group5",
         "stations": [
-            "Термез",
+            "Termiz LM",
         ],
         "has_veshoz": True,
     },
@@ -70,19 +90,13 @@ DISPLAY_GROUPS = [
         "title": "group6",
         "stations": [
             "Nukus LM",
-            "Кирккыз",
-            "Ургенч",
-            "Питняк",
+            "Kirkkiz LM",
+            "Urganch LM",
+            "Pitnyak LM",
         ],
         "has_veshoz": True,
     },
 ]
-from datetime import datetime
-
-from django.contrib import messages
-from django.db import transaction
-from django.shortcuts import render, redirect
-from django.utils import timezone
 
 
 def _safe_int(value, default=0):
@@ -107,9 +121,25 @@ def _get_station_profile_from_user(user):
     return StationProfile.objects.get(user=user)
 
 
+def _normalize_station_name(value: str) -> str:
+    if not value:
+        return ""
+    return (
+        str(value)
+        .strip()
+        .replace("’", "'")
+        .replace("‘", "'")
+        .replace("`", "'")
+        .replace("ʻ", "'")
+        .replace("ʼ", "'")
+        .replace("  ", " ")
+        .lower()
+    )
+
+
 def _build_current_year_totals_by_station(report_date):
     """
-    Current year values from StationDailyTable1 for the selected date.
+    Current-year values from StationDailyTable1 for exact date.
 
     Mapping:
     - pogr_this_year      -> pogr_itogo
@@ -121,7 +151,8 @@ def _build_current_year_totals_by_station(report_date):
     qs = (
         StationDailyTable1.objects
         .filter(date=report_date)
-        .select_related("station_user").exclude(shift="total")
+        .select_related("station_user")
+        .exclude(shift="total")
     )
 
     station_map = {}
@@ -152,31 +183,17 @@ def _build_current_year_totals_by_station(report_date):
 
     return station_map
 
-def _safe_date(date_str, fallback):
-    try:
-        return datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else fallback
-    except (TypeError, ValueError):
-        return fallback
-
-
-def _safe_month(month_str, fallback):
-    try:
-        return datetime.strptime(month_str, "%Y-%m").date().replace(day=1) if month_str else fallback
-    except (TypeError, ValueError):
-        return fallback
-
 
 def _build_last_year_totals_by_station_from_hisobot1(last_year_date):
     """
-    Last year values from Hisobot 1 for the exact same day last year.
-
-    REPLACE Hisobot1Daily with your real Hisobot 1 model if needed.
-    Assumes same JSON keys as StationDailyTable1.
+    Last-year values from Hisobot 1 / StationDailyTable1
+    for the exact same day last year.
     """
     qs = (
         StationDailyTable1.objects
         .filter(date=last_year_date)
-        .select_related("station_user").exclude(shift="total")
+        .select_related("station_user")
+        .exclude(shift="total")
     )
 
     station_map = {}
@@ -208,7 +225,7 @@ def _build_last_year_totals_by_station_from_hisobot1(last_year_date):
     return station_map
 
 
-def _row_to_dict(row, income_this_year=0, income_last_year=0):
+def _row_to_dict(row):
     pogr_this = row.pogr_this_year or 0
     pogr_last = row.pogr_last_year or 0
     vygr_this = row.vygr_this_year or 0
@@ -217,6 +234,8 @@ def _row_to_dict(row, income_this_year=0, income_last_year=0):
     pogr_kont_last = row.pogr_kont_last_year or 0
     vygr_kont_this = row.vygr_kont_this_year or 0
     vygr_kont_last = row.vygr_kont_last_year or 0
+    income_this = getattr(row, "income_this_year", 0) or 0
+    income_last = getattr(row, "income_last_year", 0) or 0
 
     return {
         "id": row.id,
@@ -239,9 +258,9 @@ def _row_to_dict(row, income_this_year=0, income_last_year=0):
         "vygr_kont_last_year": vygr_kont_last,
         "vygr_kont_diff": vygr_kont_this - vygr_kont_last,
 
-        "income_this_year": income_this_year or 0,
-        "income_last_year": income_last_year or 0,
-        "income_diff": (income_this_year or 0) - (income_last_year or 0),
+        "income_this_year": income_this,
+        "income_last_year": income_last,
+        "income_diff": income_this - income_last,
     }
 
 
@@ -250,6 +269,32 @@ def _make_empty_station_row(station_name):
         "id": None,
         "station_name": station_name,
         "is_other": False,
+
+        "pogr_this_year": 0,
+        "pogr_last_year": 0,
+        "pogr_diff": 0,
+
+        "vygr_this_year": 0,
+        "vygr_last_year": 0,
+        "vygr_diff": 0,
+
+        "pogr_kont_this_year": 0,
+        "pogr_kont_last_year": 0,
+        "pogr_kont_diff": 0,
+
+        "vygr_kont_this_year": 0,
+        "vygr_kont_last_year": 0,
+        "vygr_kont_diff": 0,
+
+        "income_this_year": 0,
+        "income_last_year": 0,
+        "income_diff": 0,
+    }
+
+
+def _make_zero_totals(label):
+    return {
+        "station_name": label,
 
         "pogr_this_year": 0,
         "pogr_last_year": 0,
@@ -290,35 +335,11 @@ def _add_to_totals(target, row_dict):
     target["income_diff"] = target["income_this_year"] - target["income_last_year"]
 
 
-def _make_zero_totals(label):
-    return {
-        "station_name": label,
-        "pogr_this_year": 0,
-        "pogr_last_year": 0,
-        "pogr_diff": 0,
-
-        "vygr_this_year": 0,
-        "vygr_last_year": 0,
-        "vygr_diff": 0,
-
-        "pogr_kont_this_year": 0,
-        "pogr_kont_last_year": 0,
-        "pogr_kont_diff": 0,
-
-        "vygr_kont_this_year": 0,
-        "vygr_kont_last_year": 0,
-        "vygr_kont_diff": 0,
-
-        "income_this_year": 0,
-        "income_last_year": 0,
-        "income_diff": 0,
-    }
-
-
 @transaction.atomic
 def kvartalniy_kun(request, date_str=None):
     if not request.user.is_superuser:
         return redirect("station_table_1_list")
+
     if request.method == "POST":
         date_str = request.POST.get("date") or date_str
 
@@ -334,12 +355,10 @@ def kvartalniy_kun(request, date_str=None):
     prev_year_date = _same_day_last_year(selected_date)
     prev_year = prev_year_date.year
 
-    # SOURCE DATA
     current_year_data = _build_current_year_totals_by_station(selected_date)
     last_year_data = _build_last_year_totals_by_station_from_hisobot1(prev_year_date)
 
-    # If you still want to allow manual editing of last-year values,
-    # this block saves manual overrides.
+    # Save manual editable last-year values + last-year income
     if request.method == "POST" and request.POST.get("save") == "1":
         row_ids = request.POST.getlist("row_ids")
 
@@ -352,22 +371,39 @@ def kvartalniy_kun(request, date_str=None):
             except KvartalniyDaily.DoesNotExist:
                 continue
 
-            obj.pogr_last_year = _safe_int(request.POST.get(f"pogr_last_year_{row_id}"), obj.pogr_last_year or 0)
-            obj.vygr_last_year = _safe_int(request.POST.get(f"vygr_last_year_{row_id}"), obj.vygr_last_year or 0)
-            obj.pogr_kont_last_year = _safe_int(request.POST.get(f"pogr_kont_last_year_{row_id}"), obj.pogr_kont_last_year or 0)
-            obj.vygr_kont_last_year = _safe_int(request.POST.get(f"vygr_kont_last_year_{row_id}"), obj.vygr_kont_last_year or 0)
+            obj.pogr_last_year = _safe_int(
+                request.POST.get(f"pogr_last_year_{row_id}"),
+                obj.pogr_last_year or 0,
+            )
+            obj.vygr_last_year = _safe_int(
+                request.POST.get(f"vygr_last_year_{row_id}"),
+                obj.vygr_last_year or 0,
+            )
+            obj.pogr_kont_last_year = _safe_int(
+                request.POST.get(f"pogr_kont_last_year_{row_id}"),
+                obj.pogr_kont_last_year or 0,
+            )
+            obj.vygr_kont_last_year = _safe_int(
+                request.POST.get(f"vygr_kont_last_year_{row_id}"),
+                obj.vygr_kont_last_year or 0,
+            )
+            obj.income_last_year = _safe_int(
+                request.POST.get(f"income_last_year_{row_id}"),
+                getattr(obj, "income_last_year", 0) or 0,
+            )
 
             obj.save(update_fields=[
                 "pogr_last_year",
                 "vygr_last_year",
                 "pogr_kont_last_year",
                 "vygr_kont_last_year",
+                "income_last_year",
             ])
 
         messages.success(request, "Saved successfully.")
         return redirect("kvartalniy_kun_by_date", date_str=selected_date.strftime("%Y-%m-%d"))
 
-    # SYNC CURRENT YEAR + LAST YEAR INTO KvartalniyDaily
+    # Sync current-year and fallback last-year values into KvartalniyDaily
     all_station_ids = set(current_year_data.keys()) | set(last_year_data.keys())
 
     for station_id in all_station_ids:
@@ -378,7 +414,7 @@ def kvartalniy_kun(request, date_str=None):
         if not station:
             continue
 
-        obj, created = KvartalniyDaily.objects.get_or_create(
+        obj, _ = KvartalniyDaily.objects.get_or_create(
             station=station,
             date=selected_date,
             defaults={
@@ -391,16 +427,20 @@ def kvartalniy_kun(request, date_str=None):
                 "vygr_last_year": last_item.get("vygr_last_year", 0),
                 "pogr_kont_last_year": last_item.get("pogr_kont_last_year", 0),
                 "vygr_kont_last_year": last_item.get("vygr_kont_last_year", 0),
+
+                "income_this_year": current_item.get("income_this_year", 0),
+                "income_last_year": last_item.get("income_last_year", 0),
             }
         )
 
-        # always refresh this year from StationDailyTable1
+        # Always refresh current-year facts from StationDailyTable1
         obj.pogr_this_year = current_item.get("pogr_this_year", 0)
         obj.vygr_this_year = current_item.get("vygr_this_year", 0)
         obj.pogr_kont_this_year = current_item.get("pogr_kont_this_year", 0)
         obj.vygr_kont_this_year = current_item.get("vygr_kont_this_year", 0)
+        obj.income_this_year = current_item.get("income_this_year", 0)
 
-        # auto-fill last year from Hisobot 1 only if empty/zero
+        # Fill last-year values only if empty/zero
         if obj.pogr_last_year in (None, 0):
             obj.pogr_last_year = last_item.get("pogr_last_year", 0)
         if obj.vygr_last_year in (None, 0):
@@ -409,10 +449,11 @@ def kvartalniy_kun(request, date_str=None):
             obj.pogr_kont_last_year = last_item.get("pogr_kont_last_year", 0)
         if obj.vygr_kont_last_year in (None, 0):
             obj.vygr_kont_last_year = last_item.get("vygr_kont_last_year", 0)
+        if getattr(obj, "income_last_year", 0) in (None, 0):
+            obj.income_last_year = last_item.get("income_last_year", 0)
 
         obj.save()
 
-    # LOAD REPORT ROWS
     db_rows = (
         KvartalniyDaily.objects
         .filter(date=selected_date)
@@ -421,20 +462,9 @@ def kvartalniy_kun(request, date_str=None):
     )
 
     rows_by_name = {}
-    income_this_by_name = {}
-    income_last_by_name = {}
-
     for row in db_rows:
         if row.station and row.station.station_name:
-            rows_by_name[row.station.station_name.strip()] = row
-
-    for item in current_year_data.values():
-        station_name = item["station"].station_name.strip()
-        income_this_by_name[station_name] = item.get("income_this_year", 0)
-
-    for item in last_year_data.values():
-        station_name = item["station"].station_name.strip()
-        income_last_by_name[station_name] = item.get("income_last_year", 0)
+            rows_by_name[_normalize_station_name(row.station.station_name)] = row
 
     groups = []
     grand_total = _make_zero_totals("Всего по ЖДК")
@@ -445,15 +475,12 @@ def kvartalniy_kun(request, date_str=None):
         subtotal = _make_zero_totals("ИТОГО")
 
         for station_name in cfg["stations"]:
-            known_station_names.add(station_name)
+            normalized = _normalize_station_name(station_name)
+            known_station_names.add(normalized)
 
-            row = rows_by_name.get(station_name)
+            row = rows_by_name.get(normalized)
             if row:
-                item = _row_to_dict(
-                    row,
-                    income_this_year=income_this_by_name.get(station_name, 0),
-                    income_last_year=income_last_by_name.get(station_name, 0),
-                )
+                item = _row_to_dict(row)
             else:
                 item = _make_empty_station_row(station_name)
 
@@ -471,13 +498,9 @@ def kvartalniy_kun(request, date_str=None):
     unmatched_rows = []
     unmatched_total = _make_zero_totals("ИТОГО")
 
-    for station_name, row in rows_by_name.items():
-        if station_name not in known_station_names:
-            item = _row_to_dict(
-                row,
-                income_this_year=income_this_by_name.get(station_name, 0),
-                income_last_year=income_last_by_name.get(station_name, 0),
-            )
+    for normalized_name, row in rows_by_name.items():
+        if normalized_name not in known_station_names:
+            item = _row_to_dict(row)
             item["is_other"] = True
             unmatched_rows.append(item)
 
@@ -503,6 +526,7 @@ def kvartalniy_kun(request, date_str=None):
         "grand_total": grand_total,
     }
     return render(request, "kvartalniy_day_report.html", context)
+    
 
 def _month_start(dt: date) -> date:
     return dt.replace(day=1)
@@ -567,11 +591,7 @@ def _build_dates_for_selected_days(month_date: date, selected_days: list[int]) -
             valid_days.append(date(month_date.year, month_date.month, d))
     return valid_days
 
-
 def _sum_kvartal_daily_this_fields_for_dates(selected_dates: list[date]):
-    """
-    Sum current-year fields from selected daily rows.
-    """
     if not selected_dates:
         return {}
 
@@ -593,20 +613,18 @@ def _sum_kvartal_daily_this_fields_for_dates(selected_dates: list[date]):
                 "vygr": 0,
                 "pogr_kont": 0,
                 "vygr_kont": 0,
+                "income": 0,
             }
 
         station_map[station.id]["pogr"] += row.pogr_this_year or 0
         station_map[station.id]["vygr"] += row.vygr_this_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_this_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_this_year or 0
+        station_map[station.id]["income"] += getattr(row, "income_this_year", 0) or 0
 
     return station_map
 
-
 def _sum_kvartal_daily_last_fields_for_dates(selected_dates: list[date]):
-    """
-    Sum last-year comparison fields from the SAME selected daily rows.
-    """
     if not selected_dates:
         return {}
 
@@ -628,15 +646,16 @@ def _sum_kvartal_daily_last_fields_for_dates(selected_dates: list[date]):
                 "vygr": 0,
                 "pogr_kont": 0,
                 "vygr_kont": 0,
+                "income": 0,
             }
 
         station_map[station.id]["pogr"] += row.pogr_last_year or 0
         station_map[station.id]["vygr"] += row.vygr_last_year or 0
         station_map[station.id]["pogr_kont"] += row.pogr_kont_last_year or 0
         station_map[station.id]["vygr_kont"] += row.vygr_kont_last_year or 0
+        station_map[station.id]["income"] += getattr(row, "income_last_year", 0) or 0
 
     return station_map
-
 
 def _scaled_plan_value(raw_value, selected_count, month_days, all_selected):
     raw_value = raw_value or 0
@@ -657,6 +676,7 @@ def _veshoz_row_to_period_dict(
     raw_vygr_plan = getattr(extra_obj, "vygr_plan", 0)
     raw_pogr_kont_plan = getattr(extra_obj, "pogr_kont_plan", 0)
     raw_vygr_kont_plan = getattr(extra_obj, "vygr_kont_plan", 0)
+    raw_income_plan = getattr(extra_obj, "income_plan", 0)
 
     raw_pogr_this_year = getattr(extra_obj, "pogr_this_year", 0)
     raw_pogr_last_year = getattr(extra_obj, "pogr_last_year", 0)
@@ -670,8 +690,9 @@ def _veshoz_row_to_period_dict(
     raw_vygr_kont_this_year = getattr(extra_obj, "vygr_kont_this_year", 0)
     raw_vygr_kont_last_year = getattr(extra_obj, "vygr_kont_last_year", 0)
 
-    # when not all days selected, only plans are scaled
-    # manually entered fact values remain as stored monthly values
+    raw_income_this_year = getattr(extra_obj, "income_this_year", 0)
+    raw_income_last_year = getattr(extra_obj, "income_last_year", 0)
+
     return {
         "station_id": None,
         "station_name": "Вес.хоз",
@@ -682,23 +703,24 @@ def _veshoz_row_to_period_dict(
         "vygr_plan_raw": raw_vygr_plan,
         "pogr_kont_plan_raw": raw_pogr_kont_plan,
         "vygr_kont_plan_raw": raw_vygr_kont_plan,
+        "income_plan_raw": raw_income_plan,
 
         "pogr_this_year_raw": raw_pogr_this_year,
         "pogr_last_year_raw": raw_pogr_last_year,
-
         "vygr_this_year_raw": raw_vygr_this_year,
         "vygr_last_year_raw": raw_vygr_last_year,
-
         "pogr_kont_this_year_raw": raw_pogr_kont_this_year,
         "pogr_kont_last_year_raw": raw_pogr_kont_last_year,
-
         "vygr_kont_this_year_raw": raw_vygr_kont_this_year,
         "vygr_kont_last_year_raw": raw_vygr_kont_last_year,
+        "income_this_year_raw": raw_income_this_year,
+        "income_last_year_raw": raw_income_last_year,
 
         "pogr_plan": _scaled_plan_value(raw_pogr_plan, selected_count, month_days, all_selected),
         "vygr_plan": _scaled_plan_value(raw_vygr_plan, selected_count, month_days, all_selected),
         "pogr_kont_plan": _scaled_plan_value(raw_pogr_kont_plan, selected_count, month_days, all_selected),
         "vygr_kont_plan": _scaled_plan_value(raw_vygr_kont_plan, selected_count, month_days, all_selected),
+        "income_plan": _scaled_plan_value(raw_income_plan, selected_count, month_days, all_selected),
 
         "pogr_this_year": raw_pogr_this_year,
         "pogr_last_year": raw_pogr_last_year,
@@ -715,9 +737,11 @@ def _veshoz_row_to_period_dict(
         "vygr_kont_this_year": raw_vygr_kont_this_year,
         "vygr_kont_last_year": raw_vygr_kont_last_year,
         "vygr_kont_diff": raw_vygr_kont_this_year - raw_vygr_kont_last_year,
+
+        "income_this_year": raw_income_this_year,
+        "income_last_year": raw_income_last_year,
+        "income_diff": raw_income_this_year - raw_income_last_year,
     }
-
-
 def _row_to_period_dict(
     station,
     fact_this=None,
@@ -734,16 +758,19 @@ def _row_to_period_dict(
     vygr_this = fact_this.get("vygr", 0)
     pogr_kont_this = fact_this.get("pogr_kont", 0)
     vygr_kont_this = fact_this.get("vygr_kont", 0)
+    income_this = fact_this.get("income", 0)
 
     pogr_last = fact_last.get("pogr", 0)
     vygr_last = fact_last.get("vygr", 0)
     pogr_kont_last = fact_last.get("pogr_kont", 0)
     vygr_kont_last = fact_last.get("vygr_kont", 0)
+    income_last = fact_last.get("income", 0)
 
     raw_pogr_plan = getattr(plan_obj, "pogr_plan", 0)
     raw_vygr_plan = getattr(plan_obj, "vygr_plan", 0)
     raw_pogr_kont_plan = getattr(plan_obj, "pogr_kont_plan", 0)
     raw_vygr_kont_plan = getattr(plan_obj, "vygr_kont_plan", 0)
+    raw_income_plan = getattr(plan_obj, "income_plan", 0)
 
     return {
         "station_id": station.id if station else None,
@@ -753,11 +780,13 @@ def _row_to_period_dict(
         "vygr_plan_raw": raw_vygr_plan,
         "pogr_kont_plan_raw": raw_pogr_kont_plan,
         "vygr_kont_plan_raw": raw_vygr_kont_plan,
+        "income_plan_raw": raw_income_plan,
 
         "pogr_plan": _scaled_plan_value(raw_pogr_plan, selected_count, month_days, all_selected),
         "vygr_plan": _scaled_plan_value(raw_vygr_plan, selected_count, month_days, all_selected),
         "pogr_kont_plan": _scaled_plan_value(raw_pogr_kont_plan, selected_count, month_days, all_selected),
         "vygr_kont_plan": _scaled_plan_value(raw_vygr_kont_plan, selected_count, month_days, all_selected),
+        "income_plan": _scaled_plan_value(raw_income_plan, selected_count, month_days, all_selected),
 
         "pogr_this_year": pogr_this,
         "pogr_last_year": pogr_last,
@@ -774,7 +803,12 @@ def _row_to_period_dict(
         "vygr_kont_this_year": vygr_kont_this,
         "vygr_kont_last_year": vygr_kont_last,
         "vygr_kont_diff": vygr_kont_this - vygr_kont_last,
+
+        "income_this_year": income_this,
+        "income_last_year": income_last,
+        "income_diff": income_this - income_last,
     }
+
 
 def _group_extra_plans_by_key(monthly_obj):
     qs = KvartalniyGroupExtraPlan.objects.filter(monthly=monthly_obj)
@@ -801,6 +835,7 @@ def _make_zero_totals(label):
         "vygr_plan": 0,
         "pogr_kont_plan": 0,
         "vygr_kont_plan": 0,
+        "income_plan": 0,
 
         "pogr_this_year": 0,
         "pogr_last_year": 0,
@@ -817,16 +852,20 @@ def _make_zero_totals(label):
         "vygr_kont_this_year": 0,
         "vygr_kont_last_year": 0,
         "vygr_kont_diff": 0,
-    }
 
+        "income_this_year": 0,
+        "income_last_year": 0,
+        "income_diff": 0,
+    }
 
 def _add_to_totals(target, row):
     for key in [
-        "pogr_plan", "vygr_plan", "pogr_kont_plan", "vygr_kont_plan",
+        "pogr_plan", "vygr_plan", "pogr_kont_plan", "vygr_kont_plan", "income_plan",
         "pogr_this_year", "pogr_last_year",
         "vygr_this_year", "vygr_last_year",
         "pogr_kont_this_year", "pogr_kont_last_year",
         "vygr_kont_this_year", "vygr_kont_last_year",
+        "income_this_year", "income_last_year",
     ]:
         target[key] += row.get(key, 0) or 0
 
@@ -834,7 +873,7 @@ def _add_to_totals(target, row):
     target["vygr_diff"] = target["vygr_this_year"] - target["vygr_last_year"]
     target["pogr_kont_diff"] = target["pogr_kont_this_year"] - target["pogr_kont_last_year"]
     target["vygr_kont_diff"] = target["vygr_kont_this_year"] - target["vygr_kont_last_year"]
-
+    target["income_diff"] = target["income_this_year"] - target["income_last_year"]
 
 def _redirect_with_selection(request, selected_month, selected_days):
     query = urlencode(
@@ -850,6 +889,7 @@ def _redirect_with_selection(request, selected_month, selected_days):
 def kvartalniy(request, month_str=None):
     if not request.user.is_superuser:
         return redirect("station_table_1_list")
+
     selected_month, selected_days, month_days = _selected_month_and_days(request, month_str)
     current_dates = _build_dates_for_selected_days(selected_month, selected_days)
 
@@ -886,6 +926,7 @@ def kvartalniy(request, month_str=None):
                     "vygr_plan": 0,
                     "pogr_kont_plan": 0,
                     "vygr_kont_plan": 0,
+                    "income_plan": 0,
                 }
             )
 
@@ -893,6 +934,7 @@ def kvartalniy(request, month_str=None):
             plan_obj.vygr_plan = _safe_int(request.POST.get(f"vygr_plan_{station_id}"))
             plan_obj.pogr_kont_plan = _safe_int(request.POST.get(f"pogr_kont_plan_{station_id}"))
             plan_obj.vygr_kont_plan = _safe_int(request.POST.get(f"vygr_kont_plan_{station_id}"))
+            plan_obj.income_plan = _safe_int(request.POST.get(f"income_plan_{station_id}"))
             plan_obj.save()
 
         # save Вес.хоз rows
@@ -911,6 +953,7 @@ def kvartalniy(request, month_str=None):
                     "vygr_plan": 0,
                     "pogr_kont_plan": 0,
                     "vygr_kont_plan": 0,
+                    "income_plan": 0,
                     "pogr_this_year": 0,
                     "pogr_last_year": 0,
                     "vygr_this_year": 0,
@@ -919,25 +962,76 @@ def kvartalniy(request, month_str=None):
                     "pogr_kont_last_year": 0,
                     "vygr_kont_this_year": 0,
                     "vygr_kont_last_year": 0,
+                    "income_this_year": 0,
+                    "income_last_year": 0,
                 }
             )
 
-            extra_obj.pogr_plan = _safe_int(request.POST.get(f"veshoz_pogr_plan_{group_key}"))
-            extra_obj.vygr_plan = _safe_int(request.POST.get(f"veshoz_vygr_plan_{group_key}"))
-            extra_obj.pogr_kont_plan = _safe_int(request.POST.get(f"veshoz_pogr_kont_plan_{group_key}"))
-            extra_obj.vygr_kont_plan = _safe_int(request.POST.get(f"veshoz_vygr_kont_plan_{group_key}"))
+            extra_obj.pogr_plan = _safe_int(
+                request.POST.get(f"veshoz_pogr_plan_{group_key}"),
+                extra_obj.pogr_plan
+            )
+            extra_obj.vygr_plan = _safe_int(
+                request.POST.get(f"veshoz_vygr_plan_{group_key}"),
+                extra_obj.vygr_plan
+            )
+            extra_obj.pogr_kont_plan = _safe_int(
+                request.POST.get(f"veshoz_pogr_kont_plan_{group_key}"),
+                extra_obj.pogr_kont_plan
+            )
+            extra_obj.vygr_kont_plan = _safe_int(
+                request.POST.get(f"veshoz_vygr_kont_plan_{group_key}"),
+                extra_obj.vygr_kont_plan
+            )
+            extra_obj.income_plan = _safe_int(
+                request.POST.get(f"veshoz_income_plan_{group_key}"),
+                extra_obj.income_plan
+            )
 
-            extra_obj.pogr_this_year = _safe_int(request.POST.get(f"veshoz_pogr_this_year_{group_key}"))
-            extra_obj.pogr_last_year = _safe_int(request.POST.get(f"veshoz_pogr_last_year_{group_key}"))
+            extra_obj.pogr_this_year = _safe_int(
+                request.POST.get(f"veshoz_pogr_this_year_{group_key}"),
+                extra_obj.pogr_this_year
+            )
+            extra_obj.pogr_last_year = _safe_int(
+                request.POST.get(f"veshoz_pogr_last_year_{group_key}"),
+                extra_obj.pogr_last_year
+            )
 
-            extra_obj.vygr_this_year = _safe_int(request.POST.get(f"veshoz_vygr_this_year_{group_key}"))
-            extra_obj.vygr_last_year = _safe_int(request.POST.get(f"veshoz_vygr_last_year_{group_key}"))
+            extra_obj.vygr_this_year = _safe_int(
+                request.POST.get(f"veshoz_vygr_this_year_{group_key}"),
+                extra_obj.vygr_this_year
+            )
+            extra_obj.vygr_last_year = _safe_int(
+                request.POST.get(f"veshoz_vygr_last_year_{group_key}"),
+                extra_obj.vygr_last_year
+            )
 
-            extra_obj.pogr_kont_this_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_this_year_{group_key}"))
-            extra_obj.pogr_kont_last_year = _safe_int(request.POST.get(f"veshoz_pogr_kont_last_year_{group_key}"))
+            extra_obj.pogr_kont_this_year = _safe_int(
+                request.POST.get(f"veshoz_pogr_kont_this_year_{group_key}"),
+                extra_obj.pogr_kont_this_year
+            )
+            extra_obj.pogr_kont_last_year = _safe_int(
+                request.POST.get(f"veshoz_pogr_kont_last_year_{group_key}"),
+                extra_obj.pogr_kont_last_year
+            )
 
-            extra_obj.vygr_kont_this_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_this_year_{group_key}"))
-            extra_obj.vygr_kont_last_year = _safe_int(request.POST.get(f"veshoz_vygr_kont_last_year_{group_key}"))
+            extra_obj.vygr_kont_this_year = _safe_int(
+                request.POST.get(f"veshoz_vygr_kont_this_year_{group_key}"),
+                extra_obj.vygr_kont_this_year
+            )
+            extra_obj.vygr_kont_last_year = _safe_int(
+                request.POST.get(f"veshoz_vygr_kont_last_year_{group_key}"),
+                extra_obj.vygr_kont_last_year
+            )
+
+            extra_obj.income_this_year = _safe_int(
+                request.POST.get(f"veshoz_income_this_year_{group_key}"),
+                extra_obj.income_this_year
+            )
+            extra_obj.income_last_year = _safe_int(
+                request.POST.get(f"veshoz_income_last_year_{group_key}"),
+                extra_obj.income_last_year
+            )
 
             extra_obj.save()
 

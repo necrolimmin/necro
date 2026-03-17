@@ -5,25 +5,106 @@
 
 <style>
   .kv-page{
+    --kv-bg: linear-gradient(180deg, #f6f8ff 0%, #edf3ff 100%);
+    --kv-surface: rgba(255,255,255,.84);
+    --kv-surface-2: rgba(255,255,255,.94);
+    --kv-text: #0f172a;
+    --kv-muted: #64748b;
+    --kv-stroke: rgba(15,23,42,.10);
+    --kv-stroke-2: rgba(15,23,42,.16);
+    --kv-grid: #353535;
+    --kv-grid-strong: #111827;
+    --kv-head: #f2f4f7;
+    --kv-head-2: #fafafa;
+    --kv-group: #eef1f5;
+    --kv-subtotal: #fff7f7;
+    --kv-grand: #f2f7ff;
+    --kv-veshoz: #fcfaf2;
+    --kv-shadow: 0 20px 60px rgba(2,6,23,.10);
+    --kv-shadow-2: 0 10px 24px rgba(2,6,23,.08);
+    --kv-accent: #4f46e5;
+    --kv-accent-2: #22c55e;
+    --kv-purple: #6a1fb1;
+    --kv-blue: #165DCC;
+    --kv-green: #00A43A;
+    --kv-red: #ff0000;
+    --kv-brown: #7c4a03;
+
     display:grid;
-    grid-template-columns:minmax(0,1fr) 320px;
+    grid-template-columns:minmax(0,1fr) 300px;
     gap:16px;
     align-items:start;
+    
+    min-height: calc(100vh - 30px);
+    
   }
 
-  @media (max-width: 1100px){
+  [data-theme="dark"] .kv-page,
+  .dark .kv-page{
+    --kv-bg: radial-gradient(circle at top, #172036 0%, #0b1120 48%, #060a13 100%);
+    --kv-surface: rgba(15,23,42,.68);
+    --kv-surface-2: rgba(15,23,42,.86);
+    --kv-text: #e5eefb;
+    --kv-muted: #94a3b8;
+    --kv-stroke: rgba(148,163,184,.16);
+    --kv-stroke-2: rgba(148,163,184,.25);
+    --kv-grid: rgba(255,255,255,.22);
+    --kv-grid-strong: rgba(255,255,255,.68);
+    --kv-head: rgba(30,41,59,.98);
+    --kv-head-2: rgba(15,23,42,.98);
+    --kv-group: rgba(51,65,85,.95);
+    --kv-subtotal: rgba(127,29,29,.18);
+    --kv-grand: rgba(30,64,175,.16);
+    --kv-veshoz: rgba(120, 90, 20, .16);
+    --kv-shadow: 0 24px 70px rgba(0,0,0,.42);
+    --kv-shadow-2: 0 12px 32px rgba(0,0,0,.34);
+    --kv-purple: #c084fc;
+    --kv-blue: #60a5fa;
+    --kv-green: #4ade80;
+    --kv-red: #f87171;
+    --kv-brown: #fbbf24;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .kv-page{
+      --kv-bg: radial-gradient(circle at top, #172036 0%, #0b1120 48%, #060a13 100%);
+      --kv-surface: rgba(15,23,42,.68);
+      --kv-surface-2: rgba(15,23,42,.86);
+      --kv-text: #e5eefb;
+      --kv-muted: #94a3b8;
+      --kv-stroke: rgba(148,163,184,.16);
+      --kv-stroke-2: rgba(148,163,184,.25);
+      --kv-grid: rgba(255,255,255,.22);
+      --kv-grid-strong: rgba(255,255,255,.68);
+      --kv-head: rgba(30,41,59,.98);
+      --kv-head-2: rgba(15,23,42,.98);
+      --kv-group: rgba(51,65,85,.95);
+      --kv-subtotal: rgba(127,29,29,.18);
+      --kv-grand: rgba(30,64,175,.16);
+      --kv-veshoz: rgba(120, 90, 20, .16);
+      --kv-shadow: 0 24px 70px rgba(0,0,0,.42);
+      --kv-shadow-2: 0 12px 32px rgba(0,0,0,.34);
+      --kv-purple: #c084fc;
+      --kv-blue: #60a5fa;
+      --kv-green: #4ade80;
+      --kv-red: #f87171;
+      --kv-brown: #fbbf24;
+    }
+  }
+
+  @media (max-width: 1180px){
     .kv-page{
       grid-template-columns:1fr;
     }
   }
 
   .kv-card{
-    border:1px solid var(--stroke);
-    border-radius:20px;
-    box-shadow:var(--shadow);
+    border:1px solid var(--kv-stroke);
+    border-radius:22px;
+    box-shadow:var(--kv-shadow);
     padding:14px;
-    backdrop-filter:blur(14px);
-    background:var(--surface);
+    backdrop-filter:blur(16px);
+    background:var(--kv-surface);
   }
 
   .kv-top{
@@ -37,15 +118,19 @@
 
   .kv-title{
     margin:0;
-    font-size:18px;
-    font-weight:900;
-    color:var(--text);
+    font-size:22px;
+    font-weight:950;
+    color:var(--kv-text);
+    letter-spacing:-.02em;
+    line-height:1.08;
   }
 
   .kv-muted{
-    margin:5px 0 0 0;
-    color:var(--muted);
+    margin:7px 0 0;
+    color:var(--kv-muted);
     font-size:13px;
+    line-height:1.45;
+    max-width:900px;
   }
 
   .kv-actions{
@@ -65,22 +150,25 @@
   .kv-field label{
     font-size:12px;
     font-weight:900;
-    color:var(--muted);
+    color:var(--kv-muted);
   }
 
   .kv-input{
     height:44px;
     border-radius:14px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.58);
-    color:var(--text);
+    border:1px solid var(--kv-stroke-2);
+    background:var(--kv-surface-2);
+    color:var(--kv-text);
     padding:0 12px;
     outline:none;
     box-shadow:0 10px 28px rgba(15,23,42,.08);
+    font-weight:800;
+    transition:border-color .15s ease, box-shadow .15s ease;
   }
 
-  html[data-theme="dark"] .kv-input{
-    background:rgba(255,255,255,.06);
+  .kv-input:focus{
+    border-color:rgba(79,70,229,.45);
+    box-shadow:0 0 0 4px rgba(79,70,229,.14);
   }
 
   .kv-btn{
@@ -91,20 +179,21 @@
     height:44px;
     padding:0 16px;
     border-radius:14px;
-    border:1px solid var(--stroke);
+    border:1px solid var(--kv-stroke-2);
     text-decoration:none;
     font-weight:900;
     cursor:pointer;
     transition:.15s ease;
     white-space:nowrap;
-    background:rgba(255,255,255,.58);
-    color:var(--text);
+    background:var(--kv-surface-2);
+    color:var(--kv-text);
   }
 
   .kv-btn.primary{
     color:#fff;
     background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(34,197,94,.92));
     box-shadow:0 12px 28px rgba(79,70,229,.22);
+    border-color:rgba(79,70,229,.32);
   }
 
   .kv-btn:disabled{
@@ -117,36 +206,54 @@
   }
 
   .kv-wrap{
-    border:1px solid var(--stroke);
-    border-radius:18px;
+    border:1px solid var(--kv-stroke);
+    
     overflow:hidden;
-    background:rgba(255,255,255,.28);
-  }
-
-  html[data-theme="dark"] .kv-wrap{
-    background:rgba(255,255,255,.03);
+    background:var(--kv-surface-2);
+    box-shadow:var(--kv-shadow-2);
   }
 
   .kv-scroll{
     overflow:auto;
     max-width:100%;
+    
+  }
+
+  .kv-scroll::-webkit-scrollbar{
+    height:10px;
+    width:10px;
+  }
+
+  .kv-scroll::-webkit-scrollbar-thumb{
+    background:rgba(15,23,42,.22);
+    border-radius:999px;
+  }
+
+  html[data-theme="dark"] .kv-scroll::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.16);
   }
 
   .kv-table{
     border-collapse:collapse;
-    width:max-content;
-    min-width:1500px;
+    width:100%;
+    min-width:1280px;
     table-layout:fixed;
     background:#fff;
     font-family:"Times New Roman", serif;
   }
 
+  [data-theme="dark"] .kv-table,
+  .dark .kv-table,
+  :root:not([data-theme="light"]) .kv-table{
+    background:#0f172a;
+  }
+
   .kv-table th,
   .kv-table td{
-    border:1px solid #2f2f2f;
-    padding:3px 5px;
-    font-size:12px;
-    line-height:1.05;
+    border:1px solid var(--kv-grid);
+    padding:3px 4px;
+    font-size:11px;
+    line-height:1.04;
     text-align:center;
     vertical-align:middle;
     color:#000;
@@ -154,74 +261,115 @@
     white-space:nowrap;
   }
 
+  [data-theme="dark"] .kv-table th,
+  [data-theme="dark"] .kv-table td,
+  .dark .kv-table th,
+  .dark .kv-table td,
+  :root:not([data-theme="light"]) .kv-table th,
+  :root:not([data-theme="light"]) .kv-table td{
+    color:#e5eefb;
+    background:#0f172a;
+  }
+
   .kv-table thead th{
     position:sticky;
     top:0;
     z-index:10;
-    background:#f2f2f2;
+    background:var(--kv-head);
     font-weight:700;
   }
 
   .kv-main-title{
-    font-size:14px !important;
-    line-height:1.2 !important;
-    padding:8px 10px !important;
-    background:#f7f7f7 !important;
-    font-weight:700 !important;
+    font-size:13px !important;
+    line-height:1.18 !important;
+    padding:8px 8px !important;
+    background:var(--kv-head-2) !important;
+    font-weight:800 !important;
+    border-bottom:2px solid var(--kv-grid-strong) !important;
   }
 
   .kv-group{
-    background:#efefef !important;
-    font-size:13px !important;
-    font-weight:700 !important;
+    background:var(--kv-group) !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    border-bottom:2px solid var(--kv-grid-strong) !important;
   }
 
   .kv-sub{
-    background:#fafafa !important;
-    font-size:11px !important;
-    font-weight:700 !important;
+    background:var(--kv-head-2) !important;
+    font-size:10px !important;
+    font-weight:800 !important;
   }
 
   .name-col{
     position:sticky;
     left:0;
     z-index:11;
-    min-width:150px;
-    max-width:150px;
+    min-width:140px;
+    max-width:140px;
+    width:140px;
     text-align:left !important;
     padding-left:6px !important;
     background:#fff !important;
     font-weight:700;
+    border-right:2px solid var(--kv-grid-strong) !important;
   }
 
   .kv-table thead .name-col{
-    background:#f2f2f2 !important;
+    background:var(--kv-head) !important;
     z-index:12;
     text-align:center !important;
     padding-left:4px !important;
   }
 
-  .green{ color:#00A43A !important; font-weight:700; }
-  .blue{ color:#165DCC !important; font-weight:700; }
-  .red{ color:#ff0000 !important; font-weight:700; }
-  .purple{ color:#6a1fb1 !important; font-weight:700; }
-  .brown{ color:#7c4a03 !important; font-weight:700; }
+  [data-theme="dark"] .name-col,
+  .dark .name-col,
+  :root:not([data-theme="light"]) .name-col{
+    background:#111827 !important;
+  }
+
+  .green{ color:var(--kv-green) !important; font-weight:700; }
+  .blue{ color:var(--kv-blue) !important; font-weight:700; }
+  .red{ color:var(--kv-red) !important; font-weight:700; }
+  .purple{ color:var(--kv-purple) !important; font-weight:700; }
+  .brown{ color:var(--kv-brown) !important; font-weight:700; }
+
+  .readonly-green{ color:var(--kv-green) !important; font-weight:700; }
+  .readonly-blue{ color:var(--kv-blue) !important; font-weight:700; }
+  .readonly-red{ color:var(--kv-red) !important; font-weight:700; }
+
+  .group-title-row td{
+    background:var(--kv-group) !important;
+    font-weight:800 !important;
+    text-align:left !important;
+    padding:6px 8px !important;
+    border-top:2px solid var(--kv-grid-strong) !important;
+    border-bottom:2px solid var(--kv-grid-strong) !important;
+  }
 
   .subtotal td{
-    font-weight:700;
+    font-weight:800;
+    background:var(--kv-subtotal) !important;
+    border-top:2px solid var(--kv-grid-strong) !important;
   }
 
   .subtotal .name-col{
-    color:#ff0000 !important;
+    color:var(--kv-red) !important;
   }
 
   .grandtotal td{
-    font-weight:700;
-    background:#fafafa;
+    font-weight:900;
+    background:var(--kv-grand) !important;
+    border-top:3px solid var(--kv-grid-strong) !important;
+    border-bottom:3px solid var(--kv-grid-strong) !important;
   }
 
   .grandtotal .name-col{
-    color:#165DCC !important;
+    color:var(--kv-blue) !important;
+  }
+
+  .veshoz-row td{
+    background:var(--kv-veshoz) !important;
   }
 
   .edit-cell{
@@ -229,34 +377,64 @@
     background:#fff !important;
   }
 
+  [data-theme="dark"] .edit-cell,
+  .dark .edit-cell,
+  :root:not([data-theme="light"]) .edit-cell{
+    background:#0f172a !important;
+  }
+
   .edit-input{
     width:100%;
-    min-width:75px;
-    height:26px;
+    min-width:68px;
+    height:24px;
     border:none;
     outline:none;
     background:transparent;
     text-align:center;
-    font-size:12px;
+    font-size:11px;
     font-family:"Times New Roman", serif;
     color:#000;
     font-weight:700;
   }
 
-  .readonly-green{ color:#00A43A !important; font-weight:700; }
-  .readonly-blue{ color:#165DCC !important; font-weight:700; }
-  .readonly-red{ color:#ff0000 !important; font-weight:700; }
+  [data-theme="dark"] .edit-input,
+  .dark .edit-input,
+  :root:not([data-theme="light"]) .edit-input{
+    color:#e5eefb;
+  }
 
-  .group-title-row td{
-    background:#f3f3f3 !important;
-    font-weight:700 !important;
-    text-align:left !important;
-    padding:6px 8px !important;
+  .kv-table td:nth-child(5),
+  .kv-table th:nth-child(5),
+  .kv-table td:nth-child(9),
+  .kv-table th:nth-child(9),
+  .kv-table td:nth-child(13),
+  .kv-table th:nth-child(13),
+  .kv-table td:nth-child(17),
+  .kv-table th:nth-child(17){
+    border-right:2px solid var(--kv-grid-strong) !important;
+  }
+
+  .kv-table td:nth-child(2),
+  .kv-table th:nth-child(2),
+  .kv-table td:nth-child(6),
+  .kv-table th:nth-child(6),
+  .kv-table td:nth-child(10),
+  .kv-table th:nth-child(10),
+  .kv-table td:nth-child(14),
+  .kv-table th:nth-child(14){
+    border-left:2px solid var(--kv-grid-strong) !important;
   }
 
   .side-card{
     position:sticky;
     top:14px;
+  }
+
+  .side-title{
+    margin:0 0 6px;
+    font-size:16px;
+    font-weight:900;
+    color:var(--kv-text);
   }
 
   .calendar-grid{
@@ -270,16 +448,13 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    min-height:44px;
-    border:1px solid var(--stroke);
+    min-height:42px;
+    border:1px solid var(--kv-stroke);
     border-radius:12px;
-    background:rgba(255,255,255,.56);
+    background:var(--kv-surface-2);
     position:relative;
     overflow:hidden;
-  }
-
-  html[data-theme="dark"] .day-item{
-    background:rgba(255,255,255,.06);
+    transition:.15s ease;
   }
 
   .day-item input{
@@ -291,8 +466,8 @@
 
   .day-item span{
     font-weight:800;
-    font-size:13px;
-    color:var(--text);
+    font-size:11px;
+    color:var(--kv-text);
   }
 
   .day-item input:checked + span{
@@ -305,6 +480,10 @@
     box-shadow:0 10px 22px rgba(79,70,229,.20);
   }
 
+  .day-item:hover{
+    transform:translateY(-1px);
+  }
+
   .side-actions{
     display:flex;
     gap:8px;
@@ -315,23 +494,24 @@
   .mini-btn{
     flex:1 1 auto;
     min-height:40px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.56);
+    border:1px solid var(--kv-stroke-2);
+    background:var(--kv-surface-2);
     border-radius:12px;
     font-weight:800;
     cursor:pointer;
-    color:var(--text);
+    color:var(--kv-text);
+    transition:.15s ease;
   }
 
-  html[data-theme="dark"] .mini-btn{
-    background:rgba(255,255,255,.06);
+  .mini-btn:hover{
+    transform:translateY(-1px);
   }
 
   .note{
     margin-top:12px;
-    color:var(--muted);
+    color:var(--kv-muted);
     font-size:12px;
-    line-height:1.45;
+    line-height:1.5;
   }
 
   .alert{
@@ -345,129 +525,217 @@
   .alert.ok{
     background:rgba(34,197,94,.12);
     color:#15803d;
+    border:1px solid rgba(34,197,94,.18);
   }
 
   .alert.warn{
     background:rgba(245,158,11,.12);
     color:#b45309;
+    border:1px solid rgba(245,158,11,.18);
   }
 
-  .veshoz-row td{
-    background:#fcfaf2 !important;
+  [data-theme="dark"] .alert.ok,
+  .dark .alert.ok,
+  :root:not([data-theme="light"]) .alert.ok{
+    color:#86efac;
+  }
+
+  [data-theme="dark"] .alert.warn,
+  .dark .alert.warn,
+  :root:not([data-theme="light"]) .alert.warn{
+    color:#fcd34d;
+  }
+
+  @media (max-width: 900px){
+    .kv-card{
+      padding:12px;
+    }
+
+    .kv-actions{
+      width:100%;
+    }
+
+    .kv-btn{
+      flex:1 1 auto;
+    }
+
+    .calendar-grid{
+      gap:6px;
+    }
+
+    .day-item{
+      min-height:38px;
+    }
+  }
+
+  @media (max-width: 640px){
+    .kv-page{
+      padding:10px;
+      gap:12px;
+    }
+
+    .kv-top{
+      align-items:stretch;
+    }
+
+    .kv-actions{
+      flex-direction:column;
+      align-items:stretch;
+      width:100%;
+    }
+
+    .kv-btn{
+      width:100%;
+    }
+
+    .calendar-grid{
+      grid-template-columns:repeat(5,1fr);
+    }
+
+    .name-col{
+      min-width:100px;
+      max-width:100px;
+      width:100px;
+      font-size:10px !important;
+    }
+
+    .kv-table{
+      min-width:1120px;
+    }
+
+    .kv-table th,
+    .kv-table td{
+      font-size:10px;
+      padding:2px 3px;
+    }
+
+    .edit-input{
+      min-width:56px;
+      font-size:10px;
+    }
   }
 </style>
-
-
 
 <div class="kv-page">
 
   <div class="kv-card">
-    <form method="post">
-      {% csrf_token %}
+  <form method="post">
+    {% csrf_token %}
 
-      {% for d in selected_days %}
-        <input type="hidden" name="selected_days" value="{{ d }}">
-      {% endfor %}
-      <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
+    {% for d in selected_days %}
+      <input type="hidden" name="selected_days" value="{{ d }}">
+    {% endfor %}
+    <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
 
-      <div class="kv-top">
-        <div>
-          <h2 class="kv-title">Kvartalniy oylik hisobot</h2>
-          <p class="kv-muted">
-            Belgilangan kunlar bo‘yicha fakt hisoblanadi. Reja esa tanlangan kunlar ulushiga mos ravishda ko‘rsatiladi.
-            Har bir guruhda <b>Вес.хоз</b> alohida oylik to‘ldiriladi.
-          </p>
-        </div>
-
-        <div class="kv-actions">
-          <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
-            Saqlash
-          </button>
-        </div>
-        
+    <div class="kv-top">
+      <div>
+        <h2 class="kv-title">Kvartalniy oylik hisobot</h2>
+        <p class="kv-muted">
+          Belgilangan kunlar bo‘yicha fakt hisoblanadi. Reja esa tanlangan kunlar ulushiga mos ravishda ko‘rsatiladi.
+          Har bir guruhda <b>Вес.хоз</b> alohida oylik to‘ldiriladi.
+        </p>
       </div>
 
-      {% if all_selected %}
-        <div class="alert ok">
-          Barcha kunlar tanlangan — reja maydonlarini tahrirlash mumkin.
-        </div>
-      {% else %}
-        <div class="alert warn">
-          Hammasi tanlanmagan. Reja avtomatik hisoblandi: oy reja / oy kunlari × tanlangan kunlar. Tahrirlash vaqtincha yopiq.
-        </div>
-      {% endif %}
+      <div class="kv-actions">
+        <button class="kv-btn" type="button"><a href="{% url 'kvartalniy_monthly_list' %}">← Ortga</a></button>
+        <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
+          Saqlash
+        </button>
+      </div>
+    </div>
 
-      <div class="kv-wrap">
-        <div class="kv-scroll">
-          <table class="kv-table">
-            <thead>
-              <tr>
-                <th class="kv-main-title" colspan="17">
-                  Оперативная месячная информация по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
-                  за {{ month|date:"m.Y" }} / {{ current_year }} - {{ prev_year }}
-                </th>
+    {% if all_selected %}
+      <div class="alert ok">
+        Barcha kunlar tanlangan — reja maydonlarini tahrirlash mumkin.
+      </div>
+    {% else %}
+      <div class="alert warn">
+        Hammasi tanlanmagan. Reja avtomatik hisoblandi: oy reja / oy kunlari × tanlangan kunlar. Tahrirlash vaqtincha yopiq.
+      </div>
+    {% endif %}
+
+    <div class="kv-wrap">
+      <div class="kv-scroll">
+        <table class="kv-table">
+          <thead>
+            <tr>
+              <th class="kv-main-title" colspan="21">
+                Оперативная месячная информация по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
+                за {{ month|date:"m.Y" }} / {{ current_year }} - {{ prev_year }}
+              </th>
+            </tr>
+
+            <tr>
+              <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
+              <th class="kv-group" colspan="4">Погрузка вагонов</th>
+              <th class="kv-group" colspan="4">Выгрузка вагонов</th>
+              <th class="kv-group" colspan="4">Погрузка конт</th>
+              <th class="kv-group" colspan="4">Выгрузка конт</th>
+              <th class="kv-group" colspan="4">Доходы</th>
+            </tr>
+
+            <tr>
+              <th class="kv-sub">план</th>
+              <th class="kv-sub green">{{ current_year }}</th>
+              <th class="kv-sub blue">{{ prev_year }}</th>
+              <th class="kv-sub red">+/-</th>
+
+              <th class="kv-sub">план</th>
+              <th class="kv-sub green">{{ current_year }}</th>
+              <th class="kv-sub blue">{{ prev_year }}</th>
+              <th class="kv-sub red">+/-</th>
+
+              <th class="kv-sub">план</th>
+              <th class="kv-sub green">{{ current_year }}</th>
+              <th class="kv-sub blue">{{ prev_year }}</th>
+              <th class="kv-sub red">+/-</th>
+
+              <th class="kv-sub">план</th>
+              <th class="kv-sub green">{{ current_year }}</th>
+              <th class="kv-sub blue">{{ prev_year }}</th>
+              <th class="kv-sub red">+/-</th>
+
+              <th class="kv-sub">план</th>
+              <th class="kv-sub green">{{ current_year }}</th>
+              <th class="kv-sub blue">{{ prev_year }}</th>
+              <th class="kv-sub red">+/-</th>
+            </tr>
+
+            <tr>
+              <th class="kv-sub">reja</th>
+              <th class="kv-sub green">fakt</th>
+              <th class="kv-sub blue">fakt</th>
+              <th class="kv-sub red">farq</th>
+
+              <th class="kv-sub">reja</th>
+              <th class="kv-sub green">fakt</th>
+              <th class="kv-sub blue">fakt</th>
+              <th class="kv-sub red">farq</th>
+
+              <th class="kv-sub">reja</th>
+              <th class="kv-sub green">fakt</th>
+              <th class="kv-sub blue">fakt</th>
+              <th class="kv-sub red">farq</th>
+
+              <th class="kv-sub">reja</th>
+              <th class="kv-sub green">fakt</th>
+              <th class="kv-sub blue">fakt</th>
+              <th class="kv-sub red">farq</th>
+
+              <th class="kv-sub">reja</th>
+              <th class="kv-sub green">fakt</th>
+              <th class="kv-sub blue">fakt</th>
+              <th class="kv-sub red">farq</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for group in groups %}
+              <tr class="group-title-row">
+                <td colspan="21">{{ group.title }}</td>
               </tr>
 
-              <tr>
-                <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
-                <th class="kv-group" colspan="4">Погрузка вагонов</th>
-                <th class="kv-group" colspan="4">Выгрузка вагонов</th>
-                <th class="kv-group" colspan="4">Погрузка конт</th>
-                <th class="kv-group" colspan="4">Выгрузка конт</th>
-              </tr>
-
-              <tr>
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-              </tr>
-
-              <tr>
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {% for group in groups %}
-                <tr class="group-title-row">
-                  <td colspan="17">{{ group.title }}</td>
-                </tr>
-
-                {% for row in group.rows %}
+              {% for row in group.rows %}
                 <tr class="{% if row.is_veshoz %}veshoz-row{% endif %}">
                   <td class="name-col
                     {% if row.is_veshoz %}
@@ -496,7 +764,6 @@
                       {{ row.pogr_plan }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_pogr_this_year_{{ row.group_key }}" value="{{ row.pogr_this_year_raw|default_if_none:0 }}">
@@ -504,7 +771,6 @@
                       {{ row.pogr_this_year }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_pogr_last_year_{{ row.group_key }}" value="{{ row.pogr_last_year_raw|default_if_none:0 }}">
@@ -512,7 +778,6 @@
                       {{ row.pogr_last_year }}
                     {% endif %}
                   </td>
-
                   <td class="readonly-red">{{ row.pogr_diff }}</td>
 
                   <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
@@ -528,7 +793,6 @@
                       {{ row.vygr_plan }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_vygr_this_year_{{ row.group_key }}" value="{{ row.vygr_this_year_raw|default_if_none:0 }}">
@@ -536,7 +800,6 @@
                       {{ row.vygr_this_year }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_vygr_last_year_{{ row.group_key }}" value="{{ row.vygr_last_year_raw|default_if_none:0 }}">
@@ -544,7 +807,6 @@
                       {{ row.vygr_last_year }}
                     {% endif %}
                   </td>
-
                   <td class="readonly-red">{{ row.vygr_diff }}</td>
 
                   <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
@@ -560,7 +822,6 @@
                       {{ row.pogr_kont_plan }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_pogr_kont_this_year_{{ row.group_key }}" value="{{ row.pogr_kont_this_year_raw|default_if_none:0 }}">
@@ -568,7 +829,6 @@
                       {{ row.pogr_kont_this_year }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_pogr_kont_last_year_{{ row.group_key }}" value="{{ row.pogr_kont_last_year_raw|default_if_none:0 }}">
@@ -576,7 +836,6 @@
                       {{ row.pogr_kont_last_year }}
                     {% endif %}
                   </td>
-
                   <td class="readonly-red">{{ row.pogr_kont_diff }}</td>
 
                   <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
@@ -592,7 +851,6 @@
                       {{ row.vygr_kont_plan }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_vygr_kont_this_year_{{ row.group_key }}" value="{{ row.vygr_kont_this_year_raw|default_if_none:0 }}">
@@ -600,7 +858,6 @@
                       {{ row.vygr_kont_this_year }}
                     {% endif %}
                   </td>
-
                   <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
                     {% if all_selected and row.is_veshoz %}
                       <input class="edit-input" type="number" name="veshoz_vygr_kont_last_year_{{ row.group_key }}" value="{{ row.vygr_kont_last_year_raw|default_if_none:0 }}">
@@ -608,74 +865,114 @@
                       {{ row.vygr_kont_last_year }}
                     {% endif %}
                   </td>
-
                   <td class="readonly-red">{{ row.vygr_kont_diff }}</td>
-                </tr>
-              {% endfor %}
 
-                <tr class="subtotal">
-                  <td class="name-col">{{ group.subtotal.station_name }}</td>
-
-                  <td>{{ group.subtotal.pogr_plan }}</td>
-                  <td>{{ group.subtotal.pogr_this_year }}</td>
-                  <td class="green">{{ group.subtotal.pogr_last_year }}</td>
-                  <td>{{ group.subtotal.pogr_diff }}</td>
-
-                  <td>{{ group.subtotal.vygr_plan }}</td>
-                  <td>{{ group.subtotal.vygr_this_year }}</td>
-                  <td class="green">{{ group.subtotal.vygr_last_year }}</td>
-                  <td>{{ group.subtotal.vygr_diff }}</td>
-
-                  <td>{{ group.subtotal.pogr_kont_plan }}</td>
-                  <td>{{ group.subtotal.pogr_kont_this_year }}</td>
-                  <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
-                  <td>{{ group.subtotal.pogr_kont_diff }}</td>
-
-                  <td>{{ group.subtotal.vygr_kont_plan }}</td>
-                  <td>{{ group.subtotal.vygr_kont_this_year }}</td>
-                  <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
-                  <td>{{ group.subtotal.vygr_kont_diff }}</td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="17" style="padding:16px; color:var(--muted); text-align:center;">
-                    Hech qanday ma’lumot topilmadi.
+                  <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                    {% if all_selected %}
+                      {% if row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_income_plan_{{ row.group_key }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                      {% elif row.station_id %}
+                        <input class="edit-input" type="number" name="income_plan_{{ row.station_id }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.income_plan }}
+                      {% endif %}
+                    {% else %}
+                      {{ row.income_plan }}
+                    {% endif %}
                   </td>
+                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                    {% if all_selected and row.is_veshoz %}
+                      <input class="edit-input" type="number" name="veshoz_income_this_year_{{ row.group_key }}" value="{{ row.income_this_year_raw|default_if_none:0 }}">
+                    {% else %}
+                      {{ row.income_this_year }}
+                    {% endif %}
+                  </td>
+                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                    {% if all_selected and row.is_veshoz %}
+                      <input class="edit-input" type="number" name="veshoz_income_last_year_{{ row.group_key }}" value="{{ row.income_last_year_raw|default_if_none:0 }}">
+                    {% else %}
+                      {{ row.income_last_year }}
+                    {% endif %}
+                  </td>
+                  <td class="readonly-red">{{ row.income_diff }}</td>
                 </tr>
               {% endfor %}
 
-              <tr class="grandtotal">
-                <td class="name-col">{{ grand_total.station_name }}</td>
+              <tr class="subtotal">
+                <td class="name-col">{{ group.subtotal.station_name }}</td>
 
-                <td>{{ grand_total.pogr_plan }}</td>
-                <td>{{ grand_total.pogr_this_year }}</td>
-                <td class="green">{{ grand_total.pogr_last_year }}</td>
-                <td>{{ grand_total.pogr_diff }}</td>
+                <td>{{ group.subtotal.pogr_plan }}</td>
+                <td>{{ group.subtotal.pogr_this_year }}</td>
+                <td class="green">{{ group.subtotal.pogr_last_year }}</td>
+                <td>{{ group.subtotal.pogr_diff }}</td>
 
-                <td>{{ grand_total.vygr_plan }}</td>
-                <td>{{ grand_total.vygr_this_year }}</td>
-                <td class="green">{{ grand_total.vygr_last_year }}</td>
-                <td>{{ grand_total.vygr_diff }}</td>
+                <td>{{ group.subtotal.vygr_plan }}</td>
+                <td>{{ group.subtotal.vygr_this_year }}</td>
+                <td class="green">{{ group.subtotal.vygr_last_year }}</td>
+                <td>{{ group.subtotal.vygr_diff }}</td>
 
-                <td>{{ grand_total.pogr_kont_plan }}</td>
-                <td>{{ grand_total.pogr_kont_this_year }}</td>
-                <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
-                <td>{{ grand_total.pogr_kont_diff }}</td>
+                <td>{{ group.subtotal.pogr_kont_plan }}</td>
+                <td>{{ group.subtotal.pogr_kont_this_year }}</td>
+                <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
+                <td>{{ group.subtotal.pogr_kont_diff }}</td>
 
-                <td>{{ grand_total.vygr_kont_plan }}</td>
-                <td>{{ grand_total.vygr_kont_this_year }}</td>
-                <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
-                <td>{{ grand_total.vygr_kont_diff }}</td>
+                <td>{{ group.subtotal.vygr_kont_plan }}</td>
+                <td>{{ group.subtotal.vygr_kont_this_year }}</td>
+                <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
+                <td>{{ group.subtotal.vygr_kont_diff }}</td>
+
+                <td>{{ group.subtotal.income_plan }}</td>
+                <td>{{ group.subtotal.income_this_year }}</td>
+                <td class="green">{{ group.subtotal.income_last_year }}</td>
+                <td>{{ group.subtotal.income_diff }}</td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+            {% empty %}
+              <tr>
+                <td colspan="21" style="padding:16px; color:var(--muted); text-align:center;">
+                  Hech qanday ma’lumot topilmadi.
+                </td>
+              </tr>
+            {% endfor %}
+
+            <tr class="grandtotal">
+              <td class="name-col">{{ grand_total.station_name }}</td>
+
+              <td>{{ grand_total.pogr_plan }}</td>
+              <td>{{ grand_total.pogr_this_year }}</td>
+              <td class="green">{{ grand_total.pogr_last_year }}</td>
+              <td>{{ grand_total.pogr_diff }}</td>
+
+              <td>{{ grand_total.vygr_plan }}</td>
+              <td>{{ grand_total.vygr_this_year }}</td>
+              <td class="green">{{ grand_total.vygr_last_year }}</td>
+              <td>{{ grand_total.vygr_diff }}</td>
+
+              <td>{{ grand_total.pogr_kont_plan }}</td>
+              <td>{{ grand_total.pogr_kont_this_year }}</td>
+              <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
+              <td>{{ grand_total.pogr_kont_diff }}</td>
+
+              <td>{{ grand_total.vygr_kont_plan }}</td>
+              <td>{{ grand_total.vygr_kont_this_year }}</td>
+              <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
+              <td>{{ grand_total.vygr_kont_diff }}</td>
+
+              <td>{{ grand_total.income_plan }}</td>
+              <td>{{ grand_total.income_this_year }}</td>
+              <td class="green">{{ grand_total.income_last_year }}</td>
+              <td>{{ grand_total.income_diff }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </form>
-  </div>
+    </div>
+  </form>
+</div>
   
   <div class="kv-card side-card">
     <form method="get" id="dayFilterForm">
+      <h3 class="side-title">Kunlarni tanlash</h3>
+
       <div class="kv-field">
         <label>Oy</label>
         <input class="kv-input" type="month" name="month" value="{{ month|date:'Y-m' }}" required>
