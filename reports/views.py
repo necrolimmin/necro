@@ -873,10 +873,11 @@ def admin_table1_reports(request):
 
         for sid, name in all_stations:
             last_dt = sent_map.get(sid)
+            print(name)
             if last_dt:
-                submitted.append({"name": name, "submitted_at": last_dt})
+                submitted.append({"name":get_object_or_404(StationProfile, user__username=name).station_name , "submitted_at": last_dt})
             else:
-                not_submitted.append({"name": name})
+                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
 
         items.append({
             "date": d,
@@ -890,6 +891,7 @@ def admin_table1_reports(request):
             "not_submitted_count": len(not_submitted),
             "total_count": len(all_stations),
         })
+       
 
     return render(request, "admin_table1_reports.html", {
         "items": items,
