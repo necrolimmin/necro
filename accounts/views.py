@@ -182,8 +182,16 @@ def admin_settings(request):
         .only("data", "station_user__username", "station_user__first_name", "station_user__last_name").exclude(shift="total")
     )
 
+    qs_top5 = (
+        StationDailyTable1.objects
+        .filter(date__range=(start_date, end_date))
+        .select_related("station_user")
+        .only("data", "station_user__username", "station_user__first_name", "station_user__last_name")
+        .exclude(shift="total")
+    )
+
     sums = defaultdict(float)
-    for row in qs_month:
+    for row in qs_top5:
         val = (row.data or {}).get("income_daily", 0)
         if isinstance(val, (int, float)):
             sums[row.station_user_id] += float(val)
@@ -196,7 +204,9 @@ def admin_settings(request):
         u = users_map.get(uid)
         if not u:
             continue
-        structure_labels.append((f"{u.first_name} {u.last_name}".strip() or u.username))
+        structure_labels.append(
+            (f"{u.first_name} {u.last_name}".strip() or u.station_profile.station_name)
+        )
         structure_values.append(int(total))
     
 
