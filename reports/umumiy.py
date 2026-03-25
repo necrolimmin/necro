@@ -16,7 +16,10 @@ from accounts.models import (
 from reports.kvartalniy import DISPLAY_GROUPS, _safe_int
 
 
-
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from openpyxl.utils import get_column_letter
 
 
 def _safe_date(date_str, fallback):
@@ -341,6 +344,291 @@ def _add_to_totals(target, row):
     target["pogr_kont_diff"] = target["pogr_kont_this_year"] - target["pogr_kont_last_year"]
     target["vygr_kont_diff"] = target["vygr_kont_this_year"] - target["vygr_kont_last_year"]
     target["income_diff"] = target["income_this_year"] - target["income_last_year"]
+
+
+def _build_kvartalniy_range_context(from_date, to_date):
+    if from_date > to_date:
+        from_date, to_date = to_date, from_date
+
+    prev_from_date = _same_day_last_year(from_date)
+    prev_to_date = _same_day_last_year(to_date)
+
+    selected_dates = _build_date_range(from_date, to_date)
+
+    current_data = _sum_daily_this_fields_for_date_list(selected_dates)
+    last_year_data = _sum_daily_last_fields_for_date_list(selected_dates)
+
+    scaled_plans, month_info, all_full_months = _sum_scaled_plans_between(from_date, to_date)
+
+    single_full_month = all_full_months and len(month_info) == 1
+    target_month = month_info[0]["month"] if single_full_month else None
+
+    def _sum_veshoz_between():
+        result = {}
+
+        for info in month_info:
+            month_date = info["month"]
+            selected_days = info["selected_days"]
+            days_in_month = info["days_in_month"]
+
+            monthly_obj, _ = KvartalniyMonthly.objects.get_or_create(date=month_date)
+
+            extra_qs = KvartalniyGroupExtraPlan.objects.filter(
+                monthly=monthly_obj,
+                row_name="Вес.хоз"
+            )
+
+            for extra_obj in extra_qs:
+                group_key = extra_obj.group_key
+
+                if group_key not in result:
+                    result[group_key] = {
+                        "station_id": None,
+                        "station_name": "Вес.хоз",
+                        "is_other": False,
+                        "is_veshoz": True,
+                        "group_key": group_key,
+                        "is_editable": bool(single_full_month),
+
+                        "pogr_plan": 0,
+                        "vygr_plan": 0,
+                        "pogr_kont_plan": 0,
+                        "vygr_kont_plan": 0,
+
+                        "pogr_plan_raw": 0,
+                        "vygr_plan_raw": 0,
+                        "pogr_kont_plan_raw": 0,
+                        "vygr_kont_plan_raw": 0,
+
+                        "pogr_this_year": 0,
+                        "pogr_last_year": 0,
+                        "pogr_diff": 0,
+
+                        "vygr_this_year": 0,
+                        "vygr_last_year": 0,
+                        "vygr_diff": 0,
+
+                        "pogr_kont_this_year": 0,
+                        "pogr_kont_last_year": 0,
+                        "pogr_kont_diff": 0,
+
+                        "vygr_kont_this_year": 0,
+                        "vygr_kont_last_year": 0,
+                        "vygr_kont_diff": 0,
+
+                        "pogr_this_year_raw": 0,
+                        "pogr_last_year_raw": 0,
+                        "vygr_this_year_raw": 0,
+                        "vygr_last_year_raw": 0,
+                        "pogr_kont_this_year_raw": 0,
+                        "pogr_kont_last_year_raw": 0,
+                        "vygr_kont_this_year_raw": 0,
+                        "vygr_kont_last_year_raw": 0,
+
+                        "income_plan": 0,
+                        "income_this_year": 0,
+                        "income_last_year": 0,
+                        "income_diff": 0,
+
+                        "income_plan_raw": 0,
+                        "income_this_year_raw": 0,
+                        "income_last_year_raw": 0,
+                    }
+
+                if single_full_month and month_date == target_month:
+                    result[group_key]["pogr_plan_raw"] = extra_obj.pogr_plan or 0
+                    result[group_key]["vygr_plan_raw"] = extra_obj.vygr_plan or 0
+                    result[group_key]["pogr_kont_plan_raw"] = extra_obj.pogr_kont_plan or 0
+                    result[group_key]["vygr_kont_plan_raw"] = extra_obj.vygr_kont_plan or 0
+
+                    result[group_key]["pogr_this_year_raw"] = extra_obj.pogr_this_year or 0
+                    result[group_key]["pogr_last_year_raw"] = extra_obj.pogr_last_year or 0
+                    result[group_key]["vygr_this_year_raw"] = extra_obj.vygr_this_year or 0
+                    result[group_key]["vygr_last_year_raw"] = extra_obj.vygr_last_year or 0
+                    result[group_key]["pogr_kont_this_year_raw"] = extra_obj.pogr_kont_this_year or 0
+                    result[group_key]["pogr_kont_last_year_raw"] = extra_obj.pogr_kont_last_year or 0
+                    result[group_key]["vygr_kont_this_year_raw"] = extra_obj.vygr_kont_this_year or 0
+                    result[group_key]["vygr_kont_last_year_raw"] = extra_obj.vygr_kont_last_year or 0
+                    result[group_key]["income_plan_raw"] = getattr(extra_obj, "income_plan", 0) or 0
+                    result[group_key]["income_this_year_raw"] = getattr(extra_obj, "income_this_year", 0) or 0
+                    result[group_key]["income_last_year_raw"] = getattr(extra_obj, "income_last_year", 0) or 0
+
+                result[group_key]["pogr_plan"] += round((extra_obj.pogr_plan or 0) / days_in_month * selected_days)
+                result[group_key]["vygr_plan"] += round((extra_obj.vygr_plan or 0) / days_in_month * selected_days)
+                result[group_key]["pogr_kont_plan"] += round((extra_obj.pogr_kont_plan or 0) / days_in_month * selected_days)
+                result[group_key]["vygr_kont_plan"] += round((extra_obj.vygr_kont_plan or 0) / days_in_month * selected_days)
+
+                result[group_key]["pogr_this_year"] += extra_obj.pogr_this_year or 0
+                result[group_key]["pogr_last_year"] += extra_obj.pogr_last_year or 0
+                result[group_key]["vygr_this_year"] += extra_obj.vygr_this_year or 0
+                result[group_key]["vygr_last_year"] += extra_obj.vygr_last_year or 0
+                result[group_key]["pogr_kont_this_year"] += extra_obj.pogr_kont_this_year or 0
+                result[group_key]["pogr_kont_last_year"] += extra_obj.pogr_kont_last_year or 0
+                result[group_key]["vygr_kont_this_year"] += extra_obj.vygr_kont_this_year or 0
+                result[group_key]["vygr_kont_last_year"] += extra_obj.vygr_kont_last_year or 0
+
+                result[group_key]["income_plan"] += round((getattr(extra_obj, "income_plan", 0) or 0) / days_in_month * selected_days)
+                result[group_key]["income_this_year"] += getattr(extra_obj, "income_this_year", 0) or 0
+                result[group_key]["income_last_year"] += getattr(extra_obj, "income_last_year", 0) or 0
+
+        for _, row in result.items():
+            row["pogr_diff"] = row["pogr_this_year"] - row["pogr_last_year"]
+            row["vygr_diff"] = row["vygr_this_year"] - row["vygr_last_year"]
+            row["pogr_kont_diff"] = row["pogr_kont_this_year"] - row["pogr_kont_last_year"]
+            row["vygr_kont_diff"] = row["vygr_kont_this_year"] - row["vygr_kont_last_year"]
+            row["income_diff"] = row["income_this_year"] - row["income_last_year"]
+
+        return result
+
+    veshoz_by_group = _sum_veshoz_between()
+
+    stations_by_name = {
+        s.station_name.strip(): s
+        for s in StationProfile.objects.all().order_by("station_name")
+    }
+
+    groups = []
+    grand_total = _make_zero_totals("Всего")
+    known_station_names = set()
+
+    for idx, cfg in enumerate(DISPLAY_GROUPS, start=1):
+        group_rows = []
+        subtotal = _make_zero_totals("ИТОГО")
+        group_key = cfg["title"]
+
+        for station_name in cfg["stations"]:
+            known_station_names.add(station_name)
+
+            station = stations_by_name.get(station_name)
+            if station:
+                row = _row_to_range_dict(
+                    station=station,
+                    fact_this=current_data.get(station.id),
+                    fact_last=last_year_data.get(station.id),
+                    plan_data=scaled_plans.get(station.id),
+                )
+            else:
+                row = _make_empty_range_row(station_name)
+
+            row["is_other"] = False
+            row["is_veshoz"] = False
+            row["group_key"] = group_key
+            row["is_editable"] = bool(single_full_month and row.get("station_id"))
+
+            group_rows.append(row)
+            _add_to_totals(subtotal, row)
+            _add_to_totals(grand_total, row)
+
+        if cfg.get("has_veshoz"):
+            veshoz_row = veshoz_by_group.get(group_key)
+            if not veshoz_row:
+                veshoz_row = {
+                    "station_id": None,
+                    "station_name": "Вес.хоз",
+                    "is_other": False,
+                    "is_veshoz": True,
+                    "group_key": group_key,
+                    "is_editable": bool(single_full_month),
+
+                    "pogr_plan": 0,
+                    "vygr_plan": 0,
+                    "pogr_kont_plan": 0,
+                    "vygr_kont_plan": 0,
+
+                    "pogr_plan_raw": 0,
+                    "vygr_plan_raw": 0,
+                    "pogr_kont_plan_raw": 0,
+                    "vygr_kont_plan_raw": 0,
+
+                    "pogr_this_year": 0,
+                    "pogr_last_year": 0,
+                    "pogr_diff": 0,
+
+                    "vygr_this_year": 0,
+                    "vygr_last_year": 0,
+                    "vygr_diff": 0,
+
+                    "pogr_kont_this_year": 0,
+                    "pogr_kont_last_year": 0,
+                    "pogr_kont_diff": 0,
+
+                    "vygr_kont_this_year": 0,
+                    "vygr_kont_last_year": 0,
+                    "vygr_kont_diff": 0,
+
+                    "pogr_this_year_raw": 0,
+                    "pogr_last_year_raw": 0,
+                    "vygr_this_year_raw": 0,
+                    "vygr_last_year_raw": 0,
+                    "pogr_kont_this_year_raw": 0,
+                    "pogr_kont_last_year_raw": 0,
+                    "vygr_kont_this_year_raw": 0,
+                    "vygr_kont_last_year_raw": 0,
+
+                    "income_plan": 0,
+                    "income_this_year": 0,
+                    "income_last_year": 0,
+                    "income_diff": 0,
+
+                    "income_plan_raw": 0,
+                    "income_this_year_raw": 0,
+                    "income_last_year_raw": 0,
+                }
+
+            group_rows.append(veshoz_row)
+            _add_to_totals(subtotal, veshoz_row)
+            _add_to_totals(grand_total, veshoz_row)
+
+        groups.append({
+            "index": idx,
+            "title": cfg["title"],
+            "rows": group_rows,
+            "subtotal": subtotal,
+        })
+
+    unmatched_rows = []
+    unmatched_total = _make_zero_totals("ИТОГО")
+
+    for station_name, station in stations_by_name.items():
+        if station_name not in known_station_names:
+            row = _row_to_range_dict(
+                station=station,
+                fact_this=current_data.get(station.id),
+                fact_last=last_year_data.get(station.id),
+                plan_data=scaled_plans.get(station.id),
+            )
+            row["is_other"] = True
+            row["is_veshoz"] = False
+            row["group_key"] = None
+            row["is_editable"] = bool(single_full_month and row.get("station_id"))
+
+            unmatched_rows.append(row)
+            _add_to_totals(unmatched_total, row)
+            _add_to_totals(grand_total, row)
+
+    unmatched_rows.sort(key=lambda x: x["station_name"].lower())
+
+    if unmatched_rows:
+        groups.append({
+            "index": len(groups) + 1,
+            "title": "Прочие станции",
+            "rows": unmatched_rows,
+            "subtotal": unmatched_total,
+        })
+
+    return {
+        "from_date": from_date,
+        "to_date": to_date,
+        "prev_from_date": prev_from_date,
+        "prev_to_date": prev_to_date,
+        "groups": groups,
+        "grand_total": grand_total,
+        "all_full_months": all_full_months,
+        "single_full_month": single_full_month,
+        "month_info": month_info,
+        "days_count": (to_date - from_date).days + 1,
+    }
+
 
 @transaction.atomic
 def kvartalniy_range(request):
@@ -738,3 +1026,204 @@ def kvartalniy_range(request):
         "days_count": (to_date - from_date).days + 1,
     }
     return render(request, "kvartalniy_range.html", context)
+
+
+def kvartalniy_range_export_excel(request):
+    if not request.user.is_superuser:
+        return redirect("station_table_1_list")
+
+    today = timezone.localdate()
+    default_from = today.replace(day=1)
+    default_to = today
+
+    from_date = _safe_date(request.GET.get("from_date"), default_from)
+    to_date = _safe_date(request.GET.get("to_date"), default_to)
+
+    context = _build_kvartalniy_range_context(from_date, to_date)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Kvartalniy Range"
+
+    thin = Side(style="thin", color="474747")
+    thick = Side(style="medium", color="141414")
+
+    border_thin = Border(left=thin, right=thin, top=thin, bottom=thin)
+    border_thick = Border(left=thick, right=thick, top=thick, bottom=thick)
+
+    fill_head = PatternFill("solid", fgColor="EEF2F7")
+    fill_head_2 = PatternFill("solid", fgColor="F8FAFC")
+    fill_group = PatternFill("solid", fgColor="E9EEF5")
+    fill_subtotal = PatternFill("solid", fgColor="FFF5F5")
+    fill_grand = PatternFill("solid", fgColor="EFF6FF")
+    fill_white = PatternFill("solid", fgColor="FFFFFF")
+
+    font_bold = Font(bold=True, name="Times New Roman")
+    font_title = Font(bold=True, size=14, name="Times New Roman")
+    font_normal = Font(name="Times New Roman")
+    font_green = Font(bold=True, color="059669", name="Times New Roman")
+    font_blue = Font(bold=True, color="1D4ED8", name="Times New Roman")
+    font_red = Font(bold=True, color="DC2626", name="Times New Roman")
+    font_purple = Font(bold=True, color="7C3AED", name="Times New Roman")
+    font_brown = Font(bold=True, color="7C4A03", name="Times New Roman")
+
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+    widths = {
+        1: 24,
+        2: 11, 3: 11, 4: 11, 5: 11,
+        6: 11, 7: 11, 8: 11, 9: 11,
+        10: 11, 11: 11, 12: 11, 13: 11,
+        14: 11, 15: 11, 16: 11, 17: 11,
+        18: 11, 19: 11, 20: 11, 21: 11,
+    }
+    for col_idx, width in widths.items():
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    row_num = 1
+
+    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=21)
+    c = ws.cell(row=row_num, column=1)
+    c.value = (
+        "Оперативная информация по диапазону дат\n"
+        f"{context['from_date'].strftime('%d.%m.%Y')} — {context['to_date'].strftime('%d.%m.%Y')} / "
+        f"taqqoslash: {context['prev_from_date'].strftime('%d.%m.%Y')} — {context['prev_to_date'].strftime('%d.%m.%Y')}"
+    )
+    c.font = font_title
+    c.alignment = center
+    c.fill = fill_head_2
+    c.border = border_thick
+    ws.row_dimensions[row_num].height = 32
+    row_num += 1
+
+    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num + 2, end_column=1)
+    c = ws.cell(row=row_num, column=1, value="Наименование\nЛЦ")
+    c.font = font_bold
+    c.alignment = center
+    c.fill = fill_head
+    c.border = border_thick
+
+    groups = [
+        ("Погрузка вагонов", 2, 5),
+        ("Выгрузка вагонов", 6, 9),
+        ("Погрузка конт", 10, 13),
+        ("Выгрузка конт", 14, 17),
+        ("Доходы", 18, 21),
+    ]
+
+    for title, start_col, end_col in groups:
+        ws.merge_cells(start_row=row_num, start_column=start_col, end_row=row_num, end_column=end_col)
+        c = ws.cell(row=row_num, column=start_col, value=title)
+        c.font = font_bold
+        c.alignment = center
+        c.fill = fill_group
+        c.border = border_thick
+
+    top2 = row_num + 1
+    top3 = row_num + 2
+
+    sub_2 = ["plan", "fact", "last year", "+/-"] * 5
+    sub_3 = ["reja", "joriy", "oldingi", "farq"] * 5
+
+    for idx, value in enumerate(sub_2, start=2):
+        c = ws.cell(row=top2, column=idx, value=value)
+        c.font = font_bold
+        c.alignment = center
+        c.fill = fill_head_2
+        c.border = border_thin
+
+    for idx, value in enumerate(sub_3, start=2):
+        c = ws.cell(row=top3, column=idx, value=value)
+        c.font = font_bold
+        c.alignment = center
+        c.fill = fill_head_2
+        c.border = border_thin
+
+    for rr in range(row_num, row_num + 3):
+        for cc in range(1, 22):
+            ws.cell(row=rr, column=cc).border = border_thin
+
+    row_num += 3
+
+    def set_metric_font(cell, col_idx):
+        if col_idx in (3, 7, 11, 15, 19):
+            cell.font = font_green
+        elif col_idx in (4, 8, 12, 16, 20):
+            cell.font = font_blue
+        elif col_idx in (5, 9, 13, 17, 21):
+            cell.font = font_red
+        else:
+            cell.font = font_normal
+
+    def write_data_row(row, fill=None, first_font=None, bold=False):
+        nonlocal row_num
+
+        values = [
+            row["station_name"],
+            row["pogr_plan"], row["pogr_this_year"], row["pogr_last_year"], row["pogr_diff"],
+            row["vygr_plan"], row["vygr_this_year"], row["vygr_last_year"], row["vygr_diff"],
+            row["pogr_kont_plan"], row["pogr_kont_this_year"], row["pogr_kont_last_year"], row["pogr_kont_diff"],
+            row["vygr_kont_plan"], row["vygr_kont_this_year"], row["vygr_kont_last_year"], row["vygr_kont_diff"],
+            row["income_plan"], row["income_this_year"], row["income_last_year"], row["income_diff"],
+        ]
+
+        for col_idx, value in enumerate(values, start=1):
+            cell = ws.cell(row=row_num, column=col_idx, value=value)
+            cell.alignment = left if col_idx == 1 else center
+            cell.border = border_thin
+            cell.fill = fill or fill_white
+
+            if col_idx == 1:
+                cell.font = first_font or (font_bold if bold else font_normal)
+            else:
+                set_metric_font(cell, col_idx)
+                if col_idx not in (3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21) and bold:
+                    cell.font = font_bold
+
+        row_num += 1
+
+    for group in context["groups"]:
+        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=21)
+        c = ws.cell(row=row_num, column=1, value=group["title"])
+        c.font = font_bold
+        c.alignment = left
+        c.fill = fill_group
+        c.border = border_thick
+        row_num += 1
+
+        for row in group["rows"]:
+            if row.get("is_veshoz"):
+                write_data_row(row, fill=fill_white, first_font=font_brown)
+            elif row.get("is_other"):
+                write_data_row(row, fill=fill_white, first_font=font_blue)
+            else:
+                write_data_row(row, fill=fill_white, first_font=font_purple)
+
+        write_data_row(group["subtotal"], fill=fill_subtotal, first_font=font_red, bold=True)
+
+    write_data_row(context["grand_total"], fill=fill_grand, first_font=font_blue, bold=True)
+
+    row_num += 1
+    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=21)
+    c = ws.cell(row=row_num, column=1)
+    c.value = (
+        f"Tanlangan davr kunlari: {context['days_count']} | " +
+        " | ".join(
+            f"{m['month'].strftime('%m.%Y')}: {m['selected_days']}/{m['days_in_month']} kun"
+            for m in context["month_info"]
+        )
+    )
+    c.font = font_normal
+    c.alignment = left
+    c.border = border_thin
+
+    ws.freeze_panes = "B5"
+
+    filename = f"kvartalniy_range_{context['from_date']}_{context['to_date']}.xlsx"
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response

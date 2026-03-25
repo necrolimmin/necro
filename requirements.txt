@@ -1,5 +1,8 @@
 asgiref==3.11.0
 Django==6.0.1
+et_xmlfile==2.0.0
 gunicorn==24.0.0
+openpyxl==3.1.5
 packaging==26.0
+pillow==12.1.1
 sqlparse==0.5.5
