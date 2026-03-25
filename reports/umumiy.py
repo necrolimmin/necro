@@ -1184,13 +1184,6 @@ def kvartalniy_range_export_excel(request):
         row_num += 1
 
     for group in context["groups"]:
-        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=21)
-        c = ws.cell(row=row_num, column=1, value=group["title"])
-        c.font = font_bold
-        c.alignment = left
-        c.fill = fill_group
-        c.border = border_thick
-        row_num += 1
 
         for row in group["rows"]:
             if row.get("is_veshoz"):
@@ -1201,7 +1194,6 @@ def kvartalniy_range_export_excel(request):
                 write_data_row(row, fill=fill_white, first_font=font_purple)
 
         write_data_row(group["subtotal"], fill=fill_subtotal, first_font=font_red, bold=True)
-
     write_data_row(context["grand_total"], fill=fill_grand, first_font=font_blue, bold=True)
 
     row_num += 1
