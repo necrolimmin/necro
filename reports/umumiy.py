@@ -1123,8 +1123,8 @@ def kvartalniy_range_export_excel(request):
     top2 = row_num + 1
     top3 = row_num + 2
 
-    sub_2 = ["plan", "fact", "last year", "+/-"] * 5
-    sub_3 = ["reja", "joriy", "oldingi", "farq"] * 5
+    sub_2 = ["План", "Факт", "Прошлый год", "+/-"] * 5
+    sub_3 = ["План", "Текущий", "Прошлый", "Разница"] * 5
 
     for idx, value in enumerate(sub_2, start=2):
         c = ws.cell(row=top2, column=idx, value=value)
