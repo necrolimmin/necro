@@ -874,9 +874,9 @@ def admin_table1_reports(request):
         for sid, name in all_stations:
             last_dt = sent_map.get(sid)
             if last_dt:
-                submitted.append({"name": name, "submitted_at": last_dt})
+                submitted.append({"name":get_object_or_404(StationProfile, user__username=name).station_name , "submitted_at": last_dt})
             else:
-                not_submitted.append({"name": name})
+                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
 
         items.append({
             "date": d,
@@ -890,6 +890,7 @@ def admin_table1_reports(request):
             "not_submitted_count": len(not_submitted),
             "total_count": len(all_stations),
         })
+       
 
     return render(request, "admin_table1_reports.html", {
         "items": items,
@@ -997,13 +998,13 @@ def _station_display_name(user):
     for rel in ["station", "lc", "center", "department", "branch"]:
         obj = getattr(sp, rel, None)
         if obj:
-            for f in ["name", "title", "short_name"]:
+            for f in ["station_name", "title", "short_name"]:
                 v = getattr(obj, f, None)
                 if v:
                     return str(v)
             return str(obj)
 
-    return getattr(user, "username", str(user))
+    return getattr(user, "profilestation", str(user.profilestation.station_name))
 
 
 @staff_required
@@ -1183,9 +1184,9 @@ def admin_table2_reports(request):
         for sid, name in all_stations:
             obj = sent_map.get(sid)
             if obj:
-                submitted.append({"name": name, "submitted_at": obj.submitted_at})
+                submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name, "submitted_at": obj.submitted_at})
             else:
-                not_submitted.append({"name": name})
+                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
 
         items.append({
             "date": d,
@@ -1240,7 +1241,7 @@ def admin_table2_graph(request, date_str):
     )
 
     stations = [{
-        "name": _station_name(o.station_user),
+        "name":get_object_or_404(StationProfile, user__username= _station_name(o.station_user)).station_name,
         "data": o.data or {},
     } for o in objs]
 
@@ -1329,7 +1330,7 @@ def admin_table2_layout(request, date_str):
     for o in objs:
         u = o.station_user
         col_key = f"u{u.id}"
-        col_title = _station_name(u)
+        col_title =get_object_or_404(StationProfile, user__username=_station_name(u)).station_name 
 
         if col_key not in buckets:
             cols.append({"key": col_key, "title": col_title})
@@ -1393,7 +1394,7 @@ def admin_table2_station_pick(request, date_str):
 
     stations = [{
         "user_id": o.station_user_id,
-        "name": _station_name(o.station_user),
+        "name":get_object_or_404(StationProfile, user__username=_station_name(o.station_user)).station_name ,
         "submitted_at": o.submitted_at,
     } for o in qs]
 
@@ -1419,7 +1420,7 @@ def admin_table2_station_view(request, date_str, user_id: int):
         "date": d,
         "obj": obj,
         "table2_data": data,
-        "station_name": _station_name(obj.station_user),
+        "station_name":get_object_or_404(StationProfile, user__username=_station_name(obj.station_user)).station_name ,
         "rows_def": TABLE2_ROWS,
         "mode": "view",
         "bottom": TABLE2_BOTTOM_FIELDS,

@@ -70,6 +70,7 @@ DISPLAY_GROUPS = [
             "Karmana LM",
             "Yangi-Zarafshon LM",
             "Ulug'bek LM",
+            "Marokand LM",
         ],
         "has_veshoz": True,
     },

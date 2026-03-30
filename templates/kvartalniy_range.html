@@ -556,7 +556,14 @@
             </div>
 
             <button class="kv-btn" type="submit" name="refresh" value="1">Ko‘rsatish</button>
-            <button class="kv-btn" type="submit" name="save" value="1">Yuklab olish</button>
+            <button
+              class="kv-btn"
+              type="submit"
+              formaction="{% url 'kvartalniy_range_export_excel' %}"
+              formmethod="get"
+            >
+              Yuklab olish
+            </button>
           </div>
         </div>
 
