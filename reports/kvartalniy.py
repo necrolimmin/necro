@@ -44,7 +44,6 @@ DISPLAY_GROUPS = [
             "Axangaron LM",
             "Nazarbek LM",
             "Urtavul LM",
-            "Xavast LM",
             "Sirdaryo LM",
             "Jizzax LM",
             "Ablik LM",

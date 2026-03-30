@@ -4,7 +4,6 @@
 
 {% block content %}
 <style>
-  /* ===== Page header ===== */
   .page-head{
     display:flex;align-items:flex-end;justify-content:space-between;
     gap:12px;flex-wrap:wrap;margin-bottom:14px;
@@ -19,9 +18,7 @@
     .grid2{grid-template-columns:1fr}
   }
 
-  /* ===== Cards ===== */
   .cardx{
-    
     border:1px solid rgba(15,23,42,.12);
     border-radius:18px;
     padding:14px;
@@ -40,7 +37,6 @@
     margin:10px 0 12px;
   }
 
-  /* ===== Form ===== */
   .field{margin:10px 0}
   .field label{display:block;font-weight:600;margin-bottom:6px}
   .inp{
@@ -87,33 +83,43 @@
   .btnx:hover{transform:translateY(-1px)}
   .btnx:active{transform:translateY(0)}
 
-  .btn-danger{
+  .btn-danger,
+  .btn-edit{
     display:inline-flex;align-items:center;justify-content:center;
     height:38px;padding:0 12px;
     border-radius:12px;
-    border:1px solid rgba(239,68,68,.35);
-    background:rgba(239,68,68,.10);
-    color:#b91c1c;
     font-weight:800;
     cursor:pointer;
     transition:.15s ease;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+
+  .btn-danger{
+    border:1px solid rgba(239,68,68,.35);
+    background:rgba(239,68,68,.10);
+    color:#b91c1c;
   }
   .btn-danger:hover{background:rgba(239,68,68,.16);transform:translateY(-1px)}
-  .btn-danger:active{transform:translateY(0)}
 
-  /* ===== Table (desktop) ===== */
+  .btn-edit{
+    border:1px solid rgba(59,130,246,.35);
+    background:rgba(59,130,246,.10);
+    color:#1d4ed8;
+  }
+  .btn-edit:hover{background:rgba(59,130,246,.16);transform:translateY(-1px)}
+
   .table-wrap{
     border:1px solid rgba(15,23,42,.12);
     border-radius:16px;
     overflow:hidden;
-    /* background:rgba(255,255,255,.92); */
   }
   .scroll-x{overflow:auto}
   .tbl{
     width:100%;
     border-collapse:separate;
     border-spacing:0;
-    min-width:720px;
+    min-width:1100px;
   }
   .tbl th, .tbl td{
     padding:12px 12px;
@@ -128,7 +134,6 @@
     position:sticky;top:0;z-index:1;
   }
   .tbl tr:hover td{background:rgba(2,132,199,.04)}
-  .tbl td:last-child{text-align:right}
   .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
   .actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 
@@ -140,7 +145,6 @@
     font-weight:700;font-size:12px;
   }
 
-  /* ===== Mobile cards ===== */
   .mobile-list{display:none; gap:12px; flex-direction:column; margin-top:12px;}
   .mcard{
     border:1px solid rgba(15,23,42,.12);
@@ -153,15 +157,13 @@
   .mkv{margin-top:10px; display:grid; gap:8px;}
   .mrow{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:#475569}
   .mrow b{color:#0f172a;font-weight:800}
-  .mact{margin-top:12px; display:flex; justify-content:flex-start}
+  .mact{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap}
 
-  /* ✅ Mobilga o‘tganda jadvalni yashiramiz, cardni chiqaramiz */
   @media (max-width: 680px){
     .table-wrap{display:none;}
     .mobile-list{display:flex;}
   }
-</style>
-<style>
+
   .switch{
     position:relative;
     width:46px;
@@ -173,7 +175,7 @@
   }
   .slider{
     position:absolute; inset:0;
-    background:#e2e8f0;                 /* OFF */
+    background:#e2e8f0;
     border:1px solid rgba(15,23,42,.16);
     border-radius:999px;
     transition:.18s ease;
@@ -190,14 +192,13 @@
     transition:.18s ease;
   }
   .switch input:checked + .slider{
-    background:rgba(34,197,94,.35);     /* ON */
+    background:rgba(34,197,94,.35);
     border-color:rgba(34,197,94,.45);
   }
   .switch input:checked + .slider:before{
     transform:translateY(-50%) translateX(20px);
   }
 </style>
-
 
 <div class="page-head">
   <div>
@@ -208,7 +209,6 @@
 
 <div class="grid2">
 
-  <!-- LEFT -->
   <div class="cardx">
     <h2 data-i18n="create_title">Filial qo‘shish</h2>
 
@@ -241,7 +241,7 @@
           </button>
         </div>
         <div class="muted" style="margin-top:8px" data-i18n="pw_note">
-          Eslatma: Login-parol  yaratishda bir xillikdan saqlaning.
+          Eslatma: Login-parol yaratishda bir xillikdan saqlaning.
         </div>
       </div>
 
@@ -251,7 +251,6 @@
     </form>
   </div>
 
-  <!-- RIGHT -->
   <div class="cardx">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;">
       <div>
@@ -265,7 +264,6 @@
       </div>
     </div>
 
-    <!-- Desktop table -->
     <div class="table-wrap" style="margin-top:12px;">
       <div class="scroll-x">
         <table class="tbl">
@@ -274,7 +272,8 @@
               <th data-i18n="col_name">Nomi</th>
               <th data-i18n="col_login">Login</th>
               <th data-i18n="col_password">Parol</th>
-              <th>status</th>
+              <th data-i18n="col_status">Status</th>
+              <th data-i18n="col_edit">Edit</th>
               <th style="width:160px;text-align:right;" data-i18n="col_actions">Amallar</th>
             </tr>
           </thead>
@@ -284,28 +283,25 @@
                 <td><b>{{ s.station_name }}</b></td>
                 <td class="mono">{{ s.user.username }}</td>
                 <td class="mono">{{ s.plain_password|default:"—" }}</td>
-                <td>{{s.status}}</td>
+                <td>{{ s.status }}</td>
+
                 <td>
+                  <a href="{% url 'admin_station_edit' s.id %}" class="btn-edit" data-i18n="btn_edit">Edit</a>
+                </td>
 
-                  
-
+                <td>
                   <div class="actions">
 
-                    <!-- ✅ Toggle: bosilganda status=true -->
                     <form method="post" action="{% url 'promote_station' s.id %}" class="js-toggle-form" style="display:inline-block;">
                       {% csrf_token %}
                       <input type="hidden" name="status" value="{% if s.status %}true{% else %}false{% endif %}" class="js-status-val">
 
                       <label class="switch" title="Status toggle">
-                        <input type="checkbox"
-                              class="js-toggle-switch"
-                              {% if s.status %}checked{% endif %}>
+                        <input type="checkbox" class="js-toggle-switch" {% if s.status %}checked{% endif %}>
                         <span class="slider"></span>
                       </label>
                     </form>
 
-
-                    <!-- Delete -->
                     <form method="post"
                           action="{% url 'admin_station_delete' s.id %}"
                           onsubmit="return confirm('Удалить станцию {{ s.station_name }} ({{ s.user.username }})?');">
@@ -314,18 +310,16 @@
                     </form>
 
                   </div>
-
                 </td>
               </tr>
             {% empty %}
-              <tr><td colspan="4" class="muted" data-i18n="empty">Hozircha filial yo‘q</td></tr>
+              <tr><td colspan="6" class="muted" data-i18n="empty">Hozircha filial yo‘q</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Mobile cards (✅ endi faqat mobilga ko‘rinadi) -->
     <div class="mobile-list">
       {% for s in stations %}
         <div class="mcard">
@@ -338,9 +332,12 @@
             <div class="mrow"><span data-i18n="col_name">Nomi</span><b>{{ s.station_name }}</b></div>
             <div class="mrow"><span data-i18n="col_login">Login</span><b class="mono">{{ s.user.username }}</b></div>
             <div class="mrow"><span data-i18n="col_password">Parol</span><b class="mono">{{ s.plain_password|default:"—" }}</b></div>
+            <div class="mrow"><span data-i18n="col_status">Status</span><b>{{ s.status }}</b></div>
           </div>
 
           <div class="mact">
+            <a href="{% url 'admin_station_edit' s.id %}" class="btn-edit" data-i18n="btn_edit">Edit</a>
+
             <form method="post"
                   action="{% url 'admin_station_delete' s.id %}"
                   onsubmit="return confirm('Удалить станцию {{ s.station_name }} ({{ s.user.username }})?');">
@@ -362,7 +359,6 @@
 </div>
 
 <script>
-  // Password toggle
   (function(){
     const pw = document.getElementById('pw');
     const btn = document.getElementById('pwBtn');
@@ -372,7 +368,6 @@
     });
   })();
 
-  // Page i18n (base'ga tegmasdan real-time ishlashi uchun)
   (function(){
     const dict = {
       uz: {
@@ -382,7 +377,7 @@
         label_station: "Filial nomi",
         label_username: "Username (login)",
         label_password: "Password",
-        pw_note: "Eslatma: Login-parol  yaratishda bir xillikdan saqlaning.",
+        pw_note: "Eslatma: Login-parol yaratishda bir xillikdan saqlaning.",
         btn_create: "Yaratish",
         list_title: "Filiallar ro‘yxati",
         list_sub: "O‘chirishda ehtiyot bo‘ling — foydalanuvchi ham o‘chadi.",
@@ -390,14 +385,17 @@
         col_name: "Nomi",
         col_login: "Login",
         col_password: "Parol",
+        col_status: "Status",
+        col_edit: "Edit",
         col_actions: "Amallar",
+        btn_edit: "Edit",
         btn_delete: "O‘chirish",
         empty: "Hozircha filial yo‘q",
         note2: "Izoh: True - statusdegi filiallar kunduzgi tungi bajargan yuk operatsiyalarini kirgizadilar, False - statusdegi filiallar faqat kunduzgi yuk operatsiyalari ma'lumotlarini tuldiradilar."
       },
       ru: {
         stations_title: "Филиалы",
-        stations_sub: "Создание и управление пользователями филиалов (станций).",
+        stations_sub: "Создание и управление пользователями филиалов.",
         create_title: "Добавить филиал",
         label_station: "Название филиала",
         label_username: "Логин (username)",
@@ -410,10 +408,13 @@
         col_name: "Название",
         col_login: "Логин",
         col_password: "Пароль",
+        col_status: "Статус",
+        col_edit: "Редактировать",
         col_actions: "Действия",
+        btn_edit: "Редактировать",
         btn_delete: "Удалить",
         empty: "Пока нет филиалов",
-        note2: "Примечание: Филиалы со статусом True - вводят данные о выполненных дневных и ночных грузовых операциях, а филиалы со статусом False - заполняют только данные по дневным грузовым операциям."
+        note2: "Примечание: Филиалы со статусом True вводят данные по дневным и ночным грузовым операциям, а филиалы со статусом False заполняют только дневные данные."
       }
     };
 
@@ -430,11 +431,9 @@
       });
     }
 
-    // initial
     let last = getLang();
     applyLang(last);
 
-    // ✅ base tugmasi bosilganda localStorage o‘zgaradi — biz kuzatib turamiz
     setInterval(()=>{
       const cur = getLang();
       if(cur !== last){
@@ -443,26 +442,19 @@
       }
     }, 250);
   })();
-</script>
 
-<script>
-(function(){
-  document.querySelectorAll('.js-toggle-form').forEach(form=>{
-    const sw = form.querySelector('.js-toggle-switch');
-    const hidden = form.querySelector('.js-status-val');
-    if(!sw || !hidden) return;
+  (function(){
+    document.querySelectorAll('.js-toggle-form').forEach(form=>{
+      const sw = form.querySelector('.js-toggle-switch');
+      const hidden = form.querySelector('.js-status-val');
+      if(!sw || !hidden) return;
 
-    sw.addEventListener('change', ()=>{
-      // checkbox holatiga qarab hidden input qiymatini yangilaymiz
-      hidden.value = sw.checked ? 'true' : 'false';
-
-      // formni yuboramiz (POST)
-      form.submit();
+      sw.addEventListener('change', ()=>{
+        hidden.value = sw.checked ? 'true' : 'false';
+        form.submit();
+      });
     });
-  });
-})();
+  })();
 </script>
-
-
 
 {% endblock %}

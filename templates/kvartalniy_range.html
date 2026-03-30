@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Kvartalniy Range Report{% endblock %}
+{% block title %}Kvartalniy Asosiy menyu{% endblock %}
 
 {% block content %}
 <style>
@@ -546,12 +546,12 @@
 
           <div class="kv-actions">
             <div class="kv-field">
-              <label>From date</label>
+              <label>Boshlanish sanasi</label>
               <input class="kv-input" type="date" name="from_date" value="{{ from_date|date:'Y-m-d' }}" required>
             </div>
 
             <div class="kv-field">
-              <label>To date</label>
+              <label>Tugash sanasi</label>
               <input class="kv-input" type="date" name="to_date" value="{{ to_date|date:'Y-m-d' }}" required>
             </div>
 
@@ -583,74 +583,49 @@
               <thead>
                 <tr>
                   <th class="kv-main-title" colspan="21">
-                    Оперативная информация по диапазону дат<br>
+                    "O'ztemiryo'lkonteyner" AJ ga qarashli Logistika Markazlari va sektorlarida, vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari tog'risida tezkor ma'lumotlar<br>
                     {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }}
                     / taqqoslash: {{ prev_from_date|date:"d.m.Y" }} — {{ prev_to_date|date:"d.m.Y" }}
                   </th>
                 </tr>
 
                 <tr>
-                  <th class="name-col sep-b" rowspan="3">Наименование<br>ЛЦ</th>
+                  <th class="name-col sep-b" rowspan="2">LM<br>nomlari</th>
 
-                  <th class="kv-group sep-l sep-b" colspan="4">Погрузка вагонов</th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Выгрузка вагонов</th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Погрузка конт</th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Выгрузка конт</th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Доходы</th>
+                  <th class="kv-group sep-l sep-b" colspan="4">Ortish vagonda (dona) </th>
+                  <th class="kv-group sep-l sep-b" colspan="4">Tushirish vagonda (dona) </th>
+                  <th class="kv-group sep-l sep-b" colspan="4">Ortish konteyner (dona) </th>
+                  <th class="kv-group sep-l sep-b" colspan="4">Tushirish konteyner (dona) </th>
+                  <th class="kv-group sep-l sep-b" colspan="4">Daromad (so'm)</th>
                 </tr>
 
-                <tr>
-                  <th class="kv-sub sep-l">plan</th>
-                  <th class="kv-sub green">fact</th>
-                  <th class="kv-sub blue">last year</th>
-                  <th class="kv-sub red sep-r">+/-</th>
-
-                  <th class="kv-sub sep-l">plan</th>
-                  <th class="kv-sub green">fact</th>
-                  <th class="kv-sub blue">last year</th>
-                  <th class="kv-sub red sep-r">+/-</th>
-
-                  <th class="kv-sub sep-l">plan</th>
-                  <th class="kv-sub green">fact</th>
-                  <th class="kv-sub blue">last year</th>
-                  <th class="kv-sub red sep-r">+/-</th>
-
-                  <th class="kv-sub sep-l">plan</th>
-                  <th class="kv-sub green">fact</th>
-                  <th class="kv-sub blue">last year</th>
-                  <th class="kv-sub red sep-r">+/-</th>
-
-                  <th class="kv-sub sep-l">plan</th>
-                  <th class="kv-sub green">fact</th>
-                  <th class="kv-sub blue">last year</th>
-                  <th class="kv-sub red sep-r">+/-</th>
-                </tr>
+                
 
                 <tr>
-                  <th class="kv-sub sep-l">reja</th>
-                  <th class="kv-sub green">joriy</th>
-                  <th class="kv-sub blue">oldingi</th>
-                  <th class="kv-sub red sep-r">farq</th>
+                  <th class="kv-sub sep-l">Reja</th>
+                  <th class="kv-sub green">Joriy </th>
+                  <th class="kv-sub blue">Oldingi</th>
+                  <th class="kv-sub red sep-r">Farq</th>
 
-                  <th class="kv-sub sep-l">reja</th>
-                  <th class="kv-sub green">joriy</th>
-                  <th class="kv-sub blue">oldingi</th>
-                  <th class="kv-sub red sep-r">farq</th>
+                  <th class="kv-sub sep-l">Reja</th>
+                  <th class="kv-sub green">Joriy </th>
+                  <th class="kv-sub blue">Oldingi</th>
+                  <th class="kv-sub red sep-r">Farq</th>
 
-                  <th class="kv-sub sep-l">reja</th>
-                  <th class="kv-sub green">joriy</th>
-                  <th class="kv-sub blue">oldingi</th>
-                  <th class="kv-sub red sep-r">farq</th>
+                  <th class="kv-sub sep-l">Reja</th>
+                  <th class="kv-sub green">Joriy </th>
+                  <th class="kv-sub blue">Oldingi</th>
+                  <th class="kv-sub red sep-r">Farq</th>
 
-                  <th class="kv-sub sep-l">reja</th>
-                  <th class="kv-sub green">joriy</th>
-                  <th class="kv-sub blue">oldingi</th>
-                  <th class="kv-sub red sep-r">farq</th>
+                  <th class="kv-sub sep-l">Reja</th>
+                  <th class="kv-sub green">Joriy </th>
+                  <th class="kv-sub blue">Oldingi</th>
+                  <th class="kv-sub red sep-r">Farq</th>
 
-                  <th class="kv-sub sep-l">reja</th>
-                  <th class="kv-sub green">joriy</th>
-                  <th class="kv-sub blue">oldingi</th>
-                  <th class="kv-sub red sep-r">farq</th>
+                  <th class="kv-sub sep-l">Reja</th>
+                  <th class="kv-sub green">Joriy </th>
+                  <th class="kv-sub blue">Oldingi</th>
+                  <th class="kv-sub red sep-r">Farq</th>
                 </tr>
               </thead>
 
