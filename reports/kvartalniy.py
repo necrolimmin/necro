@@ -37,7 +37,7 @@ DISPLAY_GROUPS = [
     {
         "title": "group1",
         "stations": [
-            "Chukursoy LM",
+            "Chuqursoy LM",
             "Toshkent LM",
             "Sergeli LM",
             "Jaloir LM",
