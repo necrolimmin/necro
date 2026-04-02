@@ -29,9 +29,7 @@
     --kv-radius: 24px;
     --kv-radius-sm: 16px;
     --kv-table-font: "Times New Roman", serif;
-
     min-height: calc(100vh - 40px);
-   
   }
 
   [data-theme="dark"] .kv-page,
@@ -102,7 +100,6 @@
     padding: 12px 14px;
     border: 1px solid var(--kv-stroke);
     border-radius: 18px;
-    
     backdrop-filter: blur(12px);
     box-shadow: var(--kv-shadow-2);
   }
@@ -120,7 +117,6 @@
     padding:0 14px;
     border-radius:12px;
     border:1px solid var(--kv-stroke-2);
-   
     color:var(--kv-text);
     text-decoration:none;
     font-weight:800;
@@ -143,7 +139,6 @@
     box-shadow:var(--kv-shadow);
     padding:16px;
     backdrop-filter:blur(16px);
-    
   }
 
   .kv-top{
@@ -279,7 +274,7 @@
   .kv-wrap{
     width:100%;
     border:2px solid var(--kv-grid-strong);
-    border-radius:20px;
+    
     overflow:hidden;
     background:var(--kv-surface-2);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
@@ -288,16 +283,15 @@
   .kv-scroll{
     overflow:auto;
     max-width:100%;
-    
     scrollbar-width: thin;
     scrollbar-color: rgba(100,116,139,.5) transparent;
   }
 
   .kv-table{
     border-collapse:collapse;
-    width:100%;
-    min-width:1500px;
-    table-layout:fixed;
+    width:max-content;
+    min-width:100%;
+    table-layout:auto;
     background:#fff;
     color:#000;
     font-family:var(--kv-table-font);
@@ -313,9 +307,9 @@
   .kv-table th,
   .kv-table td{
     border:1px solid var(--kv-grid);
-    padding:5px 6px;
-    font-size:12px;
-    line-height:1.1;
+    padding:2px 3px;
+    font-size:13px;
+    
     text-align:center;
     vertical-align:middle;
     white-space:nowrap;
@@ -329,7 +323,6 @@
     font-weight:800;
     color:inherit;
   }
-  
 
   .kv-main-title{
     font-size:14px !important;
@@ -356,10 +349,9 @@
     position:sticky;
     left:0;
     z-index:21;
-    min-width:170px;
-    max-width:170px;
+    
     text-align:left !important;
-    padding-left:2px !important;
+    padding-left:8px !important;
     background:#fff !important;
     font-weight:800;
     border-right:2px solid var(--kv-grid-strong) !important;
@@ -377,10 +369,40 @@
     background:#111827 !important;
   }
 
+  .money-col{
+    min-width:100px;
+  }
+
+  .percent-col{
+    min-width:60px;
+  }
+
+  .regular-col{
+    min-width:60px;
+  }
+
   .green{ color:var(--kv-green) !important; font-weight:800; }
   .blue{ color:var(--kv-blue) !important; font-weight:800; }
   .red{ color:var(--kv-red) !important; font-weight:800; }
   .purple{ color:var(--kv-purple) !important; font-weight:800; }
+
+  .diff-cell{
+    color:inherit;
+    font-weight:800;
+  }
+
+  .diff-negative{
+    color:var(--kv-red) !important;
+  }
+
+  .percent-cell{
+    color:inherit;
+    font-weight:800;
+  }
+
+  .percent-negative{
+    color:var(--kv-red) !important;
+  }
 
   .group-title-row td{
     background:var(--kv-group) !important;
@@ -402,6 +424,7 @@
   }
 
   .grandtotal td{
+    font-size: 16px;
     font-weight:900;
     background:var(--kv-grand);
     border-top:3px solid var(--kv-grid-strong) !important;
@@ -445,19 +468,34 @@
   }
 
   .sep-r{
-    border-right:2px solid var(--kv-grid-strong) !important;
+    border-right:3px solid var(--kv-grid-strong) !important;
   }
 
   .sep-l{
-    border-left:2px solid var(--kv-grid-strong) !important;
+    border-left:3px solid var(--kv-grid-strong) !important;
   }
 
   .sep-t{
-    border-top:2px solid var(--kv-grid-strong) !important;
+    border-top:3px solid var(--kv-grid-strong) !important;
   }
 
   .sep-b{
-    border-bottom:2px solid var(--kv-grid-strong) !important;
+    border-bottom:3px solid var(--kv-grid-strong) !important;
+  }
+
+  .money-head-note{
+    display:block;
+    font-size:10px;
+    line-height:1.1;
+    margin-top:2px;
+    color:#0f766e;
+    font-weight:900;
+  }
+
+  [data-theme="dark"] .money-head-note,
+  .dark .money-head-note,
+  :root:not([data-theme="light"]) .money-head-note{
+    color:#5eead4;
   }
 
   @media (max-width: 1100px){
@@ -508,18 +546,25 @@
       max-height: calc(100vh - 240px);
     }
 
-    .name-col{
-      min-width:230px;
-      max-width:230px;
-    }
-
+   
     .kv-table th,
     .kv-table td{
       font-size:11px;
-      padding:4px 5px;
+      padding:2px 3px;
+    }
+
+    .money-col{
+      min-width:96px;
+    }
+
+    .percent-col{
+      min-width:60px;
+    }
+
+    .regular-col{
+      min-width:60px;
     }
   }
-
 </style>
 
 <div class="kv-page">
@@ -582,57 +627,63 @@
             <table class="kv-table">
               <thead>
                 <tr>
-                  <th class="kv-main-title" colspan="21">
-                    "O'ztemiryo'lkonteyner" AJ ga qarashli Logistika Markazlari va sektorlarida, vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari tog'risida tezkor ma'lumotlar<br>
+                  <th class="kv-main-title" colspan="26">
+                    "O'ztemiryo'lkonteyner" AJ ga qarashli Logistika Markazlari va sektorlarida, vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar<br>
                     {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }}
                     / taqqoslash: {{ prev_from_date|date:"d.m.Y" }} — {{ prev_to_date|date:"d.m.Y" }}
                   </th>
                 </tr>
 
                 <tr>
-                  <th class="name-col sep-b" rowspan="2">LM<br>nomlari</th>
+                  <th class="name-col sep-b" rowspan="2">LM nomlari</th>
 
-                  <th class="kv-group sep-l sep-b" colspan="4">Ortish vagonda (dona) </th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Tushirish vagonda (dona) </th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Ortish konteyner (dona) </th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Tushirish konteyner (dona) </th>
-                  <th class="kv-group sep-l sep-b" colspan="4">Daromad (so'm)</th>
+                  <th class="kv-group sep-l sep-b" colspan="5">Ortish vagonda (dona)</th>
+                  <th class="kv-group sep-l sep-b" colspan="5">Tushirish vagonda (dona)</th>
+                  <th class="kv-group sep-l sep-b" colspan="5">Ortish konteyner (dona)</th>
+                  <th class="kv-group sep-l sep-b" colspan="5">Tushirish konteyner (dona)</th>
+                  <th class="kv-group sep-l sep-b" colspan="5">
+                    Daromad
+                    <span class="money-head-note">1000 so'mda ko'rsatiladi</span>
+                  </th>
                 </tr>
 
-                
-
                 <tr>
-                  <th class="kv-sub sep-l">Reja</th>
-                  <th class="kv-sub green">Joriy </th>
-                  <th class="kv-sub blue">Oldingi</th>
-                  <th class="kv-sub red sep-r">Farq</th>
+                  <th class="kv-sub sep-l regular-col">Reja</th>
+                  <th class="kv-sub green regular-col">Joriy</th>
+                  <th class="kv-sub blue regular-col">Oldingi</th>
+                  <th class="kv-sub regular-col">Farq</th>
+                  <th class="kv-sub red percent-col sep-r">%</th>
 
-                  <th class="kv-sub sep-l">Reja</th>
-                  <th class="kv-sub green">Joriy </th>
-                  <th class="kv-sub blue">Oldingi</th>
-                  <th class="kv-sub red sep-r">Farq</th>
+                  <th class="kv-sub sep-l regular-col">Reja</th>
+                  <th class="kv-sub green regular-col">Joriy</th>
+                  <th class="kv-sub blue regular-col">Oldingi</th>
+                  <th class="kv-sub regular-col">Farq</th>
+                  <th class="kv-sub red percent-col sep-r">%</th>
 
-                  <th class="kv-sub sep-l">Reja</th>
-                  <th class="kv-sub green">Joriy </th>
-                  <th class="kv-sub blue">Oldingi</th>
-                  <th class="kv-sub red sep-r">Farq</th>
+                  <th class="kv-sub sep-l regular-col">Reja</th>
+                  <th class="kv-sub green regular-col">Joriy</th>
+                  <th class="kv-sub blue regular-col">Oldingi</th>
+                  <th class="kv-sub regular-col">Farq</th>
+                  <th class="kv-sub red percent-col sep-r">%</th>
 
-                  <th class="kv-sub sep-l">Reja</th>
-                  <th class="kv-sub green">Joriy </th>
-                  <th class="kv-sub blue">Oldingi</th>
-                  <th class="kv-sub red sep-r">Farq</th>
+                  <th class="kv-sub sep-l regular-col">Reja</th>
+                  <th class="kv-sub green regular-col">Joriy</th>
+                  <th class="kv-sub blue regular-col">Oldingi</th>
+                  <th class="kv-sub regular-col">Farq</th>
+                  <th class="kv-sub red percent-col sep-r">%</th>
 
-                  <th class="kv-sub sep-l">Reja</th>
-                  <th class="kv-sub green">Joriy </th>
-                  <th class="kv-sub blue">Oldingi</th>
-                  <th class="kv-sub red sep-r">Farq</th>
+                  <th class="kv-sub sep-l money-col">Reja</th>
+                  <th class="kv-sub green money-col">Joriy</th>
+                  <th class="kv-sub blue money-col">Oldingi</th>
+                  <th class="kv-sub money-col">Farq</th>
+                  <th class="kv-sub red percent-col sep-r">%</th>
                 </tr>
               </thead>
 
               <tbody>
                 {% for group in groups %}
                   <tr class="group-title-row">
-                    <td colspan="21">{{ group.title }}</td>
+                    <td colspan="26">{{ group.title }}</td>
                   </tr>
 
                   {% for row in group.rows %}
@@ -647,94 +698,108 @@
                         {% endif %}
                       </td>
 
-                      <td class="sep-l">
+                      <td class="sep-l regular-col">
                         {% if single_full_month and row.station_id %}
                           <input class="edit-input" type="number" name="pogr_plan_{{ row.station_id }}" value="{{ row.pogr_plan }}">
                         {% else %}
                           {{ row.pogr_plan }}
                         {% endif %}
                       </td>
-                      <td class="green">{{ row.pogr_this_year }}</td>
-                      <td class="blue">{{ row.pogr_last_year }}</td>
-                      <td class="red sep-r">{{ row.pogr_diff }}</td>
+                      <td class="green regular-col">{{ row.pogr_this_year }}</td>
+                      <td class="blue regular-col">{{ row.pogr_last_year }}</td>
+                      <td class="diff-cell regular-col" data-value="{{ row.pogr_diff }}">{{ row.pogr_diff }}</td>
+                      <td class="percent-cell percent-col sep-r" data-percent="{{ row.pogr_percent }}">{{ row.pogr_percent }}</td>
 
-                      <td class="sep-l">
+                      <td class="sep-l regular-col">
                         {% if single_full_month and row.station_id %}
                           <input class="edit-input" type="number" name="vygr_plan_{{ row.station_id }}" value="{{ row.vygr_plan }}">
                         {% else %}
                           {{ row.vygr_plan }}
                         {% endif %}
                       </td>
-                      <td class="green">{{ row.vygr_this_year }}</td>
-                      <td class="blue">{{ row.vygr_last_year }}</td>
-                      <td class="red sep-r">{{ row.vygr_diff }}</td>
+                      <td class="green regular-col">{{ row.vygr_this_year }}</td>
+                      <td class="blue regular-col">{{ row.vygr_last_year }}</td>
+                      <td class="diff-cell regular-col" data-value="{{ row.vygr_diff }}">{{ row.vygr_diff }}</td>
+                      <td class="percent-cell percent-col sep-r" data-percent="{{ row.vygr_percent }}">{{ row.vygr_percent }}</td>
 
-                      <td class="sep-l">
+                      <td class="sep-l regular-col">
                         {% if single_full_month and row.station_id %}
                           <input class="edit-input" type="number" name="pogr_kont_plan_{{ row.station_id }}" value="{{ row.pogr_kont_plan }}">
                         {% else %}
                           {{ row.pogr_kont_plan }}
                         {% endif %}
                       </td>
-                      <td class="green">{{ row.pogr_kont_this_year }}</td>
-                      <td class="blue">{{ row.pogr_kont_last_year }}</td>
-                      <td class="red sep-r">{{ row.pogr_kont_diff }}</td>
+                      <td class="green regular-col">{{ row.pogr_kont_this_year }}</td>
+                      <td class="blue regular-col">{{ row.pogr_kont_last_year }}</td>
+                      <td class="diff-cell regular-col" data-value="{{ row.pogr_kont_diff }}">{{ row.pogr_kont_diff }}</td>
+                      <td class="percent-cell percent-col sep-r" data-percent="{{ row.pogr_kont_percent }}">{{ row.pogr_kont_percent }}</td>
 
-                      <td class="sep-l">
+                      <td class="sep-l regular-col">
                         {% if single_full_month and row.station_id %}
                           <input class="edit-input" type="number" name="vygr_kont_plan_{{ row.station_id }}" value="{{ row.vygr_kont_plan }}">
                         {% else %}
                           {{ row.vygr_kont_plan }}
                         {% endif %}
                       </td>
-                      <td class="green">{{ row.vygr_kont_this_year }}</td>
-                      <td class="blue">{{ row.vygr_kont_last_year }}</td>
-                      <td class="red sep-r">{{ row.vygr_kont_diff }}</td>
+                      <td class="green regular-col">{{ row.vygr_kont_this_year }}</td>
+                      <td class="blue regular-col">{{ row.vygr_kont_last_year }}</td>
+                      <td class="diff-cell regular-col" data-value="{{ row.vygr_kont_diff }}">{{ row.vygr_kont_diff }}</td>
+                      <td class="percent-cell percent-col sep-r" data-percent="{{ row.vygr_kont_percent }}">{{ row.vygr_kont_percent }}</td>
 
-                      <td class="sep-l">
+                      <td class="sep-l money-col">
                         {% if single_full_month and row.station_id %}
                           <input class="edit-input" type="number" name="income_plan_{{ row.station_id }}" value="{{ row.income_plan }}">
                         {% else %}
-                          {{ row.income_plan }}
+                          <span class="money-value">{{ row.income_plan }}</span>
                         {% endif %}
                       </td>
-                      <td class="green">{{ row.income_this_year }}</td>
-                      <td class="blue">{{ row.income_last_year }}</td>
-                      <td class="red sep-r">{{ row.income_diff }}</td>
+                      <td class="green money-col"><span class="money-value">{{ row.income_this_year }}</span></td>
+                      <td class="blue money-col"><span class="money-value">{{ row.income_last_year }}</span></td>
+                      <td class="diff-cell money-col" data-value="{{ row.income_diff }}">
+                        <span class="money-value">{{ row.income_diff }}</span>
+                      </td>
+                      <td class="percent-cell percent-col sep-r" data-percent="{{ row.income_percent }}">{{ row.income_percent }}</td>
                     </tr>
                   {% endfor %}
 
                   <tr class="subtotal">
                     <td class="name-col">{{ group.subtotal.station_name }}</td>
 
-                    <td class="sep-l">{{ group.subtotal.pogr_plan }}</td>
-                    <td>{{ group.subtotal.pogr_this_year }}</td>
-                    <td>{{ group.subtotal.pogr_last_year }}</td>
-                    <td class="sep-r">{{ group.subtotal.pogr_diff }}</td>
+                    <td class="sep-l regular-col">{{ group.subtotal.pogr_plan }}</td>
+                    <td class="regular-col">{{ group.subtotal.pogr_this_year }}</td>
+                    <td class="regular-col">{{ group.subtotal.pogr_last_year }}</td>
+                    <td class="diff-cell regular-col" data-value="{{ group.subtotal.pogr_diff }}">{{ group.subtotal.pogr_diff }}</td>
+                    <td class="percent-cell percent-col sep-r" data-percent="{{ group.subtotal.pogr_percent }}">{{ group.subtotal.pogr_percent }}</td>
 
-                    <td class="sep-l">{{ group.subtotal.vygr_plan }}</td>
-                    <td>{{ group.subtotal.vygr_this_year }}</td>
-                    <td>{{ group.subtotal.vygr_last_year }}</td>
-                    <td class="sep-r">{{ group.subtotal.vygr_diff }}</td>
+                    <td class="sep-l regular-col">{{ group.subtotal.vygr_plan }}</td>
+                    <td class="regular-col">{{ group.subtotal.vygr_this_year }}</td>
+                    <td class="regular-col">{{ group.subtotal.vygr_last_year }}</td>
+                    <td class="diff-cell regular-col" data-value="{{ group.subtotal.vygr_diff }}">{{ group.subtotal.vygr_diff }}</td>
+                    <td class="percent-cell percent-col sep-r" data-percent="{{ group.subtotal.vygr_percent }}">{{ group.subtotal.vygr_percent }}</td>
 
-                    <td class="sep-l">{{ group.subtotal.pogr_kont_plan }}</td>
-                    <td>{{ group.subtotal.pogr_kont_this_year }}</td>
-                    <td>{{ group.subtotal.pogr_kont_last_year }}</td>
-                    <td class="sep-r">{{ group.subtotal.pogr_kont_diff }}</td>
+                    <td class="sep-l regular-col">{{ group.subtotal.pogr_kont_plan }}</td>
+                    <td class="regular-col">{{ group.subtotal.pogr_kont_this_year }}</td>
+                    <td class="regular-col">{{ group.subtotal.pogr_kont_last_year }}</td>
+                    <td class="diff-cell regular-col" data-value="{{ group.subtotal.pogr_kont_diff }}">{{ group.subtotal.pogr_kont_diff }}</td>
+                    <td class="percent-cell percent-col sep-r" data-percent="{{ group.subtotal.pogr_kont_percent }}">{{ group.subtotal.pogr_kont_percent }}</td>
 
-                    <td class="sep-l">{{ group.subtotal.vygr_kont_plan }}</td>
-                    <td>{{ group.subtotal.vygr_kont_this_year }}</td>
-                    <td>{{ group.subtotal.vygr_kont_last_year }}</td>
-                    <td class="sep-r">{{ group.subtotal.vygr_kont_diff }}</td>
+                    <td class="sep-l regular-col">{{ group.subtotal.vygr_kont_plan }}</td>
+                    <td class="regular-col">{{ group.subtotal.vygr_kont_this_year }}</td>
+                    <td class="regular-col">{{ group.subtotal.vygr_kont_last_year }}</td>
+                    <td class="diff-cell regular-col" data-value="{{ group.subtotal.vygr_kont_diff }}">{{ group.subtotal.vygr_kont_diff }}</td>
+                    <td class="percent-cell percent-col sep-r" data-percent="{{ group.subtotal.vygr_kont_percent }}">{{ group.subtotal.vygr_kont_percent }}</td>
 
-                    <td class="sep-l">{{ group.subtotal.income_plan }}</td>
-                    <td>{{ group.subtotal.income_this_year }}</td>
-                    <td>{{ group.subtotal.income_last_year }}</td>
-                    <td class="sep-r">{{ group.subtotal.income_diff }}</td>
+                    <td class="sep-l money-col"><span class="money-value">{{ group.subtotal.income_plan }}</span></td>
+                    <td class="money-col"><span class="money-value">{{ group.subtotal.income_this_year }}</span></td>
+                    <td class="money-col"><span class="money-value">{{ group.subtotal.income_last_year }}</span></td>
+                    <td class="diff-cell money-col" data-value="{{ group.subtotal.income_diff }}">
+                      <span class="money-value">{{ group.subtotal.income_diff }}</span>
+                    </td>
+                    <td class="percent-cell percent-col sep-r" data-percent="{{ group.subtotal.income_percent }}">{{ group.subtotal.income_percent }}</td>
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="21" style="padding:18px; color:var(--kv-muted); text-align:center;">
+                    <td colspan="26" style="padding:18px; color:var(--kv-muted); text-align:center;">
                       Hech qanday ma’lumot topilmadi.
                     </td>
                   </tr>
@@ -743,30 +808,37 @@
                 <tr class="grandtotal">
                   <td class="name-col">{{ grand_total.station_name }}</td>
 
-                  <td class="sep-l">{{ grand_total.pogr_plan }}</td>
-                  <td>{{ grand_total.pogr_this_year }}</td>
-                  <td>{{ grand_total.pogr_last_year }}</td>
-                  <td class="sep-r">{{ grand_total.pogr_diff }}</td>
+                  <td class="sep-l regular-col">{{ grand_total.pogr_plan }}</td>
+                  <td class="regular-col">{{ grand_total.pogr_this_year }}</td>
+                  <td class="regular-col">{{ grand_total.pogr_last_year }}</td>
+                  <td class="diff-cell regular-col" data-value="{{ grand_total.pogr_diff }}">{{ grand_total.pogr_diff }}</td>
+                  <td class="percent-cell percent-col sep-r" data-percent="{{ grand_total.pogr_percent }}">{{ grand_total.pogr_percent }}</td>
 
-                  <td class="sep-l">{{ grand_total.vygr_plan }}</td>
-                  <td>{{ grand_total.vygr_this_year }}</td>
-                  <td>{{ grand_total.vygr_last_year }}</td>
-                  <td class="sep-r">{{ grand_total.vygr_diff }}</td>
+                  <td class="sep-l regular-col">{{ grand_total.vygr_plan }}</td>
+                  <td class="regular-col">{{ grand_total.vygr_this_year }}</td>
+                  <td class="regular-col">{{ grand_total.vygr_last_year }}</td>
+                  <td class="diff-cell regular-col" data-value="{{ grand_total.vygr_diff }}">{{ grand_total.vygr_diff }}</td>
+                  <td class="percent-cell percent-col sep-r" data-percent="{{ grand_total.vygr_percent }}">{{ grand_total.vygr_percent }}</td>
 
-                  <td class="sep-l">{{ grand_total.pogr_kont_plan }}</td>
-                  <td>{{ grand_total.pogr_kont_this_year }}</td>
-                  <td>{{ grand_total.pogr_kont_last_year }}</td>
-                  <td class="sep-r">{{ grand_total.pogr_kont_diff }}</td>
+                  <td class="sep-l regular-col">{{ grand_total.pogr_kont_plan }}</td>
+                  <td class="regular-col">{{ grand_total.pogr_kont_this_year }}</td>
+                  <td class="regular-col">{{ grand_total.pogr_kont_last_year }}</td>
+                  <td class="diff-cell regular-col" data-value="{{ grand_total.pogr_kont_diff }}">{{ grand_total.pogr_kont_diff }}</td>
+                  <td class="percent-cell percent-col sep-r" data-percent="{{ grand_total.pogr_kont_percent }}">{{ grand_total.pogr_kont_percent }}</td>
 
-                  <td class="sep-l">{{ grand_total.vygr_kont_plan }}</td>
-                  <td>{{ grand_total.vygr_kont_this_year }}</td>
-                  <td>{{ grand_total.vygr_kont_last_year }}</td>
-                  <td class="sep-r">{{ grand_total.vygr_kont_diff }}</td>
+                  <td class="sep-l regular-col">{{ grand_total.vygr_kont_plan }}</td>
+                  <td class="regular-col">{{ grand_total.vygr_kont_this_year }}</td>
+                  <td class="regular-col">{{ grand_total.vygr_kont_last_year }}</td>
+                  <td class="diff-cell regular-col" data-value="{{ grand_total.vygr_kont_diff }}">{{ grand_total.vygr_kont_diff }}</td>
+                  <td class="percent-cell percent-col sep-r" data-percent="{{ grand_total.vygr_kont_percent }}">{{ grand_total.vygr_kont_percent }}</td>
 
-                  <td class="sep-l">{{ grand_total.income_plan }}</td>
-                  <td>{{ grand_total.income_this_year }}</td>
-                  <td>{{ grand_total.income_last_year }}</td>
-                  <td class="sep-r">{{ grand_total.income_diff }}</td>
+                  <td class="sep-l money-col"><span class="money-value">{{ grand_total.income_plan }}</span></td>
+                  <td class="money-col"><span class="money-value">{{ grand_total.income_this_year }}</span></td>
+                  <td class="money-col"><span class="money-value">{{ grand_total.income_last_year }}</span></td>
+                  <td class="diff-cell money-col" data-value="{{ grand_total.income_diff }}">
+                    <span class="money-value">{{ grand_total.income_diff }}</span>
+                  </td>
+                  <td class="percent-cell percent-col sep-r" data-percent="{{ grand_total.income_percent }}">{{ grand_total.income_percent }}</td>
                 </tr>
               </tbody>
             </table>
@@ -786,44 +858,181 @@
   </div>
 </div>
 
-
 <script>
 (function () {
-  function formatNumberValue(value) {
-    if (value === null || value === undefined) return "";
-    const str = String(value).trim();
-    if (!str) return "";
+  function toNumber(value) {
+    if (value === null || value === undefined) return null;
 
-    // faqat son ko‘rinishidagi qiymatlar
-    if (!/^-?\d+([.,]\d+)?$/.test(str.replace(/\s+/g, ""))) return value;
+    let s = String(value).trim();
+    if (!s) return null;
 
-    const normalized = str.replace(/\s+/g, "").replace(",", ".");
-    const negative = normalized.startsWith("-");
-    const clean = negative ? normalized.slice(1) : normalized;
+    s = s.replace(/\s+/g, "").replace(",", ".");
 
-    const parts = clean.split(".");
-    const intPart = parts[0];
-    const decPart = parts[1] || "";
-
-    const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-    return (negative ? "-" : "") + formattedInt + (decPart ? "." + decPart : "");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
   }
 
-  function formatStaticCells() {
-    const cells = document.querySelectorAll(".kv-table td");
+  function formatInteger(value) {
+    const num = toNumber(value);
+    if (num === null) return value;
+    return Math.round(num).toLocaleString("ru-RU").replace(/,/g, " ");
+  }
 
-    cells.forEach(td => {
+  function formatMoneyThousands(value) {
+    const num = toNumber(value);
+    if (num === null) return value;
+    const divided = Math.trunc(num / 1000);
+    return divided.toLocaleString("ru-RU").replace(/,/g, " ");
+  }
+
+  function calcPercent(current, previous) {
+    const currentNum = toNumber(current) || 0;
+    const previousNum = toNumber(previous) || 0;
+
+    if (previousNum === 0) {
+      if (currentNum === 0) return 0;
+      return 100;
+    }
+
+    return ((currentNum - previousNum) / previousNum) * 100;
+  }
+
+  function formatPercent(value) {
+    if (!Number.isFinite(value)) return "0%";
+    const rounded = Math.round(value);
+    return `${rounded > 0 ? "+" : ""}${rounded}%`;
+  }
+
+  function isMoneyCell(cell) {
+    return !!cell.querySelector(".money-value");
+  }
+
+  function getCellNumericValue(cell) {
+    if (!cell) return 0;
+
+    const moneyEl = cell.querySelector(".money-value");
+    if (moneyEl) {
+      return toNumber(moneyEl.getAttribute("data-raw")) || toNumber(moneyEl.textContent) || 0;
+    }
+
+    const dataValue = cell.getAttribute("data-value");
+    if (dataValue !== null && dataValue !== "") {
+      return toNumber(dataValue) || 0;
+    }
+
+    const text = cell.textContent.trim();
+    return toNumber(text) || 0;
+  }
+
+  function formatMoneyCells() {
+    document.querySelectorAll(".money-value").forEach(el => {
+      const raw = el.textContent.trim();
+      el.setAttribute("data-raw", raw);
+      el.textContent = formatMoneyThousands(raw);
+    });
+  }
+
+  function formatRegularCells() {
+    document.querySelectorAll(".kv-table td").forEach(td => {
       if (td.querySelector("input, select, textarea")) return;
+      if (td.classList.contains("percent-cell")) return;
+      if (td.classList.contains("name-col")) return;
+      if (td.closest(".group-title-row")) return;
+      if (isMoneyCell(td)) return;
 
       const text = td.textContent.trim();
       if (!text) return;
 
-      td.textContent = formatNumberValue(text);
+      const num = toNumber(text);
+      if (num === null) return;
+
+      td.textContent = formatInteger(num);
     });
   }
 
-  document.addEventListener("DOMContentLoaded", formatStaticCells);
+  function applyDiffColors() {
+    document.querySelectorAll(".diff-cell").forEach(cell => {
+      cell.classList.remove("diff-negative");
+
+      let value = null;
+      const dataValue = cell.getAttribute("data-value");
+
+      if (dataValue !== null && dataValue !== "") {
+        value = toNumber(dataValue);
+      } else if (cell.querySelector(".money-value")) {
+        value = toNumber(cell.querySelector(".money-value").getAttribute("data-raw"));
+      } else {
+        value = toNumber(cell.textContent);
+      }
+
+      if (value !== null && value < 0) {
+        cell.classList.add("diff-negative");
+      }
+    });
+  }
+
+  function applyPercentCalculation() {
+    const rows = document.querySelectorAll(".kv-table tbody tr");
+
+    rows.forEach(row => {
+      if (row.classList.contains("group-title-row")) return;
+
+      const cells = row.querySelectorAll("td");
+      if (!cells.length) return;
+
+      // Yangi jadval struktura:
+      // 0  = LM nomlari
+      // 1  = reja
+      // 2  = joriy
+      // 3  = oldingi
+      // 4  = farq
+      // 5  = %
+      // 6  = reja
+      // 7  = joriy
+      // 8  = oldingi
+      // 9  = farq
+      // 10 = %
+      // ...
+      // 21 = reja (daromad)
+      // 22 = joriy
+      // 23 = oldingi
+      // 24 = farq
+      // 25 = %
+
+      const groups = [
+        { current: 2,  previous: 3,  percent: 5  },
+        { current: 7,  previous: 8,  percent: 10 },
+        { current: 12, previous: 13, percent: 15 },
+        { current: 17, previous: 18, percent: 20 },
+        { current: 22, previous: 23, percent: 25 }
+      ];
+
+      groups.forEach(group => {
+        if (!cells[group.current] || !cells[group.previous] || !cells[group.percent]) return;
+
+        const currentValue = getCellNumericValue(cells[group.current]);
+        const previousValue = getCellNumericValue(cells[group.previous]);
+        const percentValue = calcPercent(currentValue, previousValue);
+
+        const percentCell = cells[group.percent];
+        percentCell.textContent = formatPercent(percentValue);
+        percentCell.classList.remove("percent-negative");
+
+        if (percentValue < 0) {
+          percentCell.classList.add("percent-negative");
+        }
+      });
+    });
+  }
+
+  function initKvTableFormatting() {
+    formatMoneyCells();
+    formatRegularCells();
+    applyDiffColors();
+    applyPercentCalculation();
+  }
+
+  document.addEventListener("DOMContentLoaded", initKvTableFormatting);
 })();
 </script>
 {% endblock %}

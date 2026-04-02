@@ -47,6 +47,7 @@ DISPLAY_GROUPS = [
             "Sirdaryo LM",
             "Jizzax LM",
             "Ablik LM",
+            "To'ytepa",
         ],
         "has_veshoz": True,
     },
@@ -1237,3 +1238,5 @@ def kvartalniy_monthly_list(request):
         "rows": rows,
     }
     return render(request, "kvartalniy_monthly_list.html", context)
+
+
