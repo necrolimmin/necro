@@ -1051,68 +1051,72 @@ def kvartalniy_range_export_excel(request):
     border_thin = Border(left=thin, right=thin, top=thin, bottom=thin)
     border_thick = Border(left=thick, right=thick, top=thick, bottom=thick)
 
-    fill_head = PatternFill("solid", fgColor="EEF2F7")
-    fill_head_2 = PatternFill("solid", fgColor="F8FAFC")
-    fill_group = PatternFill("solid", fgColor="E9EEF5")
-    fill_subtotal = PatternFill("solid", fgColor="FFF5F5")
-    fill_grand = PatternFill("solid", fgColor="EFF6FF")
+    fill_head = PatternFill("solid", fgColor="D9D9D9")
+    fill_head_2 = PatternFill("solid", fgColor="E7E7E7")
+    fill_group = PatternFill("solid", fgColor="D9D9D9")
+    fill_subtotal = PatternFill("solid", fgColor="F2F2F2")
+    fill_grand = PatternFill("solid", fgColor="F2F2F2")
     fill_white = PatternFill("solid", fgColor="FFFFFF")
 
     font_bold = Font(bold=True, name="Times New Roman")
-    font_title = Font(bold=True, size=14, name="Times New Roman")
-    font_normal = Font(name="Times New Roman")
-    font_green = Font(bold=True, color="059669", name="Times New Roman")
+    font_title = Font(bold=True, size=12, name="Times New Roman")
+    font_normal = Font(name="Times New Roman", color="000000")
+    font_green = Font(bold=True, color="008000", name="Times New Roman")
     font_blue = Font(bold=True, color="1D4ED8", name="Times New Roman")
     font_red = Font(bold=True, color="DC2626", name="Times New Roman")
+    font_black_bold = Font(bold=True, color="000000", name="Times New Roman")
     font_purple = Font(bold=True, color="7C3AED", name="Times New Roman")
     font_brown = Font(bold=True, color="7C4A03", name="Times New Roman")
+    font_total_red = Font(bold=True, color="FF0000", name="Times New Roman")
 
     center = Alignment(horizontal="center", vertical="center", wrap_text=True)
     left = Alignment(horizontal="left", vertical="center", wrap_text=True)
 
+    # 1 + (5 * 5) = 26 columns
     widths = {
-        1: 24,
-        2: 11, 3: 11, 4: 11, 5: 11,
-        6: 11, 7: 11, 8: 11, 9: 11,
-        10: 11, 11: 11, 12: 11, 13: 11,
-        14: 11, 15: 11, 16: 11, 17: 11,
-        18: 11, 19: 11, 20: 11, 21: 11,
+        1: 22,
+        2: 10, 3: 10, 4: 10, 5: 10, 6: 10,
+        7: 10, 8: 10, 9: 10, 10: 10, 11: 10,
+        12: 10, 13: 10, 14: 10, 15: 10, 16: 10,
+        17: 10, 18: 10, 19: 10, 20: 10, 21: 10,
+        22: 12, 23: 12, 24: 12, 25: 12, 26: 10,
     }
     for col_idx, width in widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
     row_num = 1
 
-    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=21)
+    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=26)
     c = ws.cell(row=row_num, column=1)
     c.value = (
-        "Оперативная информация по диапазону дат\n"
-        f"{context['from_date'].strftime('%d.%m.%Y')} — {context['to_date'].strftime('%d.%m.%Y')} / "
+        "\"O'ztemiryo'lkonteyner\" AJ ga qarashli Logistika Markazlari va sektorlarida "
+        "vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar\n"
+        f"{context['from_date'].strftime('%d.%m.%Y')} — {context['to_date'].strftime('%d.%m.%Y')}  "
         f"taqqoslash: {context['prev_from_date'].strftime('%d.%m.%Y')} — {context['prev_to_date'].strftime('%d.%m.%Y')}"
     )
     c.font = font_title
     c.alignment = center
-    c.fill = fill_head_2
-    c.border = border_thick
-    ws.row_dimensions[row_num].height = 32
-    row_num += 1
-
-    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num + 2, end_column=1)
-    c = ws.cell(row=row_num, column=1, value="Наименование\nЛЦ")
-    c.font = font_bold
-    c.alignment = center
     c.fill = fill_head
     c.border = border_thick
+    ws.row_dimensions[row_num].height = 36
+    row_num += 1
 
-    groups = [
-        ("Погрузка вагонов", 2, 5),
-        ("Выгрузка вагонов", 6, 9),
-        ("Погрузка конт", 10, 13),
-        ("Выгрузка конт", 14, 17),
-        ("Доходы", 18, 21),
+    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num + 1, end_column=1)
+    c = ws.cell(row=row_num, column=1, value="LM nomlari")
+    c.font = font_bold
+    c.alignment = center
+    c.fill = fill_group
+    c.border = border_thick
+
+    block_titles = [
+        ("Ortish vagonda (dona)", 2, 6),
+        ("Tushirish vagonda (dona)", 7, 11),
+        ("Ortish konteyner (dona)", 12, 16),
+        ("Tushirish konteyner (dona)", 17, 21),
+        ("Daromad", 22, 26),
     ]
 
-    for title, start_col, end_col in groups:
+    for title, start_col, end_col in block_titles:
         ws.merge_cells(start_row=row_num, start_column=start_col, end_row=row_num, end_column=end_col)
         c = ws.cell(row=row_num, column=start_col, value=title)
         c.font = font_bold
@@ -1120,53 +1124,86 @@ def kvartalniy_range_export_excel(request):
         c.fill = fill_group
         c.border = border_thick
 
-    top2 = row_num + 1
-    top3 = row_num + 2
+    sub_row = row_num + 1
+    sub_headers = ["Reja", "Joriy", "Oldingi", "Farq", "%"] * 5
 
-    sub_2 = ["План", "Факт", "Прошлый год", "+/-"] * 5
-    sub_3 = ["План", "Текущий", "Прошлый", "Разница"] * 5
-
-    for idx, value in enumerate(sub_2, start=2):
-        c = ws.cell(row=top2, column=idx, value=value)
-        c.font = font_bold
+    for idx, value in enumerate(sub_headers, start=2):
+        c = ws.cell(row=sub_row, column=idx, value=value)
         c.alignment = center
         c.fill = fill_head_2
         c.border = border_thin
+        if value == "Joriy":
+            c.font = font_green
+        elif value == "Oldingi":
+            c.font = font_blue
+        elif value == "%":
+            c.font = font_red
+        else:
+            c.font = font_bold
 
-    for idx, value in enumerate(sub_3, start=2):
-        c = ws.cell(row=top3, column=idx, value=value)
-        c.font = font_bold
-        c.alignment = center
-        c.fill = fill_head_2
-        c.border = border_thin
-
-    for rr in range(row_num, row_num + 3):
-        for cc in range(1, 22):
+    for rr in range(row_num, row_num + 2):
+        for cc in range(1, 27):
             ws.cell(row=rr, column=cc).border = border_thin
 
-    row_num += 3
+    row_num += 2
 
-    def set_metric_font(cell, col_idx):
-        if col_idx in (3, 7, 11, 15, 19):
-            cell.font = font_green
-        elif col_idx in (4, 8, 12, 16, 20):
-            cell.font = font_blue
-        elif col_idx in (5, 9, 13, 17, 21):
-            cell.font = font_red
-        else:
-            cell.font = font_normal
+    def calc_growth_percent(current, previous):
+        current = current or 0
+        previous = previous or 0
 
-    def write_data_row(row, fill=None, first_font=None, bold=False):
+        if previous == 0:
+            if current == 0:
+                return 0
+            return 100
+        return round(((current - previous) / previous) * 100)
+
+    def diff_font(value, bold=False):
+        return Font(
+            bold=bold,
+            color="DC2626" if (value or 0) < 0 else "000000",
+            name="Times New Roman"
+        )
+
+    def percent_font(value, bold=False):
+        return Font(
+            bold=bold,
+            color="DC2626" if (value or 0) < 0 else "000000",
+            name="Times New Roman"
+        )
+
+    def write_group_title(title):
         nonlocal row_num
+        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=26)
+        c = ws.cell(row=row_num, column=1, value=title)
+        c.font = font_bold
+        c.alignment = left
+        c.fill = PatternFill("solid", fgColor="DDEBF7")
+        c.border = border_thin
+        row_num += 1
+
+    def write_data_row(row, fill=None, first_font=None, bold=False, total_label=False):
+        nonlocal row_num
+
+        pogr_pct = calc_growth_percent(row.get("pogr_this_year"), row.get("pogr_last_year"))
+        vygr_pct = calc_growth_percent(row.get("vygr_this_year"), row.get("vygr_last_year"))
+        pogr_kont_pct = calc_growth_percent(row.get("pogr_kont_this_year"), row.get("pogr_kont_last_year"))
+        vygr_kont_pct = calc_growth_percent(row.get("vygr_kont_this_year"), row.get("vygr_kont_last_year"))
+        income_pct = calc_growth_percent(row.get("income_this_year"), row.get("income_last_year"))
 
         values = [
             row["station_name"],
-            row["pogr_plan"], row["pogr_this_year"], row["pogr_last_year"], row["pogr_diff"],
-            row["vygr_plan"], row["vygr_this_year"], row["vygr_last_year"], row["vygr_diff"],
-            row["pogr_kont_plan"], row["pogr_kont_this_year"], row["pogr_kont_last_year"], row["pogr_kont_diff"],
-            row["vygr_kont_plan"], row["vygr_kont_this_year"], row["vygr_kont_last_year"], row["vygr_kont_diff"],
-            row["income_plan"], row["income_this_year"], row["income_last_year"], row["income_diff"],
+
+            row["pogr_plan"], row["pogr_this_year"], row["pogr_last_year"], row["pogr_diff"], pogr_pct,
+            row["vygr_plan"], row["vygr_this_year"], row["vygr_last_year"], row["vygr_diff"], vygr_pct,
+            row["pogr_kont_plan"], row["pogr_kont_this_year"], row["pogr_kont_last_year"], row["pogr_kont_diff"], pogr_kont_pct,
+            row["vygr_kont_plan"], row["vygr_kont_this_year"], row["vygr_kont_last_year"], row["vygr_kont_diff"], vygr_kont_pct,
+            row["income_plan"], row["income_this_year"], row["income_last_year"], row["income_diff"], income_pct,
         ]
+
+        diff_cols = {5, 10, 15, 20, 25}
+        pct_cols = {6, 11, 16, 21, 26}
+        current_cols = {3, 8, 13, 18, 23}
+        prev_cols = {4, 9, 14, 19, 24}
 
         for col_idx, value in enumerate(values, start=1):
             cell = ws.cell(row=row_num, column=col_idx, value=value)
@@ -1175,15 +1212,39 @@ def kvartalniy_range_export_excel(request):
             cell.fill = fill or fill_white
 
             if col_idx == 1:
-                cell.font = first_font or (font_bold if bold else font_normal)
+                if total_label:
+                    cell.font = font_total_red
+                else:
+                    cell.font = first_font or (font_bold if bold else font_normal)
+
+            elif col_idx in current_cols:
+                cell.font = Font(
+                    bold=True if bold else True,
+                    color="008000",
+                    name="Times New Roman"
+                )
+
+            elif col_idx in prev_cols:
+                cell.font = Font(
+                    bold=True if bold else True,
+                    color="1D4ED8",
+                    name="Times New Roman"
+                )
+
+            elif col_idx in diff_cols:
+                cell.font = diff_font(value, bold=bold)
+
+            elif col_idx in pct_cols:
+                cell.font = percent_font(value, bold=bold)
+                cell.value = f"{int(value)}%"
+
             else:
-                set_metric_font(cell, col_idx)
-                if col_idx not in (3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21) and bold:
-                    cell.font = font_bold
+                cell.font = font_black_bold if bold else font_normal
 
         row_num += 1
 
     for group in context["groups"]:
+        write_group_title(group["title"])
 
         for row in group["rows"]:
             if row.get("is_veshoz"):
@@ -1193,24 +1254,23 @@ def kvartalniy_range_export_excel(request):
             else:
                 write_data_row(row, fill=fill_white, first_font=font_purple)
 
-        write_data_row(group["subtotal"], fill=fill_subtotal, first_font=font_red, bold=True)
-    write_data_row(context["grand_total"], fill=fill_grand, first_font=font_blue, bold=True)
-
-    row_num += 1
-    ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=21)
-    c = ws.cell(row=row_num, column=1)
-    c.value = (
-        f"Tanlangan davr kunlari: {context['days_count']} | " +
-        " | ".join(
-            f"{m['month'].strftime('%m.%Y')}: {m['selected_days']}/{m['days_in_month']} kun"
-            for m in context["month_info"]
+        write_data_row(
+            group["subtotal"],
+            fill=fill_subtotal,
+            first_font=font_total_red,
+            bold=True,
+            total_label=True
         )
-    )
-    c.font = font_normal
-    c.alignment = left
-    c.border = border_thin
 
-    ws.freeze_panes = "B5"
+    write_data_row(
+        context["grand_total"],
+        fill=fill_grand,
+        first_font=font_total_red,
+        bold=True,
+        total_label=True
+    )
+
+    ws.freeze_panes = "B4"
 
     filename = f"kvartalniy_range_{context['from_date']}_{context['to_date']}.xlsx"
     response = HttpResponse(
