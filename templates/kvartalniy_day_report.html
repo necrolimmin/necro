@@ -1,0 +1,690 @@
+{% extends "base.html" %}
+{% load report_extras %}
+{% block title %}Оперативная информация{% endblock %}
+
+{% block content %}
+<style>
+  .op-page{
+    --op-bg: linear-gradient(180deg, #f6f8ff 0%, #edf3ff 100%);
+    --op-surface: rgba(255,255,255,.84);
+    --op-surface-2: rgba(255,255,255,.94);
+    --op-text: #0f172a;
+    --op-muted: #64748b;
+    --op-stroke: rgba(15,23,42,.10);
+    --op-stroke-2: rgba(15,23,42,.16);
+    --op-grid: #3b3b3b;
+    --op-grid-strong: #111827;
+    --op-head: #f3f4f6;
+    --op-head-2: #fafafa;
+    --op-group: #eceff3;
+    --op-row-hover: rgba(79,70,229,.05);
+    --op-subtotal: #fff6f6;
+    --op-grand: #f3f8ff;
+    --op-shadow: 0 20px 60px rgba(2,6,23,.10);
+    --op-shadow-2: 0 10px 24px rgba(2,6,23,.08);
+    --op-purple: #6a1fb1;
+    --op-blue: #165DCC;
+    --op-green: #00A43A;
+    --op-red: #ff0000;
+    --op-accent: #4f46e5;
+    --op-accent-2: #22c55e;
+
+    min-height: calc(100vh - 32px);
+    
+    
+  }
+
+  [data-theme="dark"] .op-page,
+  .dark .op-page{
+    --op-bg: radial-gradient(circle at top, #172036 0%, #0b1120 48%, #060a13 100%);
+    --op-surface: rgba(15,23,42,.68);
+    --op-surface-2: rgba(15,23,42,.86);
+    --op-text: #e5eefb;
+    --op-muted: #94a3b8;
+    --op-stroke: rgba(148,163,184,.16);
+    --op-stroke-2: rgba(148,163,184,.25);
+    --op-grid: rgba(255,255,255,.20);
+    --op-grid-strong: rgba(255,255,255,.65);
+    --op-head: rgba(30,41,59,.98);
+    --op-head-2: rgba(15,23,42,.98);
+    --op-group: rgba(51,65,85,.95);
+    --op-row-hover: rgba(99,102,241,.10);
+    --op-subtotal: rgba(127,29,29,.20);
+    --op-grand: rgba(30,64,175,.16);
+    --op-shadow: 0 24px 70px rgba(0,0,0,.42);
+    --op-shadow-2: 0 12px 32px rgba(0,0,0,.34);
+    --op-purple: #c084fc;
+    --op-blue: #60a5fa;
+    --op-green: #4ade80;
+    --op-red: #f87171;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .op-page{
+      --op-bg: radial-gradient(circle at top, #172036 0%, #0b1120 48%, #060a13 100%);
+      --op-surface: rgba(15,23,42,.68);
+      --op-surface-2: rgba(15,23,42,.86);
+      --op-text: #e5eefb;
+      --op-muted: #94a3b8;
+      --op-stroke: rgba(148,163,184,.16);
+      --op-stroke-2: rgba(148,163,184,.25);
+      --op-grid: rgba(255,255,255,.20);
+      --op-grid-strong: rgba(255,255,255,.65);
+      --op-head: rgba(30,41,59,.98);
+      --op-head-2: rgba(15,23,42,.98);
+      --op-group: rgba(51,65,85,.95);
+      --op-row-hover: rgba(99,102,241,.10);
+      --op-subtotal: rgba(127,29,29,.20);
+      --op-grand: rgba(30,64,175,.16);
+      --op-shadow: 0 24px 70px rgba(0,0,0,.42);
+      --op-shadow-2: 0 12px 32px rgba(0,0,0,.34);
+      --op-purple: #c084fc;
+      --op-blue: #60a5fa;
+      --op-green: #4ade80;
+      --op-red: #f87171;
+    }
+  }
+
+  .op-shell{
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .op-card{
+    border:1px solid var(--op-stroke);
+    border-radius:24px;
+    box-shadow:var(--op-shadow);
+    padding:14px;
+    backdrop-filter:blur(16px);
+    
+  }
+
+  .op-top{
+    display:grid;
+    grid-template-columns: 1.3fr auto;
+    gap:14px;
+    align-items:stretch;
+    margin-bottom:14px;
+  }
+
+  .op-headbox,
+  .op-actionsbox{
+    border:1px solid var(--op-stroke);
+    border-radius:20px;
+    background:var(--op-surface-2);
+    box-shadow:var(--op-shadow-2);
+    padding:16px;
+  }
+
+  .op-title{
+    margin:0;
+    font-size:22px;
+    font-weight:950;
+    color:var(--op-text);
+    line-height:1.1;
+    letter-spacing:-.02em;
+  }
+
+  .op-muted{
+    margin:7px 0 0;
+    color:var(--op-muted);
+    font-size:13px;
+    line-height:1.45;
+  }
+
+  .op-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:flex-end;
+    height:100%;
+  }
+
+  .op-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:190px;
+  }
+
+  .op-field label{
+    font-size:12px;
+    font-weight:900;
+    color:var(--op-muted);
+  }
+
+  .op-input{
+    height:44px;
+    border-radius:14px;
+    border:1px solid var(--op-stroke-2);
+    background:var(--op-surface);
+    color:var(--op-text);
+    padding:0 12px;
+    outline:none;
+    font-weight:800;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .op-input:focus{
+    border-color:rgba(79,70,229,.48);
+    box-shadow:0 0 0 4px rgba(79,70,229,.14);
+  }
+
+  .op-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    height:44px;
+    padding:0 16px;
+    border-radius:14px;
+    border:1px solid var(--op-stroke-2);
+    text-decoration:none;
+    font-weight:900;
+    cursor:pointer;
+    transition:.16s ease;
+    white-space:nowrap;
+  }
+
+  .op-btn.primary{
+    color:#fff;
+    background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(34,197,94,.92));
+    box-shadow:0 12px 28px rgba(79,70,229,.22);
+  }
+
+  .op-btn.secondary{
+    color:var(--op-text);
+    background:var(--op-surface);
+  }
+
+  .op-btn:hover{
+    transform:translateY(-1px);
+  }
+
+  .op-wrap{
+    border:2px solid var(--op-grid-strong);
+    border-radius:20px;
+    overflow:hidden;
+    background:var(--op-surface-2);
+  }
+
+  .op-scroll{
+    overflow:auto;
+    max-width:100%;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .op-scroll::-webkit-scrollbar{
+    height:10px;
+    width:10px;
+  }
+
+  .op-scroll::-webkit-scrollbar-thumb{
+    background:rgba(15,23,42,.22);
+    border-radius:999px;
+  }
+
+  html[data-theme="dark"] .op-scroll::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.16);
+  }
+
+  .op-table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:100%;
+    table-layout:fixed;
+    background:#fff;
+    font-family:"Times New Roman", serif;
+  }
+
+  [data-theme="dark"] .op-table,
+  .dark .op-table,
+  :root:not([data-theme="light"]) .op-table{
+    background:#0f172a;
+  }
+
+  .op-table th,
+  .op-table td{
+    border:1px solid var(--op-grid);
+    padding:2px 4px;
+    font-size:11px;
+    line-height:1.02;
+    text-align:center;
+    vertical-align:middle;
+    color:#000;
+    background:#fff;
+    white-space:nowrap;
+  }
+
+  [data-theme="dark"] .op-table th,
+  [data-theme="dark"] .op-table td,
+  .dark .op-table th,
+  .dark .op-table td,
+  :root:not([data-theme="light"]) .op-table th,
+  :root:not([data-theme="light"]) .op-table td{
+    color:#e5eefb;
+    background:#0f172a;
+  }
+
+  .op-table thead th{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:var(--op-head);
+    font-weight:700;
+  }
+
+  .op-main-title{
+    font-size:13px !important;
+    line-height:1.18 !important;
+    padding:7px 8px !important;
+    background:var(--op-head-2) !important;
+    font-weight:800 !important;
+    border-bottom:2px solid var(--op-grid-strong) !important;
+  }
+
+  .op-group{
+    background:var(--op-group) !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    border-bottom:2px solid var(--op-grid-strong) !important;
+  }
+
+  .op-sub{
+    background:var(--op-head-2) !important;
+    font-size:10px !important;
+    font-weight:800 !important;
+  }
+
+  .name-col{
+    position:sticky;
+    left:0;
+    z-index:11;
+    min-width:110px;
+    max-width:110px;
+    width:110px;
+    text-align:left !important;
+    padding-left:6px !important;
+    background:#fff !important;
+    font-weight:700;
+    border-right:2px solid var(--op-grid-strong) !important;
+  }
+
+  .op-table thead .name-col{
+    background:var(--op-head) !important;
+    z-index:12;
+    text-align:center !important;
+    padding-left:4px !important;
+  }
+
+  [data-theme="dark"] .name-col,
+  .dark .name-col,
+  :root:not([data-theme="light"]) .name-col{
+    background:#111827 !important;
+  }
+
+  .purple{ color:var(--op-purple) !important; font-weight:700; }
+  .blue{ color:var(--op-blue) !important; font-weight:700; }
+  .green{ color:var(--op-green) !important; font-weight:700; }
+  .red{ color:var(--op-red) !important; font-weight:700; }
+
+  .readonly-green{ color:var(--op-green) !important; font-weight:700; }
+  .readonly-blue{ color:var(--op-blue) !important; font-weight:700; }
+  .readonly-red{ color:var(--op-red) !important; font-weight:700; }
+
+  .group-title-row td{
+    background:var(--op-group) !important;
+    font-weight:800 !important;
+    text-align:left !important;
+    padding:6px 8px !important;
+    border-top:2px solid var(--op-grid-strong) !important;
+    border-bottom:2px solid var(--op-grid-strong) !important;
+  }
+
+  .subtotal td{
+    font-weight:800;
+    background:var(--op-subtotal) !important;
+    border-top:2px solid var(--op-grid-strong) !important;
+  }
+
+  .subtotal .name-col{
+    color:var(--op-red) !important;
+    font-weight:800;
+  }
+
+  .grandtotal td{
+    font-weight:800;
+    background:var(--op-grand) !important;
+    border-top:3px solid var(--op-grid-strong) !important;
+    border-bottom:3px solid var(--op-grid-strong) !important;
+  }
+
+  .grandtotal .name-col{
+    color:var(--op-blue) !important;
+    font-weight:800;
+  }
+
+  .edit-cell{
+    padding:1px !important;
+    background:#fff !important;
+  }
+
+  [data-theme="dark"] .edit-cell,
+  .dark .edit-cell,
+  :root:not([data-theme="light"]) .edit-cell{
+    background:#0f172a !important;
+  }
+
+  .edit-input{
+    width:100%;
+    max-width:100%;
+    min-width:56px;
+    height:23px;
+    border:none;
+    outline:none;
+    background:transparent;
+    text-align:center;
+    font-size:11px;
+    font-family:"Times New Roman", serif;
+    color:#000;
+    font-weight:700;
+  }
+
+  [data-theme="dark"] .edit-input,
+  .dark .edit-input,
+  :root:not([data-theme="light"]) .edit-input{
+    color:#e5eefb;
+  }
+
+  .edit-input.blue{
+    color:var(--op-blue);
+    font-weight:700;
+  }
+
+  .op-table td:nth-child(4),
+  .op-table th:nth-child(4),
+  .op-table td:nth-child(7),
+  .op-table th:nth-child(7),
+  .op-table td:nth-child(10),
+  .op-table th:nth-child(10),
+  .op-table td:nth-child(13),
+  .op-table th:nth-child(13){
+    border-right:2px solid var(--op-grid-strong) !important;
+  }
+
+  .op-table td:nth-child(2),
+  .op-table th:nth-child(2),
+  .op-table td:nth-child(5),
+  .op-table th:nth-child(5),
+  .op-table td:nth-child(8),
+  .op-table th:nth-child(8),
+  .op-table td:nth-child(11),
+  .op-table th:nth-child(11),
+  .op-table td:nth-child(14),
+  .op-table th:nth-child(14){
+    border-left:2px solid var(--op-grid-strong) !important;
+  }
+
+  .op-note{
+    margin-top:10px;
+    color:var(--op-muted);
+    font-size:12px;
+  }
+
+  @media (min-width: 1400px){
+    .op-table th,
+    .op-table td{
+      font-size:10.5px;
+      padding:2px 3px;
+    }
+
+    .name-col{
+      min-width:100px;
+      max-width:100px;
+      width:100px;
+    }
+
+    .edit-input{
+      min-width:50px;
+      font-size:10.5px;
+    }
+  }
+
+  @media (max-width: 1100px){
+    .op-top{
+      grid-template-columns:1fr;
+    }
+
+    .op-actions{
+      justify-content:flex-start;
+    }
+  }
+
+  @media (max-width: 900px){
+    .op-card{ padding:12px; }
+    .op-field{ min-width:160px; flex:1 1 auto; }
+    .op-btn{ width:100%; }
+  }
+</style>
+
+<div class="op-page">
+  <div class="op-shell">
+    <div class="op-card">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="op-top">
+          <div class="op-headbox">
+            <h2 class="op-title">Оперативная информация</h2>
+            <p class="op-muted">
+              Редактируются только поля прошлого года. Jadval maksimal darajada ekranga moslashtirilgan.
+            </p>
+          </div>
+
+          <div class="op-actionsbox">
+            <div class="op-actions">
+              <button class="op-btn secondary" type="button" ><a href="{% url 'kvartalniy_daily_list' %}">← Ortga </a> </button>
+
+              <div class="op-field">
+                <label>Дата</label>
+                <input class="op-input" type="date" name="date" value="{{ date|date:'Y-m-d' }}" required>
+              </div>
+
+              <button class="op-btn primary" type="submit" name="save" value="1">Yangilash</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="op-wrap">
+          <div class="op-scroll">
+            <table class="op-table">
+              <thead>
+                <tr>
+                  <th class="op-main-title" colspan="16">
+                    Оперативная информация о погрузке и выгрузке контейнеров, вагонов и доходах по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
+                    на {{ date|date:"d.m.Y" }} г. / {{ prev_date_label }}
+                  </th>
+                </tr>
+
+                <tr>
+                  <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
+                  <th class="op-group" colspan="3">Погрузка вагонов (шт)</th>
+                  <th class="op-group" colspan="3">Выгрузка вагонов (шт)</th>
+                  <th class="op-group" colspan="3">Погрузка кон (шт)</th>
+                  <th class="op-group" colspan="3">Выгрузка конт</th>
+                  <th class="op-group" colspan="3">Доходы (тыс)</th>
+                </tr>
+
+                <tr>
+                  <th class="op-sub green">факт</th>
+                  <th class="op-sub blue">факт</th>
+                  <th class="op-sub red">+/-</th>
+
+                  <th class="op-sub green">факт</th>
+                  <th class="op-sub blue">факт</th>
+                  <th class="op-sub red">+/-</th>
+
+                  <th class="op-sub green">факт</th>
+                  <th class="op-sub blue">факт</th>
+                  <th class="op-sub red">+/-</th>
+
+                  <th class="op-sub green">факт</th>
+                  <th class="op-sub blue">факт</th>
+                  <th class="op-sub red">+/-</th>
+
+                  <th class="op-sub green">факт</th>
+                  <th class="op-sub blue">факт</th>
+                  <th class="op-sub red">+/-</th>
+                </tr>
+
+                <tr>
+                  <th class="op-sub green">{{ current_year }}г.</th>
+                  <th class="op-sub blue">{{ prev_year }}г.</th>
+                  <th class="op-sub red">к {{ prev_year }}г.</th>
+
+                  <th class="op-sub green">{{ current_year }}г.</th>
+                  <th class="op-sub blue">{{ prev_year }}г.</th>
+                  <th class="op-sub red">к {{ prev_year }}г.</th>
+
+                  <th class="op-sub green">{{ current_year }}г.</th>
+                  <th class="op-sub blue">{{ prev_year }}г.</th>
+                  <th class="op-sub red">к {{ prev_year }}г.</th>
+
+                  <th class="op-sub green">{{ current_year }}г.</th>
+                  <th class="op-sub blue">{{ prev_year }}г.</th>
+                  <th class="op-sub red">к {{ prev_year }}г.</th>
+
+                  <th class="op-sub green">{{ current_year }}г.</th>
+                  <th class="op-sub blue">{{ prev_year }}г.</th>
+                  <th class="op-sub red">к {{ prev_year }}г.</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for group in groups %}
+                  {% if group.title %}
+                    <tr class="group-title-row">
+                      <td colspan="16">{{ group.title }}</td>
+                    </tr>
+                  {% endif %}
+
+                  {% for row in group.rows %}
+                    <tr>
+                      <td class="name-col {% if row.is_other %}blue{% else %}purple{% endif %}">
+                        {{ row.station_name }}
+                        {% if row.id %}
+                          <input type="hidden" name="row_ids" value="{{ row.id }}">
+                        {% endif %}
+                      </td>
+
+                      <td class="readonly-green">{{ row.pogr_this_year }}</td>
+                      <td class="{% if row.id %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if row.id %}
+                          <input class="edit-input blue" type="number" name="pogr_last_year_{{ row.id }}" value="{{ row.pogr_last_year|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.pogr_diff }}</td>
+
+                      <td class="readonly-green">{{ row.vygr_this_year }}</td>
+                      <td class="{% if row.id %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if row.id %}
+                          <input class="edit-input blue" type="number" name="vygr_last_year_{{ row.id }}" value="{{ row.vygr_last_year|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.vygr_diff }}</td>
+
+                      <td class="readonly-green">{{ row.pogr_kont_this_year }}</td>
+                      <td class="{% if row.id %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if row.id %}
+                          <input class="edit-input blue" type="number" name="pogr_kont_last_year_{{ row.id }}" value="{{ row.pogr_kont_last_year|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_kont_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.pogr_kont_diff }}</td>
+
+                      <td class="readonly-green">{{ row.vygr_kont_this_year }}</td>
+                      <td class="{% if row.id %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if row.id %}
+                          <input class="edit-input blue" type="number" name="vygr_kont_last_year_{{ row.id }}" value="{{ row.vygr_kont_last_year|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_kont_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.vygr_kont_diff }}</td>
+
+                      <td class="readonly-green">{{ row.income_this_year }}</td>
+                      <td class="{% if row.id %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if row.id %}
+                          <input class="edit-input blue" type="number" name="income_last_year_{{ row.id }}" value="{{ row.income_last_year|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.income_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.income_diff }}</td>
+                    </tr>
+                  {% endfor %}
+
+                  <tr class="subtotal">
+                    <td class="name-col">{{ group.subtotal.station_name }}</td>
+
+                    <td>{{ group.subtotal.pogr_this_year }}</td>
+                    <td class="green">{{ group.subtotal.pogr_last_year }}</td>
+                    <td>{{ group.subtotal.pogr_diff }}</td>
+
+                    <td>{{ group.subtotal.vygr_this_year }}</td>
+                    <td class="green">{{ group.subtotal.vygr_last_year }}</td>
+                    <td>{{ group.subtotal.vygr_diff }}</td>
+
+                    <td>{{ group.subtotal.pogr_kont_this_year }}</td>
+                    <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
+                    <td>{{ group.subtotal.pogr_kont_diff }}</td>
+
+                    <td>{{ group.subtotal.vygr_kont_this_year }}</td>
+                    <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
+                    <td>{{ group.subtotal.vygr_kont_diff }}</td>
+
+                    <td>{{ group.subtotal.income_this_year }}</td>
+                    <td class="green">{{ group.subtotal.income_last_year }}</td>
+                    <td class="red">{{ group.subtotal.income_diff }}</td>
+                  </tr>
+                {% endfor %}
+
+                <tr class="grandtotal">
+                  <td class="name-col">{{ grand_total.station_name }}</td>
+
+                  <td>{{ grand_total.pogr_this_year }}</td>
+                  <td class="green">{{ grand_total.pogr_last_year }}</td>
+                  <td>{{ grand_total.pogr_diff }}</td>
+
+                  <td>{{ grand_total.vygr_this_year }}</td>
+                  <td class="green">{{ grand_total.vygr_last_year }}</td>
+                  <td>{{ grand_total.vygr_diff }}</td>
+
+                  <td>{{ grand_total.pogr_kont_this_year }}</td>
+                  <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
+                  <td>{{ grand_total.pogr_kont_diff }}</td>
+
+                  <td>{{ grand_total.vygr_kont_this_year }}</td>
+                  <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
+                  <td>{{ grand_total.vygr_kont_diff }}</td>
+
+                  <td>{{ grand_total.income_this_year }}</td>
+                  <td class="blue">{{ grand_total.income_last_year }}</td>
+                  <td class="red">{{ grand_total.income_diff }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

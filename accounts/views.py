@@ -1,31 +1,28 @@
 import calendar
 from collections import defaultdict
-from django.http import JsonResponse
-from django.urls import reverse_lazy
-from django.utils import timezone
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from datetime import datetime
+from django.contrib.auth.views import LoginView, LogoutView
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
 from reports.models import StationDailyTable1
 from .models import StationProfile
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.views.decorators.http import require_GET
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
+
 
 class AppLoginView(LoginView):
     template_name = "login.html"
-    redirect_authenticated_user = True   # ⭐ IMPORTANT
+    redirect_authenticated_user = True
 
     def get_success_url(self):
-        return reverse_lazy("admin_settings")  # your homepage url name
+        return reverse_lazy("admin_settings")
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -40,13 +37,10 @@ class AppLoginView(LoginView):
 
 
 class AppLogoutView(LogoutView):
-
     def dispatch(self, request, *args, **kwargs):
-        # ❌ not logged in → cannot logout
         if not request.user.is_authenticated:
-            return redirect("login")   # or "home"
+            return redirect("login")
 
-        # logged user → update status
         sp = getattr(request.user, "station_profile", None)
         if sp:
             sp.status_online = False
@@ -55,7 +49,7 @@ class AppLogoutView(LogoutView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_next_page(self):
-        return reverse_lazy("login")   # where to go after logout
+        return reverse_lazy("login")
 
 
 @login_required
@@ -66,40 +60,125 @@ def station_heartbeat(request):
         sp.save(update_fields=["last_seen"])
     return JsonResponse({"ok": True})
 
+
 def router(request):
     if request.user.is_staff or request.user.is_superuser:
-        return redirect('admin_table1_reports')
-    return redirect('station_table_1_list')
+        return redirect("admin_table1_reports")
+    return redirect("station_table_1_list")
 
 
+@login_required
 def admin_stations(request):
     if not (request.user.is_staff or request.user.is_superuser):
-        return redirect('station_table_1_list')
+        return redirect("station_table_1_list")
 
     error = None
 
-    if request.method == 'POST':
-        station_name = (request.POST.get('station_name') or '').strip()
-        username = (request.POST.get('username') or '').strip()
-        password = (request.POST.get('password') or '').strip()
+    if request.method == "POST":
+        station_name = (request.POST.get("station_name") or "").strip()
+        username = (request.POST.get("username") or "").strip()
+        password = (request.POST.get("password") or "").strip()
 
         if not station_name or not username or not password:
-            error = 'Заполните station_name, username и password.'
+            error = "Заполните station_name, username и password."
         elif User.objects.filter(username=username).exists():
-            error = 'Пользователь с таким username уже существует.'
+            error = "Пользователь с таким username уже существует."
         else:
             user = User.objects.create_user(username=username, password=password)
 
             StationProfile.objects.create(
                 user=user,
                 station_name=station_name,
-                plain_password=password,  # ✅ сохраняем тот пароль, который дали
+                plain_password=password,
             )
 
-            return redirect("admin_stations")  # чтобы не было повторной отправки формы
+            messages.success(request, "Филиал успешно создан.")
+            return redirect("admin_stations")
 
-    stations = StationProfile.objects.select_related('user').order_by('station_name')
-    return render(request, 'admin_stations.html', {'stations': stations, 'error': error})
+    stations = StationProfile.objects.select_related("user").order_by("station_name")
+    return render(request, "admin_stations.html", {"stations": stations, "error": error})
+
+
+@login_required
+@require_POST
+def promote_station(request, station_id: int):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return redirect("station_table_1_list")
+
+    profile = get_object_or_404(StationProfile, id=station_id)
+    status_raw = (request.POST.get("status") or "").strip().lower()
+    profile.status = status_raw == "true"
+    profile.save(update_fields=["status"])
+
+    return redirect("admin_stations")
+
+
+@login_required(login_url="login")
+def admin_station_edit(request, station_id: int):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return redirect("station_table_1_list")
+
+    profile = get_object_or_404(
+        StationProfile.objects.select_related("user"),
+        id=station_id
+    )
+    user = profile.user
+    error = None
+
+    if request.method == "POST":
+        station_name = (request.POST.get("station_name") or "").strip()
+        username = (request.POST.get("username") or "").strip()
+        password = (request.POST.get("password") or "").strip()
+        status = request.POST.get("status") == "on"
+
+        if not station_name or not username:
+            error = "Название филиала и логин обязательны."
+        elif User.objects.filter(username=username).exclude(id=user.id).exists():
+            error = "Пользователь с таким username уже существует."
+        else:
+            user.username = username
+            if password:
+                user.set_password(password)
+            user.save()
+
+            profile.station_name = station_name
+            profile.status = status
+            if password:
+                profile.plain_password = password
+            profile.save()
+
+            messages.success(request, "Данные филиала успешно обновлены.")
+            return redirect("admin_stations")
+
+    return render(
+        request,
+        "admin_station_edit.html",
+        {
+            "station": profile,
+            "error": error,
+        },
+    )
+
+
+@login_required
+@require_POST
+def admin_station_delete(request, station_id: int):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return redirect("station_table_1_list")
+
+    profile = get_object_or_404(
+        StationProfile.objects.select_related("user"),
+        id=station_id
+    )
+
+    if profile.user.is_staff or profile.user.is_superuser:
+        messages.error(request, "Нельзя удалить администратора или staff-пользователя.")
+        return redirect("admin_stations")
+
+    profile.user.delete()
+    messages.success(request, "Филиал успешно удалён.")
+    return redirect("admin_stations")
+
 
 def _parse_yyyy_mm_dd(s: str):
     if not s:
@@ -108,7 +187,8 @@ def _parse_yyyy_mm_dd(s: str):
         return datetime.strptime(s, "%Y-%m-%d").date()
     except ValueError:
         return None
-    
+
+
 def _month_add(d: date, months: int) -> date:
     y = d.year + (d.month - 1 + months) // 12
     m = (d.month - 1 + months) % 12 + 1
@@ -116,30 +196,15 @@ def _month_add(d: date, months: int) -> date:
 
 
 def station_settings(request):
-    return render(request, 'station_settings.html')
+    return render(request, "station_settings.html")
+
 
 def logout_get(request):
     logout(request)
-    return redirect('/login/')
+    return redirect("/login/")
 
 
-
-def admin_station_delete(request, station_id: int):
-    if not (request.user.is_staff or request.user.is_superuser):
-        return redirect("station_table_1_list")
-
-    profile = get_object_or_404(StationProfile.objects.select_related("user"), id=station_id)
-
-    # защита: нельзя удалить админа/стаффа
-    if profile.user.is_staff or profile.user.is_superuser:
-        return redirect("admin_stations")
-
-    # удаляем User (профиль удалится каскадом)
-    profile.user.delete()
-
-    return redirect("admin_stations")
-
-
+@login_required
 def admin_settings(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return redirect("station_table_1_list")
@@ -147,57 +212,68 @@ def admin_settings(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
-    qs = StationDailyTable1.objects.all().only("data", "date", "station_user")
-    if d_from:
-        qs = qs.filter(date__gte=d_from)
-    if d_to:
-        qs = qs.filter(date__lte=d_to)
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    last_day = today.replace(day=calendar.monthrange(today.year, today.month)[1])
 
-    # --- KPI totals (filtered) ---
-    totals = {"vygr": 0, "pod_vygr": 0, "pogr": 0, "pod_pogr": 0}
+    start_date = d_from if d_from else first_day
+    end_date = d_to if d_to else last_day
+
+    qs = StationDailyTable1.objects.all().only("data", "date", "station_user").exclude(shift="total")
+    qs = qs.filter(date__range=(start_date, end_date))
+
+    totals = {
+        "vygr": 0,
+        "pod_vygr": 0,
+        "pogr": 0,
+        "pod_pogr": 0,
+        "vygr_cont": 0,
+        "pod_vygr_cont": 0,
+        "pod_pogr_cont": 0,
+        "pogr_cont": 0,
+    }
+
     for row in qs:
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("pod_vygr"):
-                totals["pod_vygr"] += v
-            elif k.startswith("vygr"):
-                totals["vygr"] += v
-            elif k.startswith("pod_pogr"):
-                totals["pod_pogr"] += v
-            elif k.startswith("pogr"):
-                totals["pogr"] += v
+        totals["vygr"] += d.get("vygr_itogo", 0)
+        totals["pod_pogr"] += d.get("pod_pogr_itogo", 0)
+        totals["pod_pogr_cont"] += d.get("pod_pogr_cont", 0)
+        totals["pod_vygr"] += d.get("pod_vygr_itogo", 0)
+        totals["pod_vygr_cont"] += d.get("pod_vygr_cont", 0)
+        totals["vygr_cont"] += d.get("vygr_cont", 0)
+        totals["pogr"] += d.get("pogr_itogo", 0)
+        totals["pogr_cont"] += d.get("pogr_cont", 0)
 
-    # --- Top 5 income_daily THIS MONTH (bar chart) ---
     today = timezone.localdate()
-    month_start = today.replace(day=1)
 
-    qs_month = (
+    qs_top5 = (
         StationDailyTable1.objects
-        .filter(date__gte=month_start, date__lte=today)
+        .filter(date__range=(start_date, end_date))
         .select_related("station_user")
         .only("data", "station_user__username", "station_user__first_name", "station_user__last_name")
+        .exclude(shift="total")
     )
 
     sums = defaultdict(float)
-    for row in qs_month:
+    for row in qs_top5:
         val = (row.data or {}).get("income_daily", 0)
         if isinstance(val, (int, float)):
             sums[row.station_user_id] += float(val)
 
     top5 = sorted(sums.items(), key=lambda x: x[1], reverse=True)[:5]
-    users_map = {u.id: u for u in User.objects.filter(id__in=[uid for uid, _ in top5])}
+    users_map = {
+        u.id: u
+        for u in User.objects.filter(id__in=[uid for uid, _ in top5]).select_related("station_profile")
+    }
 
     structure_labels, structure_values = [], []
     for uid, total in top5:
         u = users_map.get(uid)
         if not u:
             continue
-        structure_labels.append((f"{u.first_name} {u.last_name}".strip() or u.username))
+        structure_labels.append((f"{u.first_name} {u.last_name}".strip() or u.station_profile.station_name))
         structure_values.append(int(total))
 
-    # --- incomeMini: LAST 10 days (static) ---
     start_10 = today - timedelta(days=9)
     qs_10 = (
         StationDailyTable1.objects
@@ -225,11 +301,16 @@ def admin_settings(request):
         "incomeMini": {"labels": income_labels, "values": income_values},
     }
 
-    return render(request, "admin_settings.html", {
-        "dash_json": dash_json,
-        "from": str(d_from) if d_from else "",
-        "to": str(d_to) if d_to else "",
-    })
+    return render(
+        request,
+        "admin_settings.html",
+        {
+            "dash_json": dash_json,
+            "from": str(d_from) if d_from else "",
+            "to": str(d_to) if d_to else "",
+        },
+    )
+
 
 def admin_settings_monthly_json(request):
     if not (request.user.is_staff or request.user.is_superuser):
@@ -249,13 +330,8 @@ def admin_settings_monthly_json(request):
     for row in qs_6m:
         mkey = row.date.replace(day=1)
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("vygr") and not k.startswith("pod_vygr"):
-                by_month[mkey]["vygr"] += float(v)
-            elif k.startswith("pogr") and not k.startswith("pod_pogr"):
-                by_month[mkey]["pogr"] += float(v)
+        by_month[mkey]["vygr"] += d.get("vygr_itogo", 0)
+        by_month[mkey]["pogr"] += d.get("pogr_itogo", 0)
 
     labels, ortish, tushirish = [], [], []
     cur = six_months_start
@@ -267,11 +343,45 @@ def admin_settings_monthly_json(request):
 
     return JsonResponse({"monthly": {"labels": labels, "ortish": ortish, "tushirish": tushirish}})
 
+
+def admin_settings_monthly_json_cont(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"detail": "forbidden"}, status=403)
+
+    today = timezone.localdate()
+    this_month_start = today.replace(day=1)
+    six_months_start = _month_add(this_month_start, -5)
+
+    qs_6m = (
+        StationDailyTable1.objects
+        .filter(date__gte=six_months_start, date__lte=today)
+        .only("date", "data")
+    )
+
+    by_month = defaultdict(lambda: {"pogr": 0.0, "vygr": 0.0})
+    for row in qs_6m:
+        mkey = row.date.replace(day=1)
+        d = row.data or {}
+        by_month[mkey]["vygr"] += d.get("vygr_cont", 0)
+        by_month[mkey]["pogr"] += d.get("pogr_cont", 0)
+
+    labels, ortish, tushirish = [], [], []
+    cur = six_months_start
+    for _ in range(6):
+        labels.append(calendar.month_name[cur.month])
+        ortish.append(int(by_month[cur]["pogr"]))
+        tushirish.append(int(by_month[cur]["vygr"]))
+        cur = _month_add(cur, 1)
+
+    return JsonResponse({"monthly": {"labels": labels, "ortish": ortish, "tushirish": tushirish}})
+
+
 def _station_name(u: User) -> str:
     sp = getattr(u, "station_profile", None)
     if sp and sp.station_name:
         return sp.station_name
     return u.username
+
 
 def admin_settings_stations_json(request):
     if not (request.user.is_staff or request.user.is_superuser):
@@ -280,7 +390,7 @@ def admin_settings_stations_json(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
-    qs = StationDailyTable1.objects.all().only("date", "data", "station_user")
+    qs = StationDailyTable1.objects.all().only("date", "data", "station_user").exclude(shift="total")
     if d_from:
         qs = qs.filter(date__gte=d_from)
     if d_to:
@@ -318,10 +428,11 @@ def admin_settings_stations_json(request):
     return JsonResponse({
         "stations": {
             "labels": [r[0] for r in rows],
-            "ortish": [r[1] for r in rows],     # pogr
-            "tushirish": [r[2] for r in rows],  # vygr
+            "ortish": [r[1] for r in rows],
+            "tushirish": [r[2] for r in rows],
         }
     })
+
 
 def admin_settings_stacked_top5_json(request):
     if not (request.user.is_staff or request.user.is_superuser):
@@ -330,7 +441,7 @@ def admin_settings_stacked_top5_json(request):
     d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
     d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
 
-    qs = StationDailyTable1.objects.all().only("date", "data", "station_user")
+    qs = StationDailyTable1.objects.all().only("date", "data", "station_user").exclude(shift="total")
     if d_from:
         qs = qs.filter(date__gte=d_from)
     if d_to:
@@ -340,13 +451,8 @@ def admin_settings_stacked_top5_json(request):
 
     for row in qs:
         d = row.data or {}
-        for k, v in d.items():
-            if not isinstance(v, (int, float)):
-                continue
-            if k.startswith("pogr") and not k.startswith("pod_pogr"):
-                agg[row.station_user_id]["pogr"] += float(v)
-            elif k.startswith("vygr") and not k.startswith("pod_vygr"):
-                agg[row.station_user_id]["vygr"] += float(v)
+        agg[row.station_user_id]["pogr"] += d.get("pod_pogr_itogo", 0)
+        agg[row.station_user_id]["vygr"] += d.get("pod_vygr_itogo", 0)
 
     top5 = sorted(
         agg.items(),
@@ -367,8 +473,8 @@ def admin_settings_stacked_top5_json(request):
         if not u:
             continue
         labels.append(_station_name(u))
-        day.append(int(vals["pogr"]))    # blue
-        night.append(int(vals["vygr"]))  # pink
+        day.append(int(vals["pogr"]))
+        night.append(int(vals["vygr"]))
 
     return JsonResponse({
         "dayNightTop": {
@@ -377,11 +483,64 @@ def admin_settings_stacked_top5_json(request):
             "night": night,
         }
     })
+
+
+def admin_settings_stacked_top5_json_cont(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"detail": "forbidden"}, status=403)
+
+    d_from = _parse_yyyy_mm_dd(request.GET.get("from"))
+    d_to = _parse_yyyy_mm_dd(request.GET.get("to"))
+
+    qs = StationDailyTable1.objects.all().only("date", "data", "station_user").exclude(shift="total")
+    if d_from:
+        qs = qs.filter(date__gte=d_from)
+    if d_to:
+        qs = qs.filter(date__lte=d_to)
+
+    agg = defaultdict(lambda: {"pogr": 0.0, "vygr": 0.0})
+
+    for row in qs:
+        d = row.data or {}
+        agg[row.station_user_id]["pogr"] += d.get("pogr_cont", 0)
+        agg[row.station_user_id]["vygr"] += d.get("vygr_cont", 0)
+
+    top5 = sorted(
+        agg.items(),
+        key=lambda x: x[1]["pogr"] + x[1]["vygr"],
+        reverse=True
+    )[:5]
+
+    users = (
+        User.objects.filter(id__in=[uid for uid, _ in top5])
+        .select_related("station_profile")
+        .only("id", "username", "station_profile__station_name")
+    )
+    u_map = {u.id: u for u in users}
+
+    labels, day, night = [], [], []
+    for uid, vals in top5:
+        u = u_map.get(uid)
+        if not u:
+            continue
+        labels.append(_station_name(u))
+        day.append(int(vals["pogr"]))
+        night.append(int(vals["vygr"]))
+
+    return JsonResponse({
+        "dayNightTop": {
+            "labels": labels,
+            "day": day,
+            "night": night,
+        }
+    })
+
+
 def admin_settings_online_users_json(request):
     if not (request.user.is_staff or request.user.is_superuser):
         return JsonResponse({"detail": "forbidden"}, status=403)
 
-    ONLINE_WINDOW = 60  # seconds
+    ONLINE_WINDOW = 60
     now = timezone.now()
 
     users = (

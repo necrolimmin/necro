@@ -1,22 +1,24 @@
 from datetime import date as dt_date, datetime
 from functools import wraps
 import io
+import json
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldError
 from django.core.paginator import Paginator
 from django.db.models import Sum, Max
-from django.http import HttpResponseNotAllowed, HttpResponse
+from django.http import HttpResponseNotAllowed, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.urls import reverse
+from django.views.decorators.http import require_GET, require_POST
 
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
 from accounts.models import StationProfile
-from .models import StationDailyTable1, StationDailyTable2, KPIValue
+from .models import StationDailyTable1, StationDailyTable2, KPIValue, Notification, NotificationRead
 from .forms import TABLE1_FIELDS
 
 
@@ -43,7 +45,7 @@ def _read_int(raw: str) -> int:
     if raw == "":
         return 0
     try:
-        return int(raw)
+        return int(float(raw))
     except (TypeError, ValueError):
         return 0
 
@@ -74,23 +76,11 @@ TERMINAL_NAME_KEY = "terminal_name"
 
 
 def _station_has_night(user) -> bool:
-    """
-    status=True  -> день+ночь+итог
-    status=False -> только день
-    """
-
     pro = StationProfile.objects.get(user=user)
-    print(pro.status)
     return bool(pro.status) or False
 
 
-
 def _terminal_blocks_for_station_date(user, d: dt_date, *, force_new: bool = False) -> list[int]:
-    """
-    Блоки (block) теперь трактуем как ТЕРМИНАЛЫ.
-    Если отчёт уже существует — берём реальные block из БД.
-    Если отчёта нет (или force_new) — стартуем с [1].
-    """
     if force_new:
         return [1]
 
@@ -105,10 +95,6 @@ def _terminal_blocks_for_station_date(user, d: dt_date, *, force_new: bool = Fal
 
 
 def _is_table1_submitted(user, d: dt_date):
-    """
-    Отправлено, если есть submitted_at хотя бы на одном total-объекте (любой block).
-    Возвращаем (ok, last_datetime).
-    """
     if not user:
         return False, None
 
@@ -173,7 +159,6 @@ def station_table_1_list(request):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
 
-    # ✅ даты без дублей (теперь блоков может быть много — терминалы)
     qs_dates = (
         StationDailyTable1.objects
         .filter(station_user=request.user, shift="total")
@@ -215,8 +200,6 @@ def station_table_1_view(request, date_str):
 
     d = _parse_date(date_str)
     has_night = _station_has_night(request.user)
-    print(has_night)
-
     blocks = _terminal_blocks_for_station_date(request.user, d, force_new=False)
 
     blocks_ctx = []
@@ -247,20 +230,12 @@ def station_table_1_view(request, date_str):
         "mode": "view",
         "TABLE1_FIELDS": TABLE1_FIELDS,
         "is_new": False,
-        "status": has_night,  # ✅ теперь это только day/night
+        "status": has_night,
     })
 
 
 @login_required
 def station_table_1_edit(request, date_str):
-    """
-    ОБНОВЛЕНО:
-      - blocks теперь = терминалы (block=1..N)
-      - terminal_name сохраняем в data["terminal_name"] для каждого block
-      - submitted_at ставится ТОЛЬКО при submit_report=1
-      - обычное сохранение НЕ трогает submitted_at
-      - дубль проверяем по ЛЮБОМУ total (любой block)
-    """
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
 
@@ -275,7 +250,6 @@ def station_table_1_edit(request, date_str):
             station_user=request.user, date=d_url, shift=shift, block=block
         ).first()
 
-    # -------- load existing objects per block ----------
     blocks = _terminal_blocks_for_station_date(request.user, d_url, force_new=force_new)
 
     if force_new:
@@ -302,13 +276,11 @@ def station_table_1_edit(request, date_str):
 
         is_new = (not any_total)
 
-    # -------- POST save ----------
     if request.method == "POST":
         posted_date_str = (request.POST.get("date") or "").strip()
         d_form = _parse_date(posted_date_str) if posted_date_str else d_url
         d_save = d_form if is_new else d_url
 
-        # ✅ дубль: если есть хоть один total за дату — это уже отчёт
         if is_new and StationDailyTable1.objects.filter(
             station_user=request.user, date=d_save, shift="total"
         ).exists():
@@ -324,15 +296,12 @@ def station_table_1_edit(request, date_str):
                 "status": has_night,
             })
 
-        # ✅ определяем, какие block (терминалы) реально пришли с формы
-        # ожидаем input name вида: b{n}__day__podano_lc / b{n}__terminal__name / b{n}__common__...
         posted_blocks = set()
         for k in request.POST.keys():
             if not k.startswith("b"):
                 continue
-            # b12__day__xxx
             try:
-                head = k.split("__", 1)[0]  # "b12"
+                head = k.split("__", 1)[0]
                 if head.startswith("b"):
                     n = int(head[1:])
                     if n > 0:
@@ -340,22 +309,17 @@ def station_table_1_edit(request, date_str):
             except Exception:
                 continue
 
-        blocks_to_save = sorted(posted_blocks) or blocks  # fallback
+        blocks_to_save = sorted(posted_blocks) or blocks
 
-        # ✅ сохраняем каждый терминал (block) отдельно
         for b in blocks_to_save:
             day_data = {}
             night_data = {}
             total_data = {}
 
-            # terminal name (новое)
             term_name = (request.POST.get(f"b{b}__terminal__name") or "").strip()
-
-            # k_podache_so_st общий на терминал
             k_key = f"b{b}__common__k_podache_so_st"
             k_val = _read_int(request.POST.get(k_key))
 
-            # day/night поля
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
                     continue
@@ -365,17 +329,14 @@ def station_table_1_edit(request, date_str):
                 else:
                     night_data[key] = 0
 
-            # добавляем общие поля в day/night/total
             day_data["k_podache_so_st"] = k_val
             if has_night:
                 night_data["k_podache_so_st"] = k_val
 
-            # terminal name кладём в data всех смен (чтобы админ мог взять откуда угодно)
             day_data[TERMINAL_NAME_KEY] = term_name
             if has_night:
                 night_data[TERMINAL_NAME_KEY] = term_name
 
-            # auto total = day + night (кроме income_daily)
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
                     total_data[key] = k_val
@@ -384,10 +345,8 @@ def station_table_1_edit(request, date_str):
                     continue
                 total_data[key] = int(day_data.get(key, 0)) + (int(night_data.get(key, 0)) if has_night else 0)
 
-            # terminal name и в total
             total_data[TERMINAL_NAME_KEY] = term_name
 
-            # ручная корректировка total__*
             for key, _label in TABLE1_FIELDS:
                 if key in ("k_podache_so_st", "income_daily"):
                     continue
@@ -395,7 +354,6 @@ def station_table_1_edit(request, date_str):
                 if manual_raw != "":
                     total_data[key] = _read_int(manual_raw)
 
-            # income_daily: если заполнен вручную — берём, иначе auto сумма total полей
             income_auto = 0
             for key, _label in TABLE1_FIELDS:
                 if key in ("income_daily", "k_podache_so_st"):
@@ -405,7 +363,6 @@ def station_table_1_edit(request, date_str):
             income_manual_raw = (request.POST.get(f"b{b}__total__income_daily") or "").strip()
             total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
 
-            # ✅ пишем в БД
             StationDailyTable1.objects.update_or_create(
                 station_user=request.user, date=d_save, shift="day", block=b,
                 defaults={"data": day_data}
@@ -416,7 +373,6 @@ def station_table_1_edit(request, date_str):
                     defaults={"data": night_data}
                 )
             else:
-                # если ночи нет — удаляем ночной объект (если был раньше)
                 StationDailyTable1.objects.filter(
                     station_user=request.user, date=d_save, shift="night", block=b
                 ).delete()
@@ -426,7 +382,6 @@ def station_table_1_edit(request, date_str):
                 defaults={"data": total_data}
             )
 
-        # ✅ отправка админу
         if request.POST.get("submit_report") == "1":
             now = timezone.now()
             StationDailyTable1.objects.filter(
@@ -458,13 +413,12 @@ def station_table_1_delete(request, date_str):
         return HttpResponseNotAllowed(["POST"])
 
     d = _parse_date(date_str)
-    # ✅ удаляем ВСЕ терминалы/смены за дату
     StationDailyTable1.objects.filter(station_user=request.user, date=d).delete()
     return redirect("station_table_1_list")
 
 
 # =========================
-# TABLE 2 DEFINITIONS (без изменений)
+# TABLE 2 DEFINITIONS
 # =========================
 
 TABLE2_ROWS = [
@@ -486,12 +440,13 @@ TABLE2_ROWS = [
     (16, "Выбыло соб.(приват)",          "СС",   "r16_total", "r16_ktk"),
     (17, "Исключено",                    "ИН",   "r17_total", "r17_ktk"),
     (18, "Передано на баланс",           "СБ",   "r18_total", "r18_ktk"),
-    (19, "Отставание в резерве",         "СР",   "r19_total", "r19_ktk"),
+    (19, "Отставлено в резерве",         "СР",   "r19_total", "r19_ktk"),
     (20, "Отставание в запасе",          "СЗ",   "r20_total", "r20_ktk"),
     (21, "Вывоз автотранспортом",        "СТ",   "r21_total", "r21_ktk"),
     (22, "Загружено",                    "З",    R22_G_TOTAL, R22_G_KTK),
+    (35, "Порожние",                     "p",    "r22p_total", "r22p_ktk"),
     (23, "Разгружено",                   "Р",    "r23_total", "r23_ktk"),
-    (24, "Наличие на КП",               "В",    "r24_total", "r24_ktk"),
+    (24, "Наличие на КП",                "В",    "r24_total", "r24_ktk"),
     (25, "В рабочем парке на пл",        "ВР",   "r25_total", "r25_ktk"),
     (26, "В том числе груженых",         "ВРГ",  "r26_total", "r26_ktk"),
     (27, "Из них под сортировку",        "ВРГС", "r27_total", "r27_ktk"),
@@ -526,12 +481,14 @@ TABLE2_BOTTOM_FIELDS = {
     "cargo_volume": "cargo_volume",
     "cargo_income": "cargo_income",
 
+    # backward compatibility old keys
     "kp_fp_capacity": "kp_fp_capacity",
     "kp_fp_fact": "kp_fp_fact",
     "kp_fp_free": "kp_fp_free",
     "kp_uus_capacity": "kp_uus_capacity",
     "kp_uus_fact": "kp_uus_fact",
     "kp_uus_free": "kp_uus_free",
+
     "kp_ready_send": "kp_ready_send",
     "kp_ready_autocar": "kp_ready_autocar",
     "kp_ready_send_capacity": "kp_ready_send_capacity",
@@ -541,6 +498,149 @@ TABLE2_BOTTOM_FIELDS = {
     "kp_ready_autocar_fact": "kp_ready_autocar_fact",
     "kp_ready_autocar_free": "kp_ready_autocar_free",
 }
+
+
+# =========================
+# TABLE2 KP ROW HELPERS
+# =========================
+
+def _clean_sector_rows(rows):
+    """
+    rows = [{"name":..,"capacity":..,"fact":..,"free":..}, ...]
+    keeps at least one row
+    """
+    cleaned = []
+
+    for row in (rows or []):
+        name = str((row or {}).get("name") or "").strip()
+        cap = _int0((row or {}).get("capacity"))
+        fact = _int0((row or {}).get("fact"))
+        free = _int0((row or {}).get("free"))
+
+        cleaned.append({
+            "name": name,
+            "capacity": cap,
+            "fact": fact,
+            "free": free,
+        })
+
+    if not cleaned:
+        cleaned = [{
+            "name": "",
+            "capacity": 0,
+            "fact": 0,
+            "free": 0,
+        }]
+
+    return cleaned
+
+
+def _read_sector_rows_from_post(request):
+    """
+    Reads:
+      kp_sector_name[]
+      kp_sector_capacity[]
+      kp_sector_fact[]
+      kp_sector_free[]
+    """
+    names = request.POST.getlist("kp_sector_name[]")
+    caps = request.POST.getlist("kp_sector_capacity[]")
+    facts = request.POST.getlist("kp_sector_fact[]")
+    frees = request.POST.getlist("kp_sector_free[]")
+
+    max_len = max(len(names), len(caps), len(facts), len(frees), 1)
+    rows = []
+
+    for i in range(max_len):
+        name = (names[i] if i < len(names) else "").strip()
+        cap = _read_int(caps[i] if i < len(caps) else "")
+        fact = _read_int(facts[i] if i < len(facts) else "")
+        free = _read_int(frees[i] if i < len(frees) else "")
+
+        if name == "" and cap == 0 and fact == 0 and free == 0:
+            continue
+
+        rows.append({
+            "name": name,
+            "capacity": cap,
+            "fact": fact,
+            "free": free,
+        })
+
+    return _clean_sector_rows(rows)
+
+
+def _sum_sector_rows(rows):
+    rows = _clean_sector_rows(rows)
+    return {
+        "capacity": sum(_int0(r.get("capacity")) for r in rows),
+        "fact": sum(_int0(r.get("fact")) for r in rows),
+        "free": sum(_int0(r.get("free")) for r in rows),
+    }
+
+
+def _table2_sector_rows(data: dict):
+    """
+    New format:
+      data["kp_sector_rows"] = [
+        {"name":"...", "capacity":1, "fact":2, "free":3}
+      ]
+
+    Backward compatibility:
+      old keys kp_fp_rows / kp_uus_rows
+      or old summary keys kp_fp_capacity ... kp_uus_free
+    """
+    data = data or {}
+
+    rows = data.get("kp_sector_rows")
+    if isinstance(rows, list) and rows:
+        return _clean_sector_rows(rows)
+
+    converted = []
+
+    old_fp_rows = data.get("kp_fp_rows")
+    if isinstance(old_fp_rows, list):
+        for row in old_fp_rows:
+            converted.append({
+                "name": "ФТТ",
+                "capacity": _int0((row or {}).get("capacity")),
+                "fact": _int0((row or {}).get("fact")),
+                "free": _int0((row or {}).get("free")),
+            })
+
+    old_uus_rows = data.get("kp_uus_rows")
+    if isinstance(old_uus_rows, list):
+        for row in old_uus_rows:
+            converted.append({
+                "name": "УЛС",
+                "capacity": _int0((row or {}).get("capacity")),
+                "fact": _int0((row or {}).get("fact")),
+                "free": _int0((row or {}).get("free")),
+            })
+
+    if converted:
+        return _clean_sector_rows(converted)
+
+    fp_has_any = any(_int0(data.get(k)) != 0 for k in ("kp_fp_capacity", "kp_fp_fact", "kp_fp_free"))
+    uus_has_any = any(_int0(data.get(k)) != 0 for k in ("kp_uus_capacity", "kp_uus_fact", "kp_uus_free"))
+
+    if fp_has_any or uus_has_any:
+        fallback_rows = []
+        fallback_rows.append({
+            "name": "ФТТ",
+            "capacity": _int0(data.get("kp_fp_capacity")),
+            "fact": _int0(data.get("kp_fp_fact")),
+            "free": _int0(data.get("kp_fp_free")),
+        })
+        fallback_rows.append({
+            "name": "УЛС",
+            "capacity": _int0(data.get("kp_uus_capacity")),
+            "fact": _int0(data.get("kp_uus_fact")),
+            "free": _int0(data.get("kp_uus_free")),
+        })
+        return _clean_sector_rows(fallback_rows)
+
+    return _clean_sector_rows([])
 
 
 @login_required
@@ -582,14 +682,17 @@ def station_table_2_view(request, date_str):
 
     d = _parse_date(date_str)
     obj = StationDailyTable2.objects.filter(station_user=request.user, date=d).first()
+    data = (obj.data or {}) if obj else {}
 
     return render(request, "station_table_2_create.html", {
         "date": d,
         "obj": obj,
+        "table2_data": data,
         "station_name": request.user.username,
         "rows_def": TABLE2_ROWS,
         "mode": "view",
         "bottom": TABLE2_BOTTOM_FIELDS,
+        "sector_rows": _table2_sector_rows(data),
         "r22_keys": {
             "g_total": R22_G_TOTAL, "g_ktk": R22_G_KTK,
             "p_total": R22_P_TOTAL, "p_ktk": R22_P_KTK,
@@ -624,12 +727,23 @@ def station_table_2_edit(request, date_str):
             return render(request, "station_table_2_create.html", {
                 "date": d_save,
                 "obj": None,
+                "table2_data": {},
                 "station_name": request.user.username,
                 "rows_def": TABLE2_ROWS,
                 "mode": "edit",
                 "bottom": TABLE2_BOTTOM_FIELDS,
                 "is_new": True,
                 "error": error,
+                "sector_rows": [{
+                    "name": "",
+                    "capacity": 0,
+                    "fact": 0,
+                    "free": 0,
+                }],
+                "r22_keys": {
+                    "g_total": R22_G_TOTAL, "g_ktk": R22_G_KTK,
+                    "p_total": R22_P_TOTAL, "p_ktk": R22_P_KTK,
+                }
             })
 
         data = {}
@@ -648,8 +762,6 @@ def station_table_2_edit(request, date_str):
             "pogr_wag_total", "pogr_wag_ktk", "pogr_tonn", "pogr_income",
             "os_wag_total", "os_wag_ktk", "os_tonn", "os_income",
             "cargo_volume", "cargo_income",
-            "kp_fp_capacity", "kp_fp_fact", "kp_fp_free",
-            "kp_uus_capacity", "kp_uus_fact", "kp_uus_free",
             "kp_ready_send", "kp_ready_autocar",
             "kp_ready_send_capacity", "kp_ready_send_fact", "kp_ready_send_free",
             "kp_ready_autocar_capacity", "kp_ready_autocar_fact", "kp_ready_autocar_free",
@@ -659,6 +771,17 @@ def station_table_2_edit(request, date_str):
 
         data[TABLE2_BOTTOM_FIELDS["cargo_name"]] = (request.POST.get(TABLE2_BOTTOM_FIELDS["cargo_name"]) or "").strip()
 
+        # NEW dynamic sector rows
+        sector_rows = _read_sector_rows_from_post(request)
+        sector_sum = _sum_sector_rows(sector_rows)
+
+        data["kp_sector_rows"] = sector_rows
+
+        # compatibility totals
+        data["kp_sector_capacity_total"] = sector_sum["capacity"]
+        data["kp_sector_fact_total"] = sector_sum["fact"]
+        data["kp_sector_free_total"] = sector_sum["free"]
+
         StationDailyTable2.objects.update_or_create(
             station_user=request.user,
             date=d_save,
@@ -667,15 +790,23 @@ def station_table_2_edit(request, date_str):
 
         return redirect("station_table_2_list")
 
+    table2_data = (obj.data or {}) if obj else {}
+
     return render(request, "station_table_2_create.html", {
         "date": d_url,
         "obj": obj,
+        "table2_data": table2_data,
         "station_name": request.user.username,
         "rows_def": TABLE2_ROWS,
         "mode": "edit",
         "bottom": TABLE2_BOTTOM_FIELDS,
         "is_new": is_new,
         "error": error,
+        "sector_rows": _table2_sector_rows(table2_data),
+        "r22_keys": {
+            "g_total": R22_G_TOTAL, "g_ktk": R22_G_KTK,
+            "p_total": R22_P_TOTAL, "p_ktk": R22_P_KTK,
+        }
     })
 
 
@@ -709,9 +840,6 @@ def promote_station(request, pk):
 
 @staff_required
 def admin_table1_reports(request):
-    """
-    Даты по shift=total (любой block/терминал).
-    """
     all_stations = _get_all_stations()
     all_station_ids = [sid for sid, _ in all_stations]
 
@@ -746,9 +874,9 @@ def admin_table1_reports(request):
         for sid, name in all_stations:
             last_dt = sent_map.get(sid)
             if last_dt:
-                submitted.append({"name": name, "submitted_at": last_dt})
+                submitted.append({"name":get_object_or_404(StationProfile, user__username=name).station_name , "submitted_at": last_dt})
             else:
-                not_submitted.append({"name": name})
+                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
 
         items.append({
             "date": d,
@@ -762,6 +890,7 @@ def admin_table1_reports(request):
             "not_submitted_count": len(not_submitted),
             "total_count": len(all_stations),
         })
+       
 
     return render(request, "admin_table1_reports.html", {
         "items": items,
@@ -773,26 +902,21 @@ def _apply_itogo_rules(data: dict) -> dict:
     d = dict(data or {})
 
     blocks = [
-        ("vygr", "ft", "cont", "kr", "pv", "proch", "itogo", "itogo_kon"),
-        ("pod_vygr", "ft", "cont", "kr", "pv", "proch", "itogo", "itogo_kon"),
-        ("pogr", "ft", "cont", "kr", "pv", "proch", "itogo", "itogo_kon"),
-        ("pod_pogr", "ft", "cont", "kr", "pv", "proch", "itogo", "itogo_kon"),
+        ("vygr",      "ft", "cont", "kr", "pv", "proch"),
+        ("pod_vygr",  "ft", "cont", "kr", "pv", "proch"),
+        ("pogr",      "ft", "cont", "kr", "pv", "proch"),
+        ("pod_pogr",  "ft", "cont", "kr", "pv", "proch"),
     ]
 
-    for prefix, k_ft, k_cont, k_kr, k_pv, k_proch, k_itogo, k_itogo_kon in blocks:
+    for prefix, k_ft, k_cont, k_kr, k_pv, k_proch in blocks:
         ft = _int0(d.get(f"{prefix}_{k_ft}"))
         kr = _int0(d.get(f"{prefix}_{k_kr}"))
         pv = _int0(d.get(f"{prefix}_{k_pv}"))
         proch = _int0(d.get(f"{prefix}_{k_proch}"))
         cont = _int0(d.get(f"{prefix}_{k_cont}"))
 
-        itogo_key = f"{prefix}_{k_itogo}"
-        if itogo_key in d:
-            d[itogo_key] = ft + kr + pv + proch
-
-        itogo_kon_key = f"{prefix}_{k_itogo_kon}"
-        if itogo_kon_key in d:
-            d[itogo_kon_key] = cont
+        d[f"{prefix}_itogo"] = ft + kr + pv + proch
+        d[f"{prefix}_itogo_kon"] = cont
 
     return d
 
@@ -825,7 +949,6 @@ def _sum_dicts(dicts):
         keys |= set((d or {}).keys())
 
     for k in keys:
-        # берём первое непустое для "общих" строковых полей
         if k in ("k_podache_so_st", TERMINAL_NAME_KEY):
             val = ""
             for d in dicts:
@@ -875,27 +998,17 @@ def _station_display_name(user):
     for rel in ["station", "lc", "center", "department", "branch"]:
         obj = getattr(sp, rel, None)
         if obj:
-            for f in ["name", "title", "short_name"]:
+            for f in ["station_name", "title", "short_name"]:
                 v = getattr(obj, f, None)
                 if v:
                     return str(v)
             return str(obj)
 
-    return getattr(user, "username", str(user))
+    return getattr(user, "profilestation", str(user.profilestation.station_name))
+
 
 @staff_required
 def admin_table1_report_view(request, date_str):
-    """
-    ADMIN TABLE #1 (TERMINALS / BLOCKS)
-
-    ✅ Shows ONLY stations that submitted something for this date (any shift, any block).
-    ✅ For each station:
-        - builds terminals list (block=1..N)
-        - per terminal: day_data + night_data (night only if station.status=True)
-        - DOES NOT add totals row for day/night
-        - adds ONLY station "ВСЕГО" row = SUM(all terminals day + night)
-          (works even if you do NOT store shift="total" rows)
-    """
     d = _parse_date(date_str)
 
     User = get_user_model()
@@ -906,7 +1019,6 @@ def admin_table1_report_view(request, date_str):
         .order_by("username")
     )
 
-    # Fields that exist in your table1 JSON (keys)
     FIELDS = [
         "podano_lc", "k_podache_so_st",
         "vygr_ft", "vygr_cont", "vygr_kr", "vygr_pv", "vygr_proch", "vygr_itogo", "vygr_itogo_kon",
@@ -928,7 +1040,6 @@ def admin_table1_report_view(request, date_str):
             return 0
 
     def _sum_into(dst: dict, src: dict):
-        # sums only known fields, ignores other keys (like terminal_name key)
         for k in FIELDS:
             dst[k] = dst.get(k, 0) + _to_int(src.get(k, 0))
 
@@ -942,7 +1053,6 @@ def admin_table1_report_view(request, date_str):
 
         has_night = bool(sp.status)
 
-        # ✅ FIX: consider station "sent" if ANY record for date is submitted
         sent = StationDailyTable1.objects.filter(
             station_user=u,
             date=d,
@@ -951,7 +1061,6 @@ def admin_table1_report_view(request, date_str):
         if not sent:
             continue
 
-        # real terminal blocks for this station/date
         blocks = _terminal_blocks_for_station_date(u, d, force_new=False)
 
         terminals = []
@@ -965,7 +1074,6 @@ def admin_table1_report_view(request, date_str):
             day_data = _apply_itogo_rules(day_raw)
             night_data = _apply_itogo_rules(night_raw) if has_night else {}
 
-            # terminal "total_data" (not required by your template, but useful)
             total_data = {}
             if has_night:
                 total_data = {k: 0 for k in FIELDS}
@@ -984,10 +1092,9 @@ def admin_table1_report_view(request, date_str):
                 "terminal_name": term_name,
                 "day_data": day_data,
                 "night_data": night_data,
-                "total_data": total_data,  # not used in template now
+                "total_data": total_data,
             })
 
-        # ✅ FIX: station ВСЕГО must be calculated from real terminal day+night data
         sum_total = {k: 0 for k in FIELDS}
         for t in terminals:
             _sum_into(sum_total, t["day_data"])
@@ -995,7 +1102,6 @@ def admin_table1_report_view(request, date_str):
                 _sum_into(sum_total, t["night_data"])
         sum_total = _apply_itogo_rules(sum_total)
 
-        # station blocks link (keep your old behavior)
         blocks_url = ""
         if has_night:
             blocks_url = reverse(
@@ -1010,14 +1116,13 @@ def admin_table1_report_view(request, date_str):
             "status": has_night,
             "blocks_url": blocks_url,
             "terminals": terminals,
-            "sum_total": sum_total,  # ✅ ONLY THIS TOTAL ROW (ВСЕГО)
+            "sum_total": sum_total,
         })
 
     station_list.sort(key=lambda x: (x["name"] or "").lower())
     grand_total = {k: 0 for k in FIELDS}
 
     for st in station_list:
-        # station_list already contains correct station ВСЕГО in st["sum_total"]
         _sum_into(grand_total, st.get("sum_total") or {})
 
     grand_total = _apply_itogo_rules(grand_total)
@@ -1029,8 +1134,9 @@ def admin_table1_report_view(request, date_str):
         "grand_total": grand_total,
     })
 
+
 # =========================
-# ADMIN: TABLE 2 (как было)
+# ADMIN: TABLE 2
 # =========================
 
 STATION_TO_DEPT = {
@@ -1078,9 +1184,9 @@ def admin_table2_reports(request):
         for sid, name in all_stations:
             obj = sent_map.get(sid)
             if obj:
-                submitted.append({"name": name, "submitted_at": obj.submitted_at})
+                submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name, "submitted_at": obj.submitted_at})
             else:
-                not_submitted.append({"name": name})
+                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
 
         items.append({
             "date": d,
@@ -1135,7 +1241,7 @@ def admin_table2_graph(request, date_str):
     )
 
     stations = [{
-        "name": _station_name(o.station_user),
+        "name":get_object_or_404(StationProfile, user__username= _station_name(o.station_user)).station_name,
         "data": o.data or {},
     } for o in objs]
 
@@ -1224,7 +1330,7 @@ def admin_table2_layout(request, date_str):
     for o in objs:
         u = o.station_user
         col_key = f"u{u.id}"
-        col_title = _station_name(u)
+        col_title =get_object_or_404(StationProfile, user__username=_station_name(u)).station_name 
 
         if col_key not in buckets:
             cols.append({"key": col_key, "title": col_title})
@@ -1288,7 +1394,7 @@ def admin_table2_station_pick(request, date_str):
 
     stations = [{
         "user_id": o.station_user_id,
-        "name": _station_name(o.station_user),
+        "name":get_object_or_404(StationProfile, user__username=_station_name(o.station_user)).station_name ,
         "submitted_at": o.submitted_at,
     } for o in qs]
 
@@ -1308,12 +1414,17 @@ def admin_table2_station_view(request, date_str, user_id: int):
         station_user_id=user_id,
         submitted_at__isnull=False,
     )
+    data = obj.data or {}
 
-    return render(request, "admin_table2_station_view.html", {
+    return render(request, "station_table_2_create.html", {
         "date": d,
         "obj": obj,
+        "table2_data": data,
+        "station_name":get_object_or_404(StationProfile, user__username=_station_name(obj.station_user)).station_name ,
         "rows_def": TABLE2_ROWS,
+        "mode": "view",
         "bottom": TABLE2_BOTTOM_FIELDS,
+        "sector_rows": _table2_sector_rows(data),
         "r22_keys": {
             "g_total": R22_G_TOTAL, "g_ktk": R22_G_KTK,
             "p_total": R22_P_TOTAL, "p_ktk": R22_P_KTK,
@@ -1340,11 +1451,6 @@ def _get_all_stations():
 
 @staff_required
 def admin_table1_export_excel(request, date_str):
-    """
-    (оставил как было по структуре) — если хочешь,
-    добавим “Терминал” отдельной колонкой/группировкой.
-    Сейчас экспорт делает одну “станцию” как раньше.
-    """
     d = _parse_date(date_str)
 
     User = get_user_model()
@@ -1413,8 +1519,6 @@ def admin_table1_export_excel(request, date_str):
 
     def set_cell(r, c, value=None, *, font=None, fill=None, align=None, b=border):
         cell = ws.cell(row=r, column=c)
-        if isinstance(cell, MergedCell):
-            return cell
         if value is not None:
             cell.value = value
         cell.border = b
@@ -1617,10 +1721,6 @@ def admin_table1_export_excel(request, date_str):
 
 @staff_required
 def admin_table1_station_blocks(request, date_str, user_id: int):
-    """
-    Оставил как было по смыслу (детализация),
-    но теперь блоки = терминалы (все block по дате).
-    """
     d = _parse_date(date_str)
 
     User = get_user_model()
@@ -1663,3 +1763,176 @@ def admin_table1_station_blocks(request, date_str, user_id: int):
         "sum_total": total_sum,
         "status": has_night,
     })
+
+
+
+
+import json
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_required
+from django.db.models import Exists, OuterRef
+from django.templatetags.static import static
+
+from .models import Notification, NotificationRead
+
+
+
+def _safe_user_name(user):
+    full_name = f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip()
+    if full_name:
+        return full_name
+    username = getattr(user, "username", "") or ""
+    if username:
+        return username
+    return f"User {user.id}"
+
+
+def _safe_avatar_url(notification):
+    try:
+        if notification.avatar and hasattr(notification.avatar, "url"):
+            return notification.avatar.url
+    except Exception:
+        pass
+
+    try:
+        creator = notification.created_by
+        if creator:
+            profile = getattr(creator, "profile", None)
+            if profile and getattr(profile, "photo", None) and hasattr(profile.photo, "url"):
+                return profile.photo.url
+    except Exception:
+        pass
+
+    return static("images/admin-bot.png")
+
+
+@require_GET
+@login_required
+def notifications_latest(request):
+
+    """
+    User/admin uchun oxirgi aktiv habarnoma.
+    Admin uchun:
+      - xabar
+      - kimlar o'qiganini live ko'rsatish
+    User uchun:
+      - xabar
+      - unread holat
+    """
+    latest_qs = Notification.objects.filter(is_active=True)
+
+
+    read_subq = NotificationRead.objects.filter(
+        user=request.user,
+        notification=OuterRef("pk")
+    )
+
+    notif = latest_qs.annotate(
+        user_has_read=Exists(read_subq)
+    ).order_by("-created_at").select_related("created_by").first()
+
+    if not notif:
+        return JsonResponse({"ok": True, "notification": None, "unread": False})
+
+    unread = not bool(getattr(notif, "user_has_read", False))
+
+    read_events = []
+    if request.user.is_staff or request.user.is_superuser:
+        latest_reads = (
+            NotificationRead.objects
+            .filter(notification=notif)
+            .select_related("user")
+            .order_by("-read_at")[:20]
+        )
+
+        read_events = [
+            {
+                "user_id": r.user_id,
+                "user_name": _safe_user_name(r.user),
+                "read_at": timezone.localtime(r.read_at).strftime("%d.%m.%Y %H:%M:%S"),
+            }
+            for r in latest_reads
+        ]
+
+    return JsonResponse({
+        "ok": True,
+        "notification": {
+            "id": notif.id,
+            "message": notif.message,
+            "created_at": timezone.localtime(notif.created_at).strftime("%d.%m.%Y %H:%M:%S"),
+            "created_by_name": _safe_user_name(notif.created_by) if notif.created_by else "Admin",
+            "avatar_url": _safe_avatar_url(notif),
+        },
+        "unread": unread,
+        "read_events": read_events,
+    })
+
+
+@require_POST
+@login_required
+def notifications_ack(request):
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+
+    notif_id = body.get("id")
+    if not notif_id:
+        return JsonResponse({"ok": False, "detail": "notification_id_required"}, status=400)
+
+    notif = Notification.objects.filter(id=notif_id, is_active=True).first()
+    if not notif:
+        return JsonResponse({"ok": False, "detail": "notification_not_found"}, status=404)
+
+    obj, created = NotificationRead.objects.get_or_create(
+        user=request.user,
+        notification=notif
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "marked": True,
+        "created": created,
+        "id": notif.id,
+        "user_name": _safe_user_name(request.user),
+        "read_at": timezone.localtime(obj.read_at).strftime("%d.%m.%Y %H:%M:%S"),
+    })
+
+
+@require_POST
+@login_required
+def notifications_send(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"ok": False, "detail": "forbidden"}, status=403)
+
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+
+    msg = (body.get("message") or "").strip()
+    if not msg:
+        return JsonResponse({"ok": False, "detail": "empty_message"}, status=400)
+
+    notif = Notification.objects.create(
+        message=msg,
+        created_by=request.user,
+        is_active=True,
+    )
+
+    return JsonResponse({
+        "ok": True,
+
+        "notification": {
+            "id": notif.id,
+            "message": notif.message,
+            "created_at": timezone.localtime(notif.created_at).strftime("%d.%m.%Y %H:%M:%S"),
+            "created_by_name": _safe_user_name(request.user),
+            "avatar_url": _safe_avatar_url(notif),
+        }
+    })
+
+
+

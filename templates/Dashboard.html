@@ -1,51 +1,119 @@
 {% extends "base.html" %}
 {% load static %}
 {% load humanize %}
-{# report_extras kerak bo‘lsa qoldir #}
-{% load report_extras %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <style>
-  /* =========================
-     DASHBOARD (works with html[data-theme="dark"] and language switch)
-  ========================= */
-  .db{
-    max-width:1280px;
-    margin:0 auto;
-    padding:0 12px 18px;
-    box-sizing:border-box;
+  :root{
+    --db-radius: 22px;
+    --db-radius-sm: 16px;
+    --db-pad: 14px;
+    --db-gap: 12px;
+
+    --glass: rgba(255,255,255,.40);
+    --glass2: rgba(255,255,255,.22);
+    --glass-dark: rgba(255,255,255,.06);
+
+    --ring: rgba(37,99,235,.22);
+    --ring2: rgba(16,185,129,.18);
+
+    --shadow2: 0 18px 50px rgba(15,23,42,.10);
+    --shadow3: 0 12px 30px rgba(15,23,42,.08);
+
+    --good: rgba(16,185,129,.95);
+    --warn: rgba(245,158,11,.95);
+    --bad: rgba(239,68,68,.95);
+    --info: rgba(59,130,246,.95);
+  }
+  html[data-theme="dark"]{
+    --glass: rgba(255,255,255,.08);
+    --glass2: rgba(255,255,255,.05);
+    --shadow2: 0 20px 60px rgba(0,0,0,.45);
+    --shadow3: 0 14px 40px rgba(0,0,0,.38);
   }
 
-  .db-head{
+  .dbx{
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 10px 12px 18px;
+    box-sizing: border-box;
+  }
+
+  /* ---- header ---- */
+  .dbx-head{
     display:flex;
-    align-items:flex-end;
+    align-items:flex-start;
     justify-content:space-between;
     gap:12px;
     flex-wrap:wrap;
-    margin:6px 0 14px;
+    margin: 6px 0 12px;
   }
-
-  .db-title{
+  .dbx-title{
     margin:0;
     font-size:22px;
-    font-weight:950;
+    font-weight:1000;
     letter-spacing:-.02em;
     color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
-  .db-sub{
-    margin:6px 0 0;
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.4;
+  .dbx-title-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 6px 10px;
+    border:1px solid var(--stroke);
+    border-radius: 999px;
+    background: var(--glass2);
+    box-shadow: var(--shadow3);
+    font-size:12px;
+    font-weight:950;
+    color: var(--text);
+    white-space:nowrap;
+  }
+  .dbx-sub{
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: 740px;
   }
 
-  .db-actions{
+  /* ---- controls ---- */
+  .controls{
     display:flex;
     gap:10px;
     flex-wrap:wrap;
-    align-items:center;
+    align-items:flex-end;
+    justify-content:flex-end;
+  }
+  .ctrl{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width: 180px;
+  }
+  .ctrl label{
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--muted);
+  }
+  .inpx{
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    background: var(--glass);
+    color: var(--text);
+    padding: 0 12px;
+    outline: none;
+    box-shadow: var(--shadow3);
+  }
+  .inpx:focus{
+    box-shadow: 0 0 0 4px var(--ring), var(--shadow3);
+    border-color: rgba(37,99,235,.45);
   }
 
   .btnx{
@@ -57,543 +125,1109 @@
     padding:0 14px;
     border-radius:14px;
     border:1px solid var(--stroke);
-    background:rgba(255,255,255,.70);
-    color:var(--text);
-    font-weight:950;
+    background: var(--glass);
+    color: var(--text);
+    font-weight: 950;
     text-decoration:none;
     cursor:pointer;
     user-select:none;
-    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease, background .12s ease;
-    box-shadow:0 10px 22px rgba(15,23,42,.10);
+    transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+    box-shadow: var(--shadow3);
     white-space:nowrap;
   }
-  html[data-theme="dark"] .btnx{
-    background:rgba(255,255,255,.08);
-    box-shadow:0 14px 30px rgba(0,0,0,.35);
-  }
-  .btnx:hover{ transform:translateY(-1px); filter:saturate(1.05); }
-  .btnx:active{ transform:translateY(0); }
+  .btnx:hover{ transform: translateY(-1px); filter: saturate(1.05); }
+  .btnx:active{ transform: translateY(0); }
 
   .btnx.primary{
     color:#fff;
-    border-color:rgba(37,99,235,.35);
-    background:linear-gradient(135deg, rgba(37,99,235,.96), rgba(16,185,129,.92));
-    box-shadow:0 14px 28px rgba(37,99,235,.18);
+    border-color: rgba(37,99,235,.35);
+    background: linear-gradient(135deg, rgba(37,99,235,.98), rgba(16,185,129,.92));
+    box-shadow: 0 18px 40px rgba(37,99,235,.16);
   }
   html[data-theme="dark"] .btnx.primary{
-    border-color:rgba(99,102,241,.40);
-    box-shadow:0 16px 36px rgba(0,0,0,.45);
+    box-shadow: 0 20px 55px rgba(0,0,0,.45);
   }
 
-  /* =========================
-     GRID
-  ========================= */
+  .btnx.ghost{
+    background: transparent;
+    border-style: dashed;
+  }
+
+  /* ---- layout grids ---- */
   .grid-kpi{
     display:grid;
-    grid-template-columns:repeat(4, minmax(0, 1fr));
-    gap:12px;
-    margin-bottom:12px;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: var(--db-gap);
+    margin-top: 18px;
+    margin-bottom: 19px;
   }
+  
   @media (max-width: 1100px){
-    .grid-kpi{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .grid-kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
   }
-  @media (max-width: 560px){
-    .grid-kpi{ grid-template-columns:1fr; }
-    .db-actions .btnx{ width:100%; }
+  @media (max-width: 600px){
+    .grid-kpi{ grid-template-columns: 1fr; }
+    .ctrl{ min-width: 100%; }
+    .btnx{ width: 100%; }
+    .controls{ width:100%; justify-content:stretch; }
   }
 
-  .grid-main{
+  .grid-top{
     display:grid;
-    grid-template-columns:1.25fr .75fr;
-    gap:12px;
-    align-items:start;
-    margin-bottom:12px;
+    grid-template-columns: 1.15fr .85fr;
+    gap: var(--db-gap);
+    margin-bottom: 12px;
+    align-items: start;
   }
   @media (max-width: 980px){
-    .grid-main{ grid-template-columns:1fr; }
+    .grid-top{ grid-template-columns: 1fr; }
+  }
+
+  .grid-mid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--db-gap);
+    margin-bottom: 12px;
+    align-items: start;
+  }
+  @media (max-width: 980px){
+    .grid-mid{ grid-template-columns: 1fr; }
   }
 
   .grid-bottom{
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-    align-items:start;
+    grid-template-columns: 1fr;
+    gap: var(--db-gap);
+    align-items: start;
+  }
+
+  /* ---- cards ---- */
+  .card{
+    border-radius: var(--db-radius);
+    border: 1px solid var(--stroke);
+    background: var(--surface);
+    box-shadow: var(--shadow2);
+    padding: var(--db-pad);
+    overflow: hidden;
+    position: relative;
+  }
+  .cardh{
+    border-radius: var(--db-radius);
+    border: 1px solid var(--stroke);
+    background: var(--surface);
+    box-shadow: var(--shadow2);
+    
+    overflow: hidden;
+    position: relative;
+  }
+  .card::before,
+  .cardh::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background:
+      radial-gradient(600px 260px at 10% 0%, rgba(37,99,235,.14), transparent 55%),
+      radial-gradient(520px 260px at 90% 0%, rgba(16,185,129,.12), transparent 55%);
+    pointer-events:none;
+  }
+  html[data-theme="dark"] .card::before,
+  html[data-theme="dark"] .cardh::before{
+    background:
+      radial-gradient(600px 260px at 10% 0%, rgba(99,102,241,.18), transparent 55%),
+      radial-gradient(520px 260px at 90% 0%, rgba(16,185,129,.10), transparent 55%);
+  }
+
+  .card > *{ position: relative; }
+  .cardh > *{ position: relative; }
+  
+  .card-h{
+    display:flex;
+    align-items:flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .card-title{
+    margin:0;
+    font-size: 14px;
+    font-weight: 1000;
+    letter-spacing:-.01em;
+    color: var(--text);
+  }
+  .card-sub{
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+
+
+  /* ---- KPI card (image pinned to right, like sample) ---- */
+  .card.card-3d { overflow: hidden; } /* rasm tashqariga chiqmasin */
+
+
+  /* KPI card: text can overlay image */
+  .kpi{
+    position: relative;
+    display:flex;
+    align-items:flex-start;
+    min-height: 118px;
+    padding: 0;                /* ✅ padding-right yo'q */
+  }
+
+  /* Text always above */
+  .kpi-left{
+    position: relative;
+    z-index: 2;                /* ✅ text rasm ustida */
+    max-width: 68%;            /* ixtiyoriy: chap blokni biroz cheklab qo'yadi */
+    padding: var(--db-pad);
+    
+  }
+
+  .kpi-left .card-title{
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kpi-left .val{
+    font-size: 25px;
+    font-weight: 1100;
+    letter-spacing: -.02em;
+    color: var(--text);
+    margin-top: 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    display:flex;
+    align-items: baseline;
+    gap: 6px;                 /* ✅ oralig'i kichik */
+    margin-top: 10px;
+    line-height: 1;
+  }
+
+  /* 2-qator biroz kichikroq va pastroq ko‘rinadi */
+  .kpi-val{ margin-top: 10px;}
+  .kpi-val-sub{
+    margin-top: 8px;
+    opacity: .95;
+  }
+
+  /* Professional number */
+  .kpi-num{
+    font-size: 26px;          /* asosiy raqam */
+    font-weight: 950;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+    
+  }
+
+  /* kont qatori raqami biroz kichikroq bo‘lsin */
+  .kpi-val-sub .kpi-num{
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.015em;
+  }
+
+  /* ✅ vag/kont oddiy kichik yozuv (chip emas) */
+  .kpi-suf{
+    font-size: 11px;
+    font-weight: 650;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+
+
+  /* Right image area fills right side */
+  .kpi-media.kpi-bg{
+    position: absolute;
+    top: -14.5px;
+    right: -10.5px;
+    bottom: 0;
+    width: 32%;                /* ✅ o'ng tarafni to'ldiradi (kerak bo'lsa 55-65% o'ynat) */
+    z-index: 1;
+    background-repeat: no-repeat;
+    background-position: right top;  /* ✅ o'ngga yopishadi */
+    background-size: cover;             /* ✅ o'ng tarafni to'liq to'ldiradi */
+    pointer-events: none;
+    opacity: 5;
+  }
+
+  /* Soft fade so left text reads well */
+  .kpi-media.kpi-bg::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: linear-gradient(90deg,
+      var(--surface) 0%,
+      rgba(255,255,255,.70) 35%,
+      rgba(255,255,255,.10) 70%,
+      rgba(255,255,255,0) 100%
+    );
+    opacity: .65;
+  }
+
+  html[data-theme="dark"] .kpi-media.kpi-bg::before{
+    background: linear-gradient(90deg,
+      rgba(2,6,23,.92) 0%,
+      rgba(2,6,23,.62) 35%,
+      rgba(2,6,23,.18) 70%,
+      rgba(2,6,23,0) 100%
+    );
+    opacity: .96;
+  }
+
+  /* optional: slightly round only the left, keep right clean */
+  .kpi-media.kpi-bg{
+    border-top-right-radius: var(--db-radius);
+    border-bottom-right-radius: var(--db-radius);
+  }
+
+  /* Background images (your png) */
+  .kpi-bg-1{ background-image: url("{% static 'images/card1.png' %}"); }
+  .kpi-bg-2{ background-image: url("{% static 'images/card2.png' %}"); }
+  .kpi-bg-3{ background-image: url("{% static 'images/card3.png' %}"); }
+  .kpi-bg-4{ background-image: url("{% static 'images/card4.png' %}"); }
+
+  /* Mobile: image becomes a bit smaller so text fits */
+  @media (max-width: 600px){
+    .kpi-left{ max-width: 72%; }
+    .kpi-media.kpi-bg{ width: 62%; }
+  }
+
+
+
+
+  
+
+  /* ---- charts ---- */
+  .chart{
+    height: 340px;
+    width: 100%;
+    position: relative;
+  }
+  @media (max-width: 600px){
+    .chart{ height: 280px; }
+  }
+  .chart.sm{ max-height: 315px; }
+
+  /* ---- income entry panel ---- */
+  .income-wrap{
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: 12px;
+    align-items: start;
   }
   @media (max-width: 980px){
-    .grid-bottom{ grid-template-columns:1fr; }
+    .income-wrap{ grid-template-columns: 1fr; }
   }
 
-  /* =========================
-     CARD
-  ========================= */
-  .cardx{
-    background:var(--surface);
-    border:1px solid var(--stroke);
-    border-radius:20px;
-    box-shadow:var(--shadow);
-    padding:14px;
-    backdrop-filter: blur(14px);
-    overflow:hidden;
-  }
-  .cardx-h{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    align-items:flex-start;
-    flex-wrap:wrap;
-    margin-bottom:10px;
-  }
-  .cardx-title{
-    margin:0;
-    font-size:14px;
-    font-weight:950;
-    color:var(--text);
-    letter-spacing:-.01em;
-  }
-  .cardx-sub{
-    margin-top:6px;
-    color:var(--muted);
-    font-size:12.5px;
-    line-height:1.35;
-  }
-
-  /* =========================
-     KPI CARD
-  ========================= */
-  .kpi{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    align-items:flex-start;
-    min-height:84px;
-  }
-  .kpi .val{
-    font-size:24px;
-    font-weight:1000;
-    letter-spacing:-.02em;
-    color:var(--text);
-    margin-top:6px;
-  }
-  .kpi .meta{
-    color:var(--muted);
-    font-size:12.5px;
-    margin-top:6px;
-    line-height:1.35;
-  }
-  .kpi .chip{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 10px;
-    border-radius:999px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.35);
-    font-size:12px;
-    font-weight:900;
-    color:var(--text);
-    white-space:nowrap;
-  }
-  html[data-theme="dark"] .kpi .chip{ background:rgba(255,255,255,.06); }
-
-  .dot{width:8px;height:8px;border-radius:999px;background:rgba(16,185,129,.95)}
-  .dot.warn{background:rgba(245,158,11,.95)}
-  .dot.bad{background:rgba(239,68,68,.95)}
-
-  /* =========================
-     CHART AREA
-  ========================= */
-  .chart{
-    width:100%;
-    height:320px;
-    position:relative;
+  .form-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   @media (max-width: 560px){
-    .chart{ height:260px; }
+    .form-grid{ grid-template-columns: 1fr; }
+  }
+  .form-row{
+    display:flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-row label{
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--muted);
+  }
+  .help{
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.35;
   }
 
-  /* =========================
-     TABLE
-  ========================= */
+  /* ---- table ---- */
   .table-wrap{
     border:1px solid var(--stroke);
-    border-radius:16px;
+    border-radius: var(--db-radius-sm);
     overflow:hidden;
-    background:rgba(255,255,255,.25);
+    background: var(--glass2);
   }
-  html[data-theme="dark"] .table-wrap{ background:rgba(255,255,255,.04); }
+  .scroll-x{ overflow:auto; }
+  .scroll-x::-webkit-scrollbar{ height:10px; }
+  .scroll-x::-webkit-scrollbar-thumb{ background: rgba(15,23,42,.18); border-radius:999px; }
+  html[data-theme="dark"] .scroll-x::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.14); }
 
   .tbl{
     width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-    min-width:760px;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 820px;
   }
   .tbl th, .tbl td{
-    padding:10px 10px;
-    border-bottom:1px solid var(--stroke);
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--stroke);
     text-align:left;
-    font-size:12.8px;
-    color:var(--text);
+    font-size: 12.8px;
+    color: var(--text);
   }
   .tbl th{
-    font-weight:950;
-    position:sticky;
+    font-weight: 1000;
+    position: sticky;
     top:0;
     z-index:1;
-    background:rgba(255,255,255,.55);
+    background: rgba(255,255,255,.55);
   }
-  html[data-theme="dark"] .tbl th{ background:rgba(255,255,255,.06); }
+  html[data-theme="dark"] .tbl th{ background: rgba(255,255,255,.06); }
 
-  .tbl tr:hover td{ background:rgba(2,132,199,.05); }
-  html[data-theme="dark"] .tbl tr:hover td{ background:rgba(99,102,241,.10); }
+  .tbl tr:hover td{ background: rgba(2,132,199,.06); }
+  html[data-theme="dark"] .tbl tr:hover td{ background: rgba(99,102,241,.10); }
 
-  .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
-  .right{text-align:right}
-  .scroll-x{overflow:auto}
-  .scroll-x::-webkit-scrollbar{height:10px}
-  .scroll-x::-webkit-scrollbar-thumb{background:rgba(15,23,42,.18);border-radius:999px}
-  html[data-theme="dark"] .scroll-x::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14)}
+  .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+  .right{ text-align:right; }
+
+  /* small footer note */
+  .note{
+    margin-top:10px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+  .income-wrap.onecol{
+    display:block;
+  }
+  .income-wrap.onecol .chart{
+    width:100%;
+  }
+
+  .chart{
+    border-radius: 18px;
+    overflow:hidden;
+  }
+  .chart canvas{
+    filter: drop-shadow(0 18px 35px rgba(15,23,42,.18));
+  }
+  html[data-theme="dark"] .chart canvas{
+    filter: drop-shadow(0 22px 45px rgba(0,0,0,.55));
+  }
+
+  /* trading panel (dark) */
+  .chart-trade{
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.10);
+    /* background: linear-gradient(180deg, rgba(2,6,23,.96), rgba(15,23,42,.92)); */
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.06),
+      0 22px 60px rgba(0,0,0,.25);
+    padding: 10px;
+  }
+
 </style>
 
-<div class="db">
+<div class="dbx">
 
-  <div class="db-head">
+  <!-- ================= HEADER ================= -->
+  <div class="dbx-head">
     <div>
-      <h1 class="db-title" data-i18n="db_title">Dashboard</h1>
-      <div class="db-sub">
-        <span data-i18n="db_sub">Kunlik operativ ko‘rsatkichlar, kun/tun kesimi va oxirgi hisobotlar</span>
+      <h1 class="dbx-title">
+        <span>📊</span>
+        <span>Operativ Dashboard</span>
+        <span class="dbx-title-badge"><span class="dot info"></span><span class="mono" id="rangeBadge">—</span></span>
+      </h1>
+      <div class="dbx-sub">
+        Ortish/Tushirish, daromadlar dinamikasi, Logistika sentrlari kesimidagi umumiy ko‘rsatkichlar.
       </div>
     </div>
 
-    <div class="db-actions">
-      <a class="btnx" href="{% url 'station_table_1_list' %}">
-        <span>📄</span><span data-i18n="go_t1">Table-1</span>
-      </a>
-      <a class="btnx" href="{% url 'station_table_2_list' %}">
-        <span>📄</span><span data-i18n="go_t2">Table-2</span>
-      </a>
-      <a class="btnx primary" href="#">
-        <span>⟳</span><span data-i18n="refresh">Yangilash</span>
-      </a>
-    </div>
+    <form class="controls" method="get">
+  <div class="ctrl">
+    <label>Dan</label>
+    <input id="dateFrom" name="from" class="inpx" type="date" value="{{ from|default:'' }}">
   </div>
 
-  <!-- KPI -->
+  <div class="ctrl">
+    <label>Gacha</label>
+    <input id="dateTo" name="to" class="inpx" type="date" value="{{ to|default:'' }}">
+  </div>
+
+  <button class="btnx primary" type="submit">
+    <span>✅</span><span>Apply</span>
+  </button>
+</form>
+  </div>
+
+  <!-- ================= KPI CARDS ================= -->
   <div class="grid-kpi">
-    <div class="cardx">
+
+    <!-- 1 -->
+    <div class="cardh card-3d">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_reports_today">Bugungi hisobotlar</div>
-          <div class="val mono">{{ kpi.reports_today|default:"0" }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_reports_today_sub">Table-1 + Table-2 bo‘yicha</span>
+        <div class="kpi-left">
+          <div class="card-title">Ortish / Pogruzka</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiOrtish">0</span>
+            <span class="kpi-suf">vag</span>
+          </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiOrtishkont">0</span>
+            <span class="kpi-suf">kont</span>
           </div>
         </div>
-        <div class="chip"><span class="dot"></span><span data-i18n="live">Live</span></div>
+
+        <div class="kpi-media kpi-bg kpi-bg-1" aria-hidden="true"></div>
       </div>
     </div>
 
-    <div class="cardx">
+    <!-- 2 -->
+    <div class="cardh card-3d">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_income_today">Suточный доход</div>
-          <div class="val mono">{{ kpi.income_today|default:"0"|intcomma }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_income_today_sub">Bugun yig‘ilgan daromad</span>
+        <div class="kpi-left">
+          <div class="card-title">Tushirish / Vigruzka</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiTushirish">0</span>
+            <span class="kpi-suf">vag</span>
           </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiTushirishkont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
+          
         </div>
-        <div class="chip"><span class="dot warn"></span><span data-i18n="today">Today</span></div>
+
+        <div class="kpi-media kpi-bg kpi-bg-2" aria-hidden="true"></div>
       </div>
     </div>
 
-    <div class="cardx">
+    <!-- 3 -->
+    <div class="cardh card-3d">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_active_stations">Faol stansiyalar</div>
-          <div class="val mono">{{ kpi.active_stations|default:"0" }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_active_stations_sub">Hisobot topshirganlar</span>
+        <div class="kpi-left">
+          <div class="card-title">Ortishda / Podpogruzka</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiPodpogruzka">0</span>
+            <span class="kpi-suf">vag</span>
           </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiPodpogruzkakont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
+          
         </div>
-        <div class="chip"><span class="dot"></span><span data-i18n="ok">OK</span></div>
+
+        <div class="kpi-media kpi-bg kpi-bg-3" aria-hidden="true"></div>
       </div>
     </div>
 
-    <div class="cardx">
+    <!-- 4 -->
+    <div class="cardh card-3d">
       <div class="kpi">
-        <div>
-          <div class="cardx-title" data-i18n="kpi_missing">Topshirmaganlar</div>
-          <div class="val mono">{{ kpi.missing_stations|default:"0" }}</div>
-          <div class="meta">
-            <span data-i18n="kpi_missing_sub">Bugun yo‘q bo‘lganlar</span>
+        <div class="kpi-left">
+          <div class="card-title">Tushirishda / Podvigruzka</div>
+
+          <!-- vag -->
+          <div class="kpi-val">
+            <span class="kpi-num mono" id="kpiPodvigruzka">0</span>
+            <span class="kpi-suf">vag</span>
           </div>
+
+          <!-- kont -->
+          <div class="kpi-val kpi-val-sub">
+            <span class="kpi-num mono" id="kpiPodvigruzkakont">0</span>
+            <span class="kpi-suf">kont</span>
+          </div>
+          
         </div>
-        <div class="chip"><span class="dot bad"></span><span data-i18n="attention">Attention</span></div>
+
+        <div class="kpi-media kpi-bg kpi-bg-4" aria-hidden="true"></div>
       </div>
     </div>
+
   </div>
 
-  <!-- MAIN: big chart + side chart -->
-  <div class="grid-main">
-    <div class="cardx">
-      <div class="cardx-h">
+  <!-- ================= Daromad  SECTION ================= -->
+  <div class="grid-top">
+
+    <div class="card">
+      <div class="card-h">
         <div>
-          <h3 class="cardx-title" data-i18n="ch_income_30">Daromad dinamikasi (30 kun)</h3>
-          <div class="cardx-sub" data-i18n="ch_income_30_sub">Kunlik daromad trendi</div>
+          <h3 class="card-title">Daromad tahlili</h3>
+          <div class="card-sub">
+            Korxonaning sanalar kesimida daromad tahlili
+          </div>
         </div>
-        <div class="chip mono">{{ kpi.range_label|default:"30d" }}</div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Daromad burchagi</span></div>
+      </div>
+
+      <div class="income-wrap onecol">
+        <div class="chart sm chart-trade">
+          <canvas id="chIncomeMini"></canvas>
+        </div>
+
+        <div class="note">
+           
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Daromad - filiallar kesimida</h3>
+          <div class="card-sub">so'm hisobida olingan</div>
+        </div>
+        <div class="chip"><span class="dot warn"></span><span class="mono">Daromad</span></div>
       </div>
       <div class="chart">
-        <canvas id="chIncome"></canvas>
+        <canvas id="chStructure"></canvas>
       </div>
     </div>
 
-    <div class="cardx">
-      <div class="cardx-h">
+  </div>
+
+  <!-- ================= Ortish tushirish VAGONDA ================= -->
+  <div class="grid-mid">
+
+    <div class="card">
+      <div class="card-h">
         <div>
-          <h3 class="cardx-title" data-i18n="ch_day_night">Kun/Tun kesimi</h3>
-          <div class="cardx-sub" data-i18n="ch_day_night_sub">Top-5 stansiya (bugun)</div>
+          <h3 class="card-title">Oylar bo‘yicha umumiy dinamika - VAGON hisobida</h3>
+          <div class="card-sub">Ortish (yashil) va Tushirish (qizil) </div>
         </div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Vagon</span></div>
       </div>
-      <div class="chart" style="height:320px">
+      <div class="chart">
+        <canvas id="chMonthly"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Tushirishda va Ortishda - VAGON hisobida </h3>
+          <div class="card-sub">Tanlangan oraliq bo‘yicha ortishda/tushirishda ma'lumotlarining filiallari kesimida tahlili </div>
+        </div>
+        <div class="chip"><span class="dot"></span><span class="mono">Vagon</span></div>
+      </div>
+      <div class="chart">
         <canvas id="chDayNight"></canvas>
       </div>
     </div>
+
   </div>
 
-  <!-- BOTTOM: recent + pie -->
-  <div class="grid-bottom">
-    <div class="cardx">
-      <div class="cardx-h">
+  <!-- ================= Ortish/tushurish KONTEYNERDA ================= -->
+  <div class="grid-mid">
+
+    <div class="card">
+      <div class="card-h">
         <div>
-          <h3 class="cardx-title" data-i18n="recent_reports">Oxirgi hisobotlar</h3>
-          <div class="cardx-sub" data-i18n="recent_reports_sub">So‘nggi 15 ta yozuv</div>
+          <h3 class="card-title">Oylar bo‘yicha umumiy dinamika - KONTEYNER hisobida</h3>
+          <div class="card-sub">Ortish (yashil) va Tushirish (qizil) </div>
+        </div>
+        <div class="chip"><span class="dot info"></span><span class="mono">Konteyner</span></div>
+      </div>
+      <div class="chart">
+        <canvas id="chMonthlykont"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Tushirish va Ortish - KONTEYNER hisobida </h3>
+          <div class="card-sub">Tanlangan oraliq bo‘yicha ortishda/tushirishda ma'lumotlarining filiallari kesimida tahlili</div>
+        </div>
+        <div class="chip"><span class="dot"></span><span class="mono">Konteyner</span></div>
+      </div>
+      <div class="chart">
+        <canvas id="chDayNightkont"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= BOTTOM SECTION ================= -->
+  <div class="grid-bottom">
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Filiallar kesimida Ortish va Tushirish umumiy grafik - VAGON kesimida</h3>
+          <div class="card-sub"> Ortish (ko‘k), Tushirish (pushti) </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <div class="chip"><span class="dot info"></span><span class="mono">Filiallar</span></div>
+          <button id="btnSortStations" class="btnx" type="button"><span>⇅</span><span>Sort</span></button>
+        </div>
+      </div>
+      <div class="chart" style="height: 560px;">
+        <canvas id="chStations"></canvas>
+      </div>
+    </div>
+
+    <!-- ✅ REPLACED: Online Users table -->
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3 class="card-title">Online foydalanuvchilar</h3>
+          <div class="card-sub">Oxirgi login va hozirgi holat</div>
         </div>
         <a class="btnx" href="{% url 'admin_table1_reports' %}">
-          <span>🔎</span><span data-i18n="open_admin">Admin</span>
+          <span>👤</span><span>Users</span>
         </a>
       </div>
 
       <div class="table-wrap">
         <div class="scroll-x">
-          <table class="tbl">
+          <table class="tbl" id="onlineUsersTable">
             <thead>
               <tr>
-                <th data-i18n="th_date">Sana</th>
-                <th data-i18n="th_station">Stansiya</th>
-                <th data-i18n="th_type">Tur</th>
-                <th class="right" data-i18n="th_income">Daromad</th>
+                <th>Foydalanuvchi</th>
+                <th>Bo‘lim</th>
+                <th>Oxirgi login</th>
+                <th>Holat</th>
               </tr>
             </thead>
             <tbody>
-              {% for r in recent %}
-                <tr>
-                  <td class="mono">{{ r.date }}</td>
-                  <td><b>{{ r.station }}</b></td>
-                  <td class="mono">{{ r.kind }}</td>
-                  <td class="right mono">{{ r.income|default:0|intcomma }}</td>
-                </tr>
-              {% empty %}
-                <tr><td colspan="4" class="mono" style="color:var(--muted)" data-i18n="no_data">Ma’lumot yo‘q</td></tr>
-              {% endfor %}
+              <!-- JS will fill -->
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <div class="cardx">
-      <div class="cardx-h">
-        <div>
-          <h3 class="cardx-title" data-i18n="ch_structure">Ko‘rsatkichlar tarkibi</h3>
-          <div class="cardx-sub" data-i18n="ch_structure_sub">Bugun (Table-1 asosiy bloklar)</div>
-        </div>
-      </div>
-      <div class="chart" style="height:360px">
-        <canvas id="chStructure"></canvas>
-      </div>
-    </div>
   </div>
 
 </div>
 
-<!-- ===== JSON from backend ===== -->
 {{ dash_json|json_script:"dash-json" }}
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
 
 <script>
 (function(){
-  // ---------- read data ----------
-  const rawEl = document.getElementById("dash-json");
+  // ============================================================
+  // 0) Read server-provided JSON (admin_settings initial payload)
+  // ============================================================
+  const raw = document.getElementById("dash-json");
   let D = {};
-  try{ D = JSON.parse(rawEl.textContent || "{}"); }catch(e){ D = {}; }
+  try { D = JSON.parse(raw?.textContent || "{}"); } catch(e){ D = {}; }
 
-  // expected structure (you will provide):
-  // D = {
-  //   lang: "uz"|"ru",
-  //   income30: { labels:[...], values:[...] },
-  //   dayNightTop: { labels:[...], day:[...], night:[...] },
-  //   structure: { labels:[...], values:[...] }
-  // }
-
-  // ---------- charts ----------
-  const ctxIncome = document.getElementById("chIncome");
-  const ctxDN = document.getElementById("chDayNight");
-  const ctxStruct = document.getElementById("chStructure");
-
-  const incomeLabels = (D.income30 && D.income30.labels) || [];
-  const incomeValues = (D.income30 && D.income30.values) || [];
-
-  const dnLabels = (D.dayNightTop && D.dayNightTop.labels) || [];
-  const dnDay = (D.dayNightTop && D.dayNightTop.day) || [];
-  const dnNight = (D.dayNightTop && D.dayNightTop.night) || [];
-
-  const stLabels = (D.structure && D.structure.labels) || [];
-  const stValues = (D.structure && D.structure.values) || [];
-
-  if(ctxIncome){
-    new Chart(ctxIncome, {
-      type:"line",
-      data:{
-        labels: incomeLabels,
-        datasets:[{
-          label:"Income",
-          data: incomeValues,
-          tension:.35,
-          fill:true
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{ display:false },
-          tooltip:{ mode:"index", intersect:false }
-        },
-        scales:{
-          x:{ grid:{ display:false } },
-          y:{ beginAtZero:true, ticks:{ precision:0 } }
-        }
-      }
-    });
+  // ============================================================
+  // 1) Helpers
+  // ============================================================
+  const spaced = (n)=> (Number(n || 0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const isDark = ()=> document.documentElement.getAttribute("data-theme")==="dark";
+  function gridColor(){
+    return isDark() ? "rgba(255,255,255,.10)" : "rgba(15,23,42,.10)";
+  }
+  function gridColorSoft(){
+    return isDark() ? "rgba(255,255,255,.06)" : "rgba(15,23,42,.06)";
   }
 
-  if(ctxDN){
-    new Chart(ctxDN, {
-      type:"bar",
-      data:{
-        labels: dnLabels,
-        datasets:[
-          { label:"Day", data: dnDay, stack:"s" },
-          { label:"Night", data: dnNight, stack:"s" }
-        ]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ position:"bottom" } },
-        scales:{
-          x:{ stacked:true, grid:{ display:false } },
-          y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } }
-        }
-      }
-    });
+  // ============================================================
+  // 2) Date range badge
+  // ============================================================
+  const $from = document.getElementById("dateFrom");
+  const $to = document.getElementById("dateTo");
+  const $badge = document.getElementById("rangeBadge");
+
+  function fmtRange(a,b){
+    if(!a && !b) return "All time";
+    if(a && !b) return a + " → …";
+    if(!a && b) return "… → " + b;
+    return a + " → " + b;
+  }
+  if($badge){
+    $badge.textContent = fmtRange($from?.value || D.range?.from, $to?.value || D.range?.to);
   }
 
-  if(ctxStruct){
-    new Chart(ctxStruct, {
-      type:"doughnut",
-      data:{
-        labels: stLabels,
-        datasets:[{ data: stValues }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ position:"bottom" } },
-        cutout:"62%"
-      }
-    });
+  function rangeQS(){
+    const qs = new URLSearchParams();
+    const f = $from?.value || "";
+    const t = $to?.value || "";
+    if(f) qs.set("from", f);
+    if(t) qs.set("to", t);
+    const s = qs.toString();
+    return s ? ("?" + s) : "";
   }
 
-  // ---------- i18n (page-level) ----------
-  // Uses the same localStorage keys you were using previously.
-  const dict = {
-    uz:{
-      db_title:"Dashboard",
-      db_sub:"Kunlik operativ ko‘rsatkichlar, kun/tun kesimi va oxirgi hisobotlar",
-      go_t1:"Table-1",
-      go_t2:"Table-2",
-      refresh:"Yangilash",
-      kpi_reports_today:"Bugungi hisobotlar",
-      kpi_reports_today_sub:"Table-1 + Table-2 bo‘yicha",
-      kpi_income_today:"Suточный доход",
-      kpi_income_today_sub:"Bugun yig‘ilgan daromad",
-      kpi_active_stations:"Faol stansiyalar",
-      kpi_active_stations_sub:"Hisobot topshirganlar",
-      kpi_missing:"Topshirmaganlar",
-      kpi_missing_sub:"Bugun yo‘q bo‘lganlar",
-      live:"Live", today:"Today", ok:"OK", attention:"Attention",
-      ch_income_30:"Daromad dinamikasi (30 kun)",
-      ch_income_30_sub:"Kunlik daromad trendi",
-      ch_day_night:"Kun/Tun kesimi",
-      ch_day_night_sub:"Top-5 stansiya (bugun)",
-      recent_reports:"Oxirgi hisobotlar",
-      recent_reports_sub:"So‘nggi 15 ta yozuv",
-      open_admin:"Admin",
-      th_date:"Sana",
-      th_station:"Stansiya",
-      th_type:"Tur",
-      th_income:"Daromad",
-      no_data:"Ma’lumot yo‘q",
-      ch_structure:"Ko‘rsatkichlar tarkibi",
-      ch_structure_sub:"Bugun (Table-1 asosiy bloklar)"
+  // ============================================================
+  // 3) KPI fill (from backend totals)
+  // Mapping:
+  //   - Ortish / Pogruzka      -> totals.pogr
+  //   - Tushirish / Vigruzka   -> totals.vygr
+  //   - Ortishda / Podpogruzka -> totals.pod_pogr
+  //   - Tushirishda/Podvigruzka-> totals.pod_vygr
+  // ============================================================
+  const totals = D.totals || {};
+  const elOrt = document.getElementById("kpiOrtish");
+  const elOrtk = document.getElementById("kpiOrtishkont");
+  const elTush = document.getElementById("kpiTushirish");
+  const elTushk = document.getElementById("kpiTushirishkont");
+  const elPodOrt = document.getElementById("kpiPodpogruzka");
+  const elPodOrtk = document.getElementById("kpiPodpogruzkakont");
+  const elPodTush = document.getElementById("kpiPodvigruzka");
+  const elPodTushk = document.getElementById("kpiPodvigruzkakont");
+
+  if(elOrt) elOrt.textContent = spaced(totals.pogr ?? 0) ;
+  if(elOrtk) elOrtk.textContent =  spaced(totals.pogr_cont ?? 0);
+  if(elTush) elTush.textContent = spaced(totals.vygr ?? 0) ;
+  if(elTushk) elTushk.textContent =  spaced(totals.vygr_cont ?? 0);
+  if(elPodOrt) elPodOrt.textContent = spaced(totals.pod_pogr ?? 0) ;
+  if(elPodOrtk) elPodOrtk.textContent = spaced(totals.pod_pogr_cont ?? 0);
+  if(elPodTush) elPodTush.textContent = spaced(totals.pod_vygr ?? 0);
+  if(elPodTushk) elPodTushk.textContent = spaced(totals.pod_vygr_cont ?? 0);
+
+  
+  // ============================================================
+  // 4) Chart.js setup
+  // ============================================================
+  if(typeof Chart === "undefined"){
+    console.error("Chart.js not loaded");
+    return;
+  }
+
+  Chart.defaults.font.family =
+    'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  Chart.defaults.color =
+    getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#111827';
+
+  const shadowPlugin = {
+    id: "shadowPlugin",
+    beforeDatasetsDraw(chart, args, opts) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.shadowColor = opts?.shadowColor || (isDark() ? "rgba(0,0,0,.60)" : "rgba(15,23,42,.18)");
+      ctx.shadowBlur  = opts?.shadowBlur ?? 18;
+      ctx.shadowOffsetX = opts?.shadowOffsetX ?? 0;
+      ctx.shadowOffsetY = opts?.shadowOffsetY ?? 10;
     },
-    ru:{
-      db_title:"Дашборд",
-      db_sub:"Оперативные показатели, разрез день/ночь и последние отчёты",
-      go_t1:"Таблица-1",
-      go_t2:"Таблица-2",
-      refresh:"Обновить",
-      kpi_reports_today:"Отчёты за сегодня",
-      kpi_reports_today_sub:"Таблица-1 + Таблица-2",
-      kpi_income_today:"Суточный доход",
-      kpi_income_today_sub:"Доход за сегодня",
-      kpi_active_stations:"Активные станции",
-      kpi_active_stations_sub:"Сдавшие отчёт",
-      kpi_missing:"Не сдали",
-      kpi_missing_sub:"Отсутствующие сегодня",
-      live:"Live", today:"Today", ok:"OK", attention:"Внимание",
-      ch_income_30:"Динамика дохода (30 дней)",
-      ch_income_30_sub:"Тренд по дням",
-      ch_day_night:"День/Ночь",
-      ch_day_night_sub:"Топ-5 станций (сегодня)",
-      recent_reports:"Последние отчёты",
-      recent_reports_sub:"Последние 15 записей",
-      open_admin:"Админ",
-      th_date:"Дата",
-      th_station:"Станция",
-      th_type:"Тип",
-      th_income:"Доход",
-      no_data:"Нет данных",
-      ch_structure:"Структура показателей",
-      ch_structure_sub:"Сегодня (основные блоки Табл.1)"
+    afterDatasetsDraw(chart) {
+      chart.ctx.restore();
     }
   };
+  Chart.register(shadowPlugin);
 
-  const saved = localStorage.getItem("lang") || localStorage.getItem("ui_lang") || D.lang || "uz";
-  const lang = (saved === "ru") ? "ru" : "uz";
+  function safeChart(make){
+    try { return make(); }
+    catch(e){ console.error("Chart error:", e); return null; }
+  }
 
-  document.querySelectorAll("[data-i18n]").forEach(el=>{
-    const key = el.getAttribute("data-i18n");
-    if(dict[lang] && dict[lang][key]) el.textContent = dict[lang][key];
+  // ============================================================
+  // 5) Income mini (uses D.incomeMini from admin_settings)
+  // ============================================================
+  const upColor = "rgba(34,197,94,0.98)";
+  const downColor = "rgba(239,68,68,0.98)";
+
+  let chIncomeMini = null;
+  if(D.incomeMini?.labels?.length){
+    chIncomeMini = safeChart(()=> new Chart(document.getElementById("chIncomeMini"), {
+      type: "line",
+      data: {
+        labels: D.incomeMini.labels,
+        datasets: [{
+          label: "Daromad",
+          data: D.incomeMini.values || [],
+          tension: 0.22,
+          pointRadius: 0,
+          borderWidth: 2,
+          segment: {
+            borderColor: (ctx) => {
+              const y0 = ctx.p0.parsed.y;
+              const y1 = ctx.p1.parsed.y;
+              return (y1 >= y0) ? upColor : downColor;
+            },
+          },
+          fill: true,
+          backgroundColor: "rgba(56,189,248,0.10)"
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          shadowPlugin: { shadowBlur: 22, shadowOffsetY: 10 },
+          legend: { display: false },
+          tooltip: { mode: "index", intersect: false }
+        },
+        scales: {
+          x: { grid: { color: gridColorSoft() } },
+          y: { grid: { color: gridColor() }, ticks: { precision: 0 } }
+        }
+      }
+    }));
+  }
+
+  // ============================================================
+  // 6) Structure (Top-5 income_daily this month) - from admin_settings
+  // ============================================================
+  let chStructure = null;
+  if(D.structure?.labels?.length){
+    chStructure = safeChart(()=> new Chart(document.getElementById("chStructure"), {
+      type: "bar",
+      data: {
+        labels: D.structure.labels,
+        datasets: [{
+          label: "Daromad",
+          data: D.structure.values || [],
+          borderWidth: 0,
+          borderRadius: 12,
+          barThickness: 18,
+          maxBarThickness: 22
+        }]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "top" } },
+        scales: {
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  // ============================================================
+  // 7) Lazy-loaded blocks via JSON endpoints
+  //   - monthly:          /admin/settings/monthly.json
+  //   - stations:         /admin/settings/stations.json
+  //   - stacked top-5:    /admin/settings/stacked-top5.json
+  //   - online users:     /admin/settings/online-users.json
+  // ============================================================
+  let chMonthly = null;
+  let chDayNight = null;
+  let chMonthlykont = null;
+  let chDayNightkont = null;
+  let chStations = null;
+  let stationsSorted = false;
+  let stationsRaw = null;
+
+  // ========Vagonda===========
+  function renderMonthly(M){
+    if(!M?.labels?.length) return;
+    if(chMonthly) chMonthly.destroy();
+    chMonthly = safeChart(()=> new Chart(document.getElementById("chMonthly"), {
+      type: "line",
+      data: {
+        labels: M.labels,
+        datasets: [
+          { label: "Ortish", data: M.ortish || [], tension: 0.30, borderWidth: 2, pointRadius: 3, fill: false },
+          { label: "Tushirish", data: M.tushirish || [], tension: 0.30, borderWidth: 2, pointRadius: 3, fill: false }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "top" } },
+        scales: {
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  function renderStackeds(S){
+    if(!S?.labels?.length) return;
+    if(chDayNight) chDayNight.destroy();
+    chDayNight = safeChart(()=> new Chart(document.getElementById("chDayNight"), {
+      type: "bar",
+      data: {
+        labels: S.labels,
+        datasets: [
+          { label: "Podpogruzka", data: S.day || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 },
+          { label: "Podvigruzka", data: S.night || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "bottom" } },
+        scales: {
+          x: { stacked:true, grid: { display:false } },
+          y: { stacked:true, beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  // ========KONTEYNERDA===========
+  function renderMonthly_kont(M){
+    if(!M?.labels?.length) return;
+    if(chMonthlykont) chMonthlykont.destroy();
+    chMonthlykont = safeChart(()=> new Chart(document.getElementById("chMonthlykont"), {
+      type: "line",
+      data: {
+        labels: M.labels,
+        datasets: [
+          { label: "Ortish", data: M.ortish || [], tension: 0.30, borderWidth: 2, pointRadius: 3, fill: false },
+          { label: "Tushirish", data: M.tushirish || [], tension: 0.30, borderWidth: 2, pointRadius: 3, fill: false }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "top" } },
+        scales: {
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  function renderStacked(S){
+    if(!S?.labels?.length) return;
+    if(chDayNightkont) chDayNightkont.destroy();
+    chDayNightkont = safeChart(()=> new Chart(document.getElementById("chDayNightkont"), {
+      type: "bar",
+      data: {
+        labels: S.labels,
+        datasets: [
+          { label: "Ortish", data: S.day || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 },
+          { label: "Tushirish", data: S.night || [], stack: "s", borderWidth: 0, borderRadius: 12, barThickness: 18, maxBarThickness: 22 }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "bottom" } },
+        scales: {
+          x: { stacked:true, grid: { display:false } },
+          y: { stacked:true, beginAtZero:true, grid: { color: gridColor() }, ticks: { precision:0 } }
+        }
+      }
+    }));
+  }
+
+  function buildStationsData(sorted){
+    const labels = [...(stationsRaw?.labels || [])];
+    const ort = [...(stationsRaw?.ortish || [])];
+    const tus = [...(stationsRaw?.tushirish || [])];
+
+    if(sorted){
+      const idx = labels.map((_,i)=>i).sort((a,b)=> (ort[b]+tus[b]) - (ort[a]+tus[a]));
+      return { labels: idx.map(i=>labels[i]), ortish: idx.map(i=>ort[i]), tushirish: idx.map(i=>tus[i]) };
+    }
+    return { labels, ortish: ort, tushirish: tus };
+  }
+
+  function renderStations(sorted){
+    if(!stationsRaw?.labels?.length) return;
+    const X = buildStationsData(sorted);
+
+    if(chStations) chStations.destroy();
+    chStations = safeChart(()=> new Chart(document.getElementById("chStations"), {
+      type: "bar",
+      data: {
+        labels: X.labels,
+        datasets: [
+          { label: "Ortish", data: X.ortish, stack:"s", borderWidth:0, borderRadius: 12, barThickness: 16, maxBarThickness: 20 },
+          { label: "Tushirish", data: X.tushirish, stack:"s", borderWidth:0, borderRadius: 12, barThickness: 16, maxBarThickness: 20 }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: { shadowPlugin: { shadowBlur: 18, shadowOffsetY: 9 }, legend: { position: "top" } },
+        scales: {
+          x: { stacked:true, grid: { color: gridColor() }, ticks: { precision:0 } },
+          y: { stacked:true, grid: { display:false } }
+        }
+      }
+    }));
+  }
+
+  function renderOnlineUsers(list){
+    const usersTbody = document.querySelector("#onlineUsersTable tbody");
+    if(!usersTbody) return;
+
+    const badge = (online)=>{
+      if(online) return '<span class="chip"><span class="dot"></span><span>Online</span></span>';
+      return '<span class="chip"><span class="dot warn"></span><span>Offline</span></span>';
+    };
+
+    usersTbody.innerHTML = (list || []).map(u=>`
+      <tr>
+        <td><b>${u.name}</b></td>
+        <td class="mono">${u.department || "-"}</td>
+        <td class="mono">${u.last_login || "-"}</td>
+        <td>${badge(!!u.online)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="4" class="mono" style="color:var(--muted)">Ma'lumot yo‘q</td></tr>`;
+  }
+
+  async function fetchJSON(url){
+    const r = await fetch(url, { credentials: "same-origin" });
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  }
+
+  async function loadMonthly(){
+    const data = await fetchJSON("{% url 'admin_settings_monthly_json' %}");
+    renderMonthly(data.monthly);
+  }
+
+  async function loadMonthlykont(){
+    const data = await fetchJSON("{% url 'admin_settings_monthly_json_cont' %}");
+    renderMonthly_kont(data.monthly);
+  }
+
+  async function loadStations(){
+    const data = await fetchJSON("{% url 'admin_settings_stations_json' %}" + rangeQS());
+    stationsRaw = data.stations;
+    renderStations(stationsSorted);
+  }
+
+  async function loadStacked(){
+    const data = await fetchJSON("{% url 'admin_settings_stacked_top5_json_cont' %}" + rangeQS());
+    renderStacked(data.dayNightTop);
+  }
+  async function loadStackeds(){
+    const data = await fetchJSON("{% url 'admin_settings_stacked_top5_json' %}" + rangeQS());
+    renderStackeds(data.dayNightTop);
+  }
+
+
+  async function loadOnline(){
+    const data = await fetchJSON("{% url 'admin_settings_online_users_json' %}");
+    renderOnlineUsers(data.online_users);
+  }
+
+  // initial background loads
+  Promise.allSettled([loadMonthly(), loadStations(), loadStacked(), loadOnline(), loadStackeds(), loadMonthlykont()]);
+
+  // sort button
+  document.getElementById("btnSortStations")?.addEventListener("click", ()=>{
+    stationsSorted = !stationsSorted;
+    renderStations(stationsSorted);
   });
 
-  // IMPORTANT:
-  // base.html language button bosilganda "custom event" yoq bo'lmasa ham,
-  // bu dashboard har safar ochilganda localStorage'dan o'qib yangilanadi.
 })();
 </script>
+
 {% endblock %}

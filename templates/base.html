@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <title>{% block title %}"O‘ztemiryo‘lkonteyner" AJ{% endblock %}</title>
 
   <link rel="shortcut icon" href="{% static 'images/UTKlogo.png' %}" type="image/x-icon">
@@ -58,7 +59,7 @@
             <a class="nav-link" href="/admin-panel/settings/" data-i18n="dash" >Dashboard</a>
             <a class="nav-link" href="/admin-panel/table-1/" data-i18n="r1">Hisobot 1</a>
             <a class="nav-link" href="{% url 'admin_table2_reports' %}" data-i18n="r2">Hisobot 2</a>
-            <a class="nav-link" href="#" data-i18n="q" style="color: rgb(154, 181, 206);">Kvartalniy</a>
+            <a class="nav-link" href="{% url 'kvartalniy_um' %}" data-i18n="q" >Kvartalniy</a>
             <a class="nav-link" href="/admin-panel/stations/" data-i18n="branches">Filiallar</a>
           {% else %}
             <a class="nav-link" href="/station/table-1/" data-i18n="r1">Hisobot 1</a>
@@ -69,6 +70,7 @@
 
       <!-- RIGHT: tools + account -->
       <div class="right-tools">
+
 
         <!-- Language -->
         <button class="icon-btn" id="langBtn" type="button" title="Til / Язык">
@@ -130,4 +132,5 @@
 
   <script defer src="{% static 'script/base.js' %}"></script>
 </body>
+
 </html>
