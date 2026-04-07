@@ -29,6 +29,7 @@ urlpatterns = [
 
 
     path("admin-panel/table-2/", admin_table2_reports, name="admin_table2_reports"),
+    path("admin-panel/table-2/json/", admin_table2_reports_json, name="admin_table2_reports_json"),
     path("admin-panel/table-2/<str:date_str>/", admin_table2_day, name="admin_table2_day"),
     path("admin-panel/table-2/<str:date_str>/view/", admin_table2_view, name="admin_table2_view"),
     path("admin-panel/table-2/<str:date_str>/graph/", admin_table2_graph, name="admin_table2_graph"),
