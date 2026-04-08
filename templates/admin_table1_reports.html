@@ -1,12 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Admin - Hisobot1 {% endblock %}
+{% block title %}Admin - Hisobot1{% endblock %}
 
 {% block content %}
 <style>
   .panel{
-    
-   
-    /* background: var(--surface); */
     border: 1px solid var(--stroke);
     border-radius: 20px;
     box-shadow: var(--shadow);
@@ -20,10 +17,10 @@
   .muted{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.4;}
 
   .tableWrap{
-    margin-top: 14px;
+    margin-top:14px;
     overflow:auto;
-    border-radius: 18px;
-    border: 1px solid var(--stroke);
+    border-radius:18px;
+    border:1px solid var(--stroke);
     background: rgba(255,255,255,.30);
   }
   html[data-theme="dark"] .tableWrap{ background: rgba(255,255,255,.04); }
@@ -80,25 +77,51 @@
     white-space:nowrap;
     transition:transform .12s ease, filter .12s ease;
     border:1px solid rgba(15,23,42,.12);
+    color: var(--text);
   }
   .btnView:hover{ filter:brightness(1.03); transform:translateY(-1px); }
 
-  /* Modal */
+  .pager{
+    margin-top:14px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .pagerInfo{
+    color:var(--muted);
+    font-size:12.5px;
+  }
+  .pagerControls{
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .pgBtn, .pgSelect{
+    padding:9px 12px;border-radius:14px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.55);
+    color:var(--text);
+    font-weight:950;font-size:12.5px;
+    text-decoration:none;
+  }
+  html[data-theme="dark"] .pgBtn,
+  html[data-theme="dark"] .pgSelect{
+    background:rgba(255,255,255,.06);
+  }
+  .pgBtn.disabled{
+    opacity:.5;
+    pointer-events:none;
+  }
+
   .modal{
     position: fixed;
-    left: 0; top: 0; right: 0; bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     background: rgba(0,0,0,.45);
     display: none;
     align-items: center;
     justify-content: center;
     padding: 18px;
-    z-index: 999999; /* kuchliroq */
+    z-index: 999999;
   }
   .modal.open{display:flex;}
   .modalCard{
-    width:min(480px,100%);
+    width:min(560px,100%);
     border-radius:18px;border:1px solid var(--stroke);
     background:var(--surface);box-shadow:var(--shadow2);
     backdrop-filter:blur(14px);overflow:hidden;
@@ -115,9 +138,11 @@
     cursor:pointer;font-weight:950;color:var(--text);
   }
   html[data-theme="dark"] .closeBtn{ background:rgba(255,255,255,.06); }
+
   .modalBody{padding:14px 16px 16px;}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   @media(max-width:820px){ .cols{grid-template-columns:1fr;} }
+
   .col{
     border:1px solid var(--stroke);
     border-radius:16px;padding:12px;
@@ -125,6 +150,7 @@
     max-height:320px;overflow:auto;
   }
   html[data-theme="dark"] .col{ background:rgba(255,255,255,.04); }
+
   .pill{
     display:inline-flex;align-items:center;gap:8px;
     padding:5px 10px;border-radius:999px;
@@ -132,6 +158,7 @@
   }
   .pill.ok{ background:rgba(34,197,94,.12); }
   .pill.no{ background:rgba(239,68,68,.10); }
+
   .stLine{
     display:flex;justify-content:space-between;gap:10px;
     padding:8px 0;border-bottom:1px dashed rgba(15,23,42,.12);
@@ -141,32 +168,19 @@
   .stName{font-weight:600;}
   .stTime{font-size:12px;color:var(--muted);white-space:nowrap;}
 
-  /* Front pagination (no backend) */
-  .pager{
-    margin-top:14px;
-    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  .loadingBox, .emptyBox{
+    padding:18px;
+    color:var(--muted);
+    font-size:13px;
   }
-  .pager .left{color:var(--muted);font-size:12.5px;}
-  .pager .right{display:flex;gap:8px;flex-wrap:wrap;}
-  .pgBtn{
-    padding:9px 12px;border-radius:14px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.55);
-    color:var(--text);
-    font-weight:950;font-size:12.5px;
-    cursor:pointer;
-  }
-  html[data-theme="dark"] .pgBtn{ background:rgba(255,255,255,.06); }
-  .pgBtn:disabled{opacity:.5;cursor:not-allowed;}
 </style>
 
 <div class="panel">
   <div class="hdr">
     <div>
-      <h2 data-i18n="t1_title">Hisobot №1 — Sanalar kesimida </h2>
+      <h2 data-i18n="t1_title">Hisobot №1 — Sanalar kesimida</h2>
       <div class="muted" data-i18n="t1_help">
         “Jo'natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
-        Pastdagi Oldingi/Keyingi tugmalar bilan 10 tadan sahifalanadi.
       </div>
     </div>
   </div>
@@ -183,193 +197,311 @@
         </tr>
       </thead>
       <tbody id="t1Body">
-        {% for it in items %}
-          <tr class="t1-row">
-            <td class="num t1-num"></td>
-
-            <td>
-              <div class="date">{{ it.date|date:"d.m.Y" }}</div>
-              <div class="submeta">Yil: <b>{{ it.year }}</b> • Oy: <b>{{ it.month }}</b></div>
-            </td>
-
-            <td>
-              <button type="button"
-                      class="statusBtn"
-                      data-open="m-{{ forloop.counter }}">
-                <span class="statusBadge">
-                  Jo'natgan <b>{{ it.submitted_count }}/{{ it.total_count }}</b>
-                </span>
-                <span style="opacity:.8">Batafsil</span>
-              </button>
-
-              <div class="modal" id="m-{{ forloop.counter }}">
-                <div class="modalCard" role="dialog" aria-modal="true">
-                  <div class="modalTop">
-                    <b>Filiallar holati — {{ it.date|date:"d.m.Y" }}</b>
-                    <button type="button" class="closeBtn" data-close="m-{{ forloop.counter }}">×</button>
-                  </div>
-
-                  <div class="modalBody">
-                    <div class="cols">
-                      <div class="col">
-                        <div style="margin-bottom:10px;">
-                          <span class="pill ok">Jo'natganlar ({{ it.submitted_count }})</span>
-                        </div>
-                        {% for s in it.submitted %}
-                          <div class="stLine">
-                            <div class="stName">{{ s.name }}</div>
-                            <div class="stTime">{{ s.submitted_at|date:"d.m.Y H:i" }}</div>
-                          </div>
-                        {% empty %}
-                          <div class="stTime">Hech kim jo‘natmagan</div>
-                        {% endfor %}
-                      </div>
-
-                      <div class="col">
-                        <div style="margin-bottom:10px;">
-                          <span class="pill no">Jo'natmaganlar ({{ it.not_submitted_count }})</span>
-                        </div>
-                        {% for s in it.not_submitted %}
-                          <div class="stLine">
-                            <div class="stName">{{ s.name }}</div>
-                            <div class="stTime">—</div>
-                          </div>
-                        {% empty %}
-                          <div class="stTime">Hamma jo‘natgan</div>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </td>
-
-            <td>
-              {% if it.submitted_at %}
-                <b>{{ it.submitted_at|date:"d.m.Y H:i" }}</b>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-
-            <td>
-              <a class="btnView" href="{% url 'admin_table1_report_view' it.date|date:'Y-m-d' %}">
-                Ko‘rish
-              </a>
-            </td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="5" style="padding:16px;color:var(--muted);">Hali Jadval 1 bo‘yicha hisobot yo‘q.</td></tr>
-        {% endfor %}
+        <tr>
+          <td colspan="5" class="loadingBox">Yuklanmoqda...</td>
+        </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Frontend pager -->
   <div class="pager">
-    <div class="left" id="pgInfo">—</div>
-    <div class="right">
-      <button class="pgBtn" id="pgPrev" type="button">‹ Oldingi</button>
-      <button class="pgBtn" id="pgNext" type="button">Keyingi ›</button>
+    <div class="pagerInfo" id="pagerInfo">
+      Yuklanmoqda...
+    </div>
+
+    <div class="pagerControls">
+      <select id="perPageSelect" class="pgSelect">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+      </select>
+
+      <button type="button" class="pgBtn" id="prevBtn">‹ Oldingi</button>
+      <button type="button" class="pgBtn" id="nextBtn">Keyingi ›</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="statusModal">
+  <div class="modalCard" role="dialog" aria-modal="true">
+    <div class="modalTop">
+      <b id="statusModalTitle">Filiallar holati</b>
+      <button type="button" class="closeBtn" id="statusModalClose">×</button>
+    </div>
+
+    <div class="modalBody" id="statusModalBody">
+      <div class="loadingBox">Yuklanmoqda...</div>
     </div>
   </div>
 </div>
 
 <script>
 (function(){
-  // -------- MODAL open/close (FIX: append to body) ----------
-  const modalHome = new Map(); // modalId -> originalParent
+  const tbody = document.getElementById('t1Body');
+  const pagerInfo = document.getElementById('pagerInfo');
+  const perPageSelect = document.getElementById('perPageSelect');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
 
-  function moveToBody(modal){
-    if(!modal) return;
-    if(!modalHome.has(modal.id)){
-      modalHome.set(modal.id, modal.parentNode);
+  const modal = document.getElementById('statusModal');
+  const modalTitle = document.getElementById('statusModalTitle');
+  const modalBody = document.getElementById('statusModalBody');
+  const closeBtn = document.getElementById('statusModalClose');
+
+  let currentPage = 1;
+  let currentPerPage = 10;
+  let currentPagination = null;
+
+  function escapeHtml(value){
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatDateLabel(isoDate){
+    if (!isoDate) return '';
+    const parts = String(isoDate).split('-');
+    if (parts.length !== 3) return isoDate;
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
+  function openModal(){
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(){
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function renderList(items, emptyText, showTime){
+    if(!items || !items.length){
+      return `<div class="emptyBox">${escapeHtml(emptyText)}</div>`;
     }
-    document.body.appendChild(modal);
+
+    return items.map(item => `
+      <div class="stLine">
+        <div class="stName">${escapeHtml(item.name)}</div>
+        <div class="stTime">${showTime ? escapeHtml(item.submitted_at || '—') : '—'}</div>
+      </div>
+    `).join('');
   }
 
-  function moveBack(modal){
-    if(!modal) return;
-    const home = modalHome.get(modal.id);
-    if(home) home.appendChild(modal);
-  }
-
-  function openModal(id){
-    const m = document.getElementById(id);
-    if(!m) return;
-    moveToBody(m);                 // <<< FIX
-    m.classList.add('open');
-    document.body.style.overflow='hidden';
-  }
-
-  function closeModal(id){
-    const m = document.getElementById(id);
-    if(!m) return;
-    m.classList.remove('open');
-    document.body.style.overflow='';
-    // ozgina kutib, so‘ng joyiga qaytaramiz (anim/klik konflikt bo‘lmasin)
-    setTimeout(()=> moveBack(m), 0);
-  }
-
-  document.addEventListener('click', (e)=>{
-    const ob = e.target.closest('[data-open]');
-    if(ob){ openModal(ob.getAttribute('data-open')); return; }
-
-    const cb = e.target.closest('[data-close]');
-    if(cb){ closeModal(cb.getAttribute('data-close')); return; }
-
-    // overlay click closes
-    if(e.target.classList && e.target.classList.contains('modal')){
-      const id = e.target.id;
-      e.target.classList.remove('open');
-      document.body.style.overflow='';
-      setTimeout(()=> moveBack(e.target), 0);
+  function renderRows(items, pagination){
+    if(!items || !items.length){
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="emptyBox">Hali Jadval 1 bo‘yicha hisobot yo‘q.</td>
+        </tr>
+      `;
+      return;
     }
-  });
 
-  document.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape'){
-      document.querySelectorAll('.modal.open').forEach(m=>{
-        m.classList.remove('open');
-        setTimeout(()=> moveBack(m), 0);
+    tbody.innerHTML = items.map((it, index) => {
+      const dateLabel = formatDateLabel(it.date);
+      const viewUrl = `/admin-panel/table-1/${it.date}/`;
+
+      return `
+        <tr class="t1-row">
+          <td class="num">${pagination.start_index + index}</td>
+
+          <td>
+            <div class="date">${escapeHtml(dateLabel)}</div>
+            <div class="submeta">Yil: <b>${escapeHtml(it.year)}</b> • Oy: <b>${escapeHtml(it.month)}</b></div>
+          </td>
+
+          <td>
+            <button
+              type="button"
+              class="statusBtn js-status-detail"
+              data-date="${escapeHtml(it.date)}"
+              data-date-label="${escapeHtml(dateLabel)}"
+            >
+              <span class="statusBadge">
+                Jo'natgan <b>${escapeHtml(it.submitted_count)}/${escapeHtml(it.total_count)}</b>
+              </span>
+              <span style="opacity:.8">Batafsil</span>
+            </button>
+          </td>
+
+          <td>
+            ${it.submitted_at ? `<b>${escapeHtml(it.submitted_at)}</b>` : '—'}
+          </td>
+
+          <td>
+            <a class="btnView" href="${escapeHtml(viewUrl)}">Ko‘rish</a>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderPager(pagination){
+    currentPagination = pagination;
+
+    pagerInfo.textContent =
+      `Sahifa ${pagination.page}/${pagination.num_pages} • Jami: ${pagination.total_items}`;
+
+    prevBtn.disabled = !pagination.has_previous;
+    nextBtn.disabled = !pagination.has_next;
+
+    if (pagination.has_previous) {
+      prevBtn.classList.remove('disabled');
+    } else {
+      prevBtn.classList.add('disabled');
+    }
+
+    if (pagination.has_next) {
+      nextBtn.classList.remove('disabled');
+    } else {
+      nextBtn.classList.add('disabled');
+    }
+  }
+
+  async function loadTable(page = 1, perPage = 10){
+    currentPage = page;
+    currentPerPage = perPage;
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="loadingBox">Yuklanmoqda...</td>
+      </tr>
+    `;
+    pagerInfo.textContent = 'Yuklanmoqda...';
+
+    try {
+      const url = `{% url 'admin_table1_reports_json' %}?page=${page}&per_page=${perPage}`;
+      const res = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
       });
-      document.body.style.overflow='';
+
+      if(!res.ok){
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if(!data.ok){
+        throw new Error('Invalid JSON response');
+      }
+
+      renderRows(data.items || [], data.pagination || {
+        page: 1,
+        num_pages: 1,
+        total_items: 0,
+        start_index: 1,
+        has_previous: false,
+        has_next: false
+      });
+
+      renderPager(data.pagination || {
+        page: 1,
+        num_pages: 1,
+        total_items: 0,
+        has_previous: false,
+        has_next: false
+      });
+    } catch (err) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="emptyBox">Ma'lumotni yuklashda xatolik yuz berdi.</td>
+        </tr>
+      `;
+      pagerInfo.textContent = 'Xatolik yuz berdi';
+      console.error(err);
+    }
+  }
+
+  async function loadStatus(dateStr, dateLabel){
+    modalTitle.textContent = `Filiallar holati — ${dateLabel}`;
+    modalBody.innerHTML = `<div class="loadingBox">Yuklanmoqda...</div>`;
+    openModal();
+
+    try {
+      const url = `/admin/table1/status/${dateStr}/`;
+      const res = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if(!res.ok){
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if(!data.ok){
+        throw new Error('Invalid response');
+      }
+
+      modalBody.innerHTML = `
+        <div class="cols">
+          <div class="col">
+            <div style="margin-bottom:10px;">
+              <span class="pill ok">Jo'natganlar (${data.submitted_count})</span>
+            </div>
+            ${renderList(data.submitted, "Hech kim jo‘natmagan", true)}
+          </div>
+
+          <div class="col">
+            <div style="margin-bottom:10px;">
+              <span class="pill no">Jo'natmaganlar (${data.not_submitted_count})</span>
+            </div>
+            ${renderList(data.not_submitted, "Hamma jo‘natgan", false)}
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      modalBody.innerHTML = `<div class="emptyBox">Ma'lumotni yuklashda xatolik yuz berdi.</div>`;
+      console.error(err);
+    }
+  }
+
+  perPageSelect.addEventListener('change', function(){
+    loadTable(1, Number(this.value));
+  });
+
+  prevBtn.addEventListener('click', function(){
+    if(currentPagination && currentPagination.has_previous){
+      loadTable(currentPagination.previous_page_number, currentPerPage);
     }
   });
 
-  // -------- FRONT PAGINATION (10 rows) ----------
-  const rows = Array.from(document.querySelectorAll('#t1Body .t1-row'));
-  const perPage = 10;
-  let page = 1;
-  const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+  nextBtn.addEventListener('click', function(){
+    if(currentPagination && currentPagination.has_next){
+      loadTable(currentPagination.next_page_number, currentPerPage);
+    }
+  });
 
-  const pgInfo = document.getElementById('pgInfo');
-  const pgPrev = document.getElementById('pgPrev');
-  const pgNext = document.getElementById('pgNext');
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.js-status-detail');
+    if(btn){
+      const dateStr = btn.getAttribute('data-date');
+      const dateLabel = btn.getAttribute('data-date-label');
+      loadStatus(dateStr, dateLabel);
+      return;
+    }
 
-  function render(){
-    const start = (page-1)*perPage;
-    const end = start + perPage;
+    if(e.target === modal || e.target === closeBtn){
+      closeModal();
+    }
+  });
 
-    rows.forEach((r, idx)=>{
-      const show = idx >= start && idx < end;
-      r.style.display = show ? '' : 'none';
-      if(show){
-        const nCell = r.querySelector('.t1-num');
-        if(nCell) nCell.textContent = (idx + 1).toString();
-      }
-    });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal.classList.contains('open')){
+      closeModal();
+    }
+  });
 
-    pgInfo.textContent = `Sahifa ${page}/${totalPages} • Jami: ${rows.length}`;
-    pgPrev.disabled = page <= 1;
-    pgNext.disabled = page >= totalPages;
-  }
-
-  pgPrev.addEventListener('click', ()=>{ if(page>1){ page--; render(); window.scrollTo({top:0,behavior:'smooth'});} });
-  pgNext.addEventListener('click', ()=>{ if(page<totalPages){ page++; render(); window.scrollTo({top:0,behavior:'smooth'});} });
-
-  render();
+  loadTable(currentPage, currentPerPage);
 })();
 </script>
 {% endblock %}

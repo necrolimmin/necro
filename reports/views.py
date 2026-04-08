@@ -837,65 +837,132 @@ def promote_station(request, pk):
 # =========================
 # ADMIN: TABLE 1
 # =========================
+from django.db.models import Count, Q, Max
+
+def admin_table1_reports(request):
+    return render(request, "admin_table1_reports.html")
+
 
 @staff_required
-def admin_table1_reports(request):
+@require_GET
+def admin_table1_reports_json(request):
     all_stations = _get_all_stations()
     all_station_ids = [sid for sid, _ in all_stations]
+    total_count = len(all_stations)
 
     qs_dates = (
         StationDailyTable1.objects
         .filter(shift="total", station_user_id__in=all_station_ids)
         .values("date")
-        .annotate(last_submitted_at=Max("submitted_at"))
+        .annotate(
+            submitted_count=Count(
+                "station_user_id",
+                filter=Q(submitted_at__isnull=False),
+                distinct=True
+            ),
+            last_submitted_at=Max("submitted_at"),
+        )
         .order_by("-date")
     )
 
+    per_page = _read_int(request.GET.get("per_page")) or 10
+    if per_page not in (5, 10, 20, 50):
+        per_page = 10
+
+    paginator = Paginator(qs_dates, per_page)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+
     items = []
-    for r in qs_dates:
+    for r in page_obj.object_list:
         d = r["date"]
-
-        sent_rows = list(
-            StationDailyTable1.objects
-            .filter(
-                date=d,
-                shift="total",
-                station_user_id__in=all_station_ids,
-                submitted_at__isnull=False,
-            )
-            .values("station_user_id")
-            .annotate(last=Max("submitted_at"))
-        )
-        sent_map = {x["station_user_id"]: x["last"] for x in sent_rows}
-
-        submitted = []
-        not_submitted = []
-
-        for sid, name in all_stations:
-            last_dt = sent_map.get(sid)
-            if last_dt:
-                submitted.append({"name":get_object_or_404(StationProfile, user__username=name).station_name , "submitted_at": last_dt})
-            else:
-                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
+        submitted_count = int(r.get("submitted_count") or 0)
+        last_submitted_at = r.get("last_submitted_at")
 
         items.append({
-            "date": d,
-            "year": d.year,
-            "month": d.month,
-            "submitted_at": r["last_submitted_at"],
-            "is_submitted": bool(r["last_submitted_at"]),
-            "submitted": submitted,
-            "not_submitted": not_submitted,
-            "submitted_count": len(submitted),
-            "not_submitted_count": len(not_submitted),
-            "total_count": len(all_stations),
+            "date": d.strftime("%Y-%m-%d") if d else None,
+            "year": d.year if d else None,
+            "month": d.month if d else None,
+            "submitted_at": last_submitted_at.strftime("%d.%m.%Y %H:%M") if last_submitted_at else None,
+            "is_submitted": bool(last_submitted_at),
+            "submitted_count": submitted_count,
+            "not_submitted_count": max(total_count - submitted_count, 0),
+            "total_count": total_count,
         })
-       
 
-    return render(request, "admin_table1_reports.html", {
+    return JsonResponse({
+        "ok": True,
         "items": items,
-        "today": dt_date.today(),
+        "today": dt_date.today().strftime("%Y-%m-%d"),
+        "pagination": {
+            "page": page_obj.number,
+            "per_page": per_page,
+            "num_pages": paginator.num_pages,
+            "total_items": paginator.count,
+            "has_previous": page_obj.has_previous(),
+            "has_next": page_obj.has_next(),
+            "previous_page_number": page_obj.previous_page_number() if page_obj.has_previous() else None,
+            "next_page_number": page_obj.next_page_number() if page_obj.has_next() else None,
+            "start_index": page_obj.start_index() if paginator.count else 0,
+            "end_index": page_obj.end_index() if paginator.count else 0,
+        }
     })
+
+
+@staff_required
+@require_GET
+def admin_table1_status_detail(request, date_str):
+    d = _parse_date(date_str)
+
+    all_stations = _get_all_stations()
+    all_station_ids = [sid for sid, _ in all_stations]
+
+    station_name_map = {
+        sp.user_id: (sp.station_name or getattr(sp.user, "username", str(sp.user)))
+        for sp in StationProfile.objects.select_related("user").filter(user_id__in=all_station_ids)
+    }
+
+    sent_rows = list(
+        StationDailyTable1.objects
+        .filter(
+            date=d,
+            shift="total",
+            station_user_id__in=all_station_ids,
+            submitted_at__isnull=False,
+        )
+        .values("station_user_id")
+        .annotate(last=Max("submitted_at"))
+        .order_by("station_user_id")
+    )
+
+    sent_map = {x["station_user_id"]: x["last"] for x in sent_rows}
+
+    submitted = []
+    not_submitted = []
+
+    for sid, username in all_stations:
+        station_name = station_name_map.get(sid, username)
+        last_dt = sent_map.get(sid)
+
+        if last_dt:
+            submitted.append({
+                "name": station_name,
+                "submitted_at": last_dt.strftime("%d.%m.%Y %H:%M"),
+            })
+        else:
+            not_submitted.append({
+                "name": station_name
+            })
+
+    return JsonResponse({
+        "ok": True,
+        "date": d.strftime("%d.%m.%Y"),
+        "submitted_count": len(submitted),
+        "not_submitted_count": len(not_submitted),
+        "submitted": submitted,
+        "not_submitted": not_submitted,
+    })
+
 
 
 def _apply_itogo_rules(data: dict) -> dict:
@@ -1154,56 +1221,137 @@ def _station_name(u):
     return getattr(u, "username", str(u))
 
 
+from django.db.models import Max, Count, Q
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.views.decorators.http import require_GET
+from django.shortcuts import render
+from accounts.models import StationProfile
+from .models import StationDailyTable2
+
+
 @staff_required
 def admin_table2_reports(request):
-    all_stations = _get_all_stations()
+    return render(request, "admin_table2_reports.html")
 
-    qs = (
+
+@staff_required
+@require_GET
+def admin_table2_reports_json(request):
+    all_stations = _get_all_stations()
+    all_station_ids = [sid for sid, _ in all_stations]
+    total_count = len(all_stations)
+
+    qs_dates = (
         StationDailyTable2.objects
+        .filter(station_user_id__in=all_station_ids)
         .values("date")
-        .annotate(last_submitted_at=Max("submitted_at"))
+        .annotate(
+            submitted_count=Count(
+                "station_user_id",
+                filter=Q(submitted_at__isnull=False),
+                distinct=True,
+            ),
+            last_submitted_at=Max("submitted_at"),
+        )
         .order_by("-date")
     )
 
+    per_page = _read_int(request.GET.get("per_page")) or 10
+    if per_page not in (5, 10, 20, 50):
+        per_page = 10
+
+    paginator = Paginator(qs_dates, per_page)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+
     items = []
-    for r in qs:
+    for r in page_obj.object_list:
         d = r["date"]
-
-        sent_qs = list(
-            StationDailyTable2.objects.filter(
-                date=d,
-                submitted_at__isnull=False,
-            ).select_related("station_user")
-        )
-
-        sent_map = {o.station_user_id: o for o in sent_qs}
-
-        submitted = []
-        not_submitted = []
-
-        for sid, name in all_stations:
-            obj = sent_map.get(sid)
-            if obj:
-                submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name, "submitted_at": obj.submitted_at})
-            else:
-                not_submitted.append({"name": get_object_or_404(StationProfile, user__username=name).station_name})
+        submitted_count = int(r.get("submitted_count") or 0)
+        last_submitted_at = r.get("last_submitted_at")
 
         items.append({
-            "date": d,
-            "year": d.year,
-            "month": d.month,
-            "submitted_at": r["last_submitted_at"],
-            "is_submitted": bool(r["last_submitted_at"]),
-            "submitted": submitted,
-            "not_submitted": not_submitted,
-            "submitted_count": len(submitted),
-            "not_submitted_count": len(not_submitted),
-            "total_count": len(all_stations),
+            "date": d.strftime("%Y-%m-%d") if d else None,
+            "year": d.year if d else None,
+            "month": d.month if d else None,
+            "submitted_at": last_submitted_at.strftime("%d.%m.%Y %H:%M") if last_submitted_at else None,
+            "is_submitted": bool(last_submitted_at),
+            "submitted_count": submitted_count,
+            "not_submitted_count": max(total_count - submitted_count, 0),
+            "total_count": total_count,
         })
 
-    return render(request, "admin_table2_reports.html", {
+    return JsonResponse({
+        "ok": True,
         "items": items,
-        "today": dt_date.today(),
+        "today": dt_date.today().strftime("%Y-%m-%d"),
+        "pagination": {
+            "page": page_obj.number,
+            "per_page": per_page,
+            "num_pages": paginator.num_pages,
+            "total_items": paginator.count,
+            "has_previous": page_obj.has_previous(),
+            "has_next": page_obj.has_next(),
+            "previous_page_number": page_obj.previous_page_number() if page_obj.has_previous() else None,
+            "next_page_number": page_obj.next_page_number() if page_obj.has_next() else None,
+            "start_index": page_obj.start_index() if paginator.count else 0,
+            "end_index": page_obj.end_index() if paginator.count else 0,
+        }
+    })
+
+
+@staff_required
+@require_GET
+def admin_table2_status_detail(request, date_str):
+    d = _parse_date(date_str)
+
+    all_stations = _get_all_stations()
+    all_station_ids = [sid for sid, _ in all_stations]
+
+    station_name_map = {
+        sp.user_id: (sp.station_name or getattr(sp.user, "username", str(sp.user)))
+        for sp in StationProfile.objects.select_related("user").filter(user_id__in=all_station_ids)
+    }
+
+    sent_rows = list(
+        StationDailyTable2.objects
+        .filter(
+            date=d,
+            station_user_id__in=all_station_ids,
+            submitted_at__isnull=False,
+        )
+        .values("station_user_id")
+        .annotate(last=Max("submitted_at"))
+        .order_by("station_user_id")
+    )
+
+    sent_map = {x["station_user_id"]: x["last"] for x in sent_rows}
+
+    submitted = []
+    not_submitted = []
+
+    for sid, username in all_stations:
+        station_name = station_name_map.get(sid, username)
+        last_dt = sent_map.get(sid)
+
+        if last_dt:
+            submitted.append({
+                "name": station_name,
+                "submitted_at": last_dt.strftime("%d.%m.%Y %H:%M"),
+            })
+        else:
+            not_submitted.append({
+                "name": station_name
+            })
+
+    return JsonResponse({
+        "ok": True,
+        "date": d.strftime("%d.%m.%Y"),
+        "submitted_count": len(submitted),
+        "not_submitted_count": len(not_submitted),
+        "submitted": submitted,
+        "not_submitted": not_submitted,
     })
 
 
@@ -1378,8 +1526,7 @@ def admin_table2_layout(request, date_str):
         "buckets": buckets,
     })
 
-
-@staff_required
+@login_required(login_url='login')
 def admin_table2_station_pick(request, date_str):
     d = _parse_date(date_str)
 

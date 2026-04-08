@@ -4,7 +4,6 @@
 {% block content %}
 <style>
   .panel{
-    /* background: var(--surface); */
     border: 1px solid var(--stroke);
     border-radius: 20px;
     box-shadow: var(--shadow);
@@ -69,7 +68,6 @@
   }
   html[data-theme="dark"] .statusBadge{ border-color:rgba(255,255,255,.14); }
 
-  /* Action buttons */
   .actions{display:flex;gap:8px;flex-wrap:wrap;}
   .btnA{
     display:inline-flex;align-items:center;justify-content:center;
@@ -86,29 +84,23 @@
   .btnA:hover{ transform:translateY(-1px); box-shadow:0 16px 44px rgba(15,23,42,.10); filter:brightness(1.02); }
 
   .btnPrimary{
-    
-    
-    
     box-shadow:0 14px 40px rgba(79,70,229,.18);
   }
   .btnPrimary:hover{ filter:brightness(1.03); }
 
-  /* Modal */
   .modal{
     position: fixed;
-    left: 0; top: 0; right: 0; bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     background: rgba(0,0,0,.45);
     display: none;
     align-items: center;
     justify-content: center;
     padding: 18px;
-    z-index: 999999; /* kuchliroq */
+    z-index: 999999;
   }
   .modal.open{display:flex;}
   .modalCard{
-    width:min(480px,100%);
+    width:min(560px,100%);
     border-radius:18px;border:1px solid var(--stroke);
     background:var(--surface);box-shadow:var(--shadow2);
     backdrop-filter:blur(14px);overflow:hidden;
@@ -151,23 +143,39 @@
   .stName{font-weight:600;}
   .stTime{font-size:12px;color:var(--muted);white-space:nowrap;}
 
-  /* Front pagination */
   .pager{
     margin-top:14px;
     display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
   }
-  .pager .left{color:var(--muted);font-size:12.5px;}
-  .pager .right{display:flex;gap:8px;flex-wrap:wrap;}
-  .pgBtn{
+  .pagerInfo{
+    color:var(--muted);
+    font-size:12.5px;
+  }
+  .pagerControls{
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .pgBtn, .pgSelect{
     padding:9px 12px;border-radius:14px;
     border:1px solid var(--stroke);
     background:rgba(255,255,255,.55);
     color:var(--text);
     font-weight:950;font-size:12.5px;
-    cursor:pointer;
+    text-decoration:none;
   }
-  html[data-theme="dark"] .pgBtn{ background:rgba(255,255,255,.06); }
-  .pgBtn:disabled{opacity:.5;cursor:not-allowed;}
+  html[data-theme="dark"] .pgBtn,
+  html[data-theme="dark"] .pgSelect{
+    background:rgba(255,255,255,.06);
+  }
+  .pgBtn.disabled{
+    opacity:.5;
+    pointer-events:none;
+  }
+
+  .loadingBox, .emptyBox{
+    padding:18px;
+    color:var(--muted);
+    font-size:13px;
+  }
 </style>
 
 <div class="panel">
@@ -176,7 +184,6 @@
       <h2>Admin hisobot №2</h2>
       <div class="muted">
         “Jo'natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
-        Pastdagi Oldingi/Keyingi tugmalar bilan 10 tadan sahifalanadi.
       </div>
     </div>
   </div>
@@ -193,202 +200,313 @@
         </tr>
       </thead>
       <tbody id="t2Body">
-        {% for it in items %}
-          <tr class="t2-row">
-            <td class="num t2-num"></td>
-
-            <td>
-              <div class="date">{{ it.date|date:"d.m.Y" }}</div>
-              <div class="submeta">Yil: <b>{{ it.year }}</b> • Oy: <b>{{ it.month }}</b></div>
-            </td>
-
-            <td>
-              <button type="button"
-                      class="statusBtn"
-                      data-open="t2m-{{ forloop.counter }}">
-                <span class="statusBadge">
-                  Jo'natganlar <b>{{ it.submitted_count }}/{{ it.total_count }}</b>
-                </span>
-                <span style="opacity:.8">Batafsil</span>
-              </button>
-
-              <div class="modal" id="t2m-{{ forloop.counter }}">
-                <div class="modalCard" role="dialog" aria-modal="true">
-                  <div class="modalTop">
-                    <b>Filiallar holati — {{ it.date|date:"d.m.Y" }}</b>
-                    <button type="button" class="closeBtn" data-close="t2m-{{ forloop.counter }}">×</button>
-                  </div>
-
-                  <div class="modalBody">
-                    <div class="cols">
-                      <div class="col">
-                        <div style="margin-bottom:10px;">
-                          <span class="pill ok">Jo'natganlar ({{ it.submitted_count }})</span>
-                        </div>
-                        {% for s in it.submitted %}
-                          <div class="stLine">
-                            <div class="stName">{{ s.name }}</div>
-                            <div class="stTime">{{ s.submitted_at|date:"d.m.Y H:i" }}</div>
-                          </div>
-                        {% empty %}
-                          <div class="stTime">Hech kim jo‘natmagan</div>
-                        {% endfor %}
-                      </div>
-
-                      <div class="col">
-                        <div style="margin-bottom:10px;">
-                          <span class="pill no">Jo'natmaganlar ({{ it.not_submitted_count }})</span>
-                        </div>
-                        {% for s in it.not_submitted %}
-                          <div class="stLine">
-                            <div class="stName">{{ s.name }}</div>
-                            <div class="stTime">—</div>
-                          </div>
-                        {% empty %}
-                          <div class="stTime">Hamma jo‘natgan</div>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </td>
-
-            <td>
-              {% if it.submitted_at %}
-                <b>{{ it.submitted_at|date:"d.m.Y H:i" }}</b>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-
-            <td>
-              <div class="actions">
-                <a class="btnA btnPrimary" href="{% url 'admin_table2_station_pick' it.date|date:'Y-m-d' %}">
-                  Filiallar kesimida
-                </a>
-                <a class="btnA" href="{% url 'admin_table2_graph' it.date|date:'Y-m-d' %}">
-                  jadval-1
-                </a>
-                <a class="btnA" href="{% url 'admin_table2_layout' it.date|date:'Y-m-d' %}">
-                  jadval-2
-                </a>
-              </div>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" style="padding:16px;color:var(--muted);">
-              Пока нет отчётов Таблицы 2.
-            </td>
-          </tr>
-        {% endfor %}
+        <tr>
+          <td colspan="5" class="loadingBox">Yuklanmoqda...</td>
+        </tr>
       </tbody>
     </table>
   </div>
 
   <div class="pager">
-    <div class="left" id="t2Info">—</div>
-    <div class="right">
+    <div class="pagerInfo" id="t2Info">Yuklanmoqda...</div>
+    <div class="pagerControls">
+      <select id="t2PerPage" class="pgSelect">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+      </select>
       <button class="pgBtn" id="t2Prev" type="button">‹ Oldingi</button>
       <button class="pgBtn" id="t2Next" type="button">Keyingi ›</button>
     </div>
   </div>
 </div>
 
+<div class="modal" id="t2StatusModal">
+  <div class="modalCard" role="dialog" aria-modal="true">
+    <div class="modalTop">
+      <b id="t2StatusModalTitle">Filiallar holati</b>
+      <button type="button" class="closeBtn" id="t2StatusModalClose">×</button>
+    </div>
+
+    <div class="modalBody" id="t2StatusModalBody">
+      <div class="loadingBox">Yuklanmoqda...</div>
+    </div>
+  </div>
+</div>
+
 <script>
-  (function(){
-    // -------- MODAL open/close (FIX: append modal to body) ----------
-    const modalHome = new Map(); // modalId -> originalParent
+(function(){
+  const tbody = document.getElementById('t2Body');
+  const info = document.getElementById('t2Info');
+  const prev = document.getElementById('t2Prev');
+  const next = document.getElementById('t2Next');
+  const perPageSelect = document.getElementById('t2PerPage');
 
-    function moveToBody(modal){
-      if(!modal) return;
-      if(!modalHome.has(modal.id)){
-        modalHome.set(modal.id, modal.parentNode);
-      }
-      document.body.appendChild(modal);
+  const modal = document.getElementById('t2StatusModal');
+  const modalTitle = document.getElementById('t2StatusModalTitle');
+  const modalBody = document.getElementById('t2StatusModalBody');
+  const closeBtn = document.getElementById('t2StatusModalClose');
+
+  let currentPage = 1;
+  let currentPerPage = 10;
+  let currentPagination = null;
+
+  function escapeHtml(value){
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatDateLabel(isoDate){
+    if (!isoDate) return '';
+    const parts = String(isoDate).split('-');
+    if (parts.length !== 3) return isoDate;
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
+  function openModal(){
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(){
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function renderList(items, emptyText, showTime){
+    if(!items || !items.length){
+      return `<div class="emptyBox">${escapeHtml(emptyText)}</div>`;
     }
 
-    function moveBack(modal){
-      if(!modal) return;
-      const home = modalHome.get(modal.id);
-      if(home) home.appendChild(modal);
+    return items.map(item => `
+      <div class="stLine">
+        <div class="stName">${escapeHtml(item.name)}</div>
+        <div class="stTime">${showTime ? escapeHtml(item.submitted_at || '—') : '—'}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderRows(items, pagination){
+    if(!items || !items.length){
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="emptyBox">Пока нет отчётов Таблицы 2.</td>
+        </tr>
+      `;
+      return;
     }
 
-    function openModal(id){
-      const m = document.getElementById(id);
-      if(!m) return;
-      moveToBody(m); // <<< FIX
-      m.classList.add('open');
-      document.body.style.overflow = 'hidden';
+    tbody.innerHTML = items.map((it, index) => {
+      const dateLabel = formatDateLabel(it.date);
+      const stationPickUrl = `/admin/table2/${it.date}/stations/`;
+      const graphUrl = `/admin-panel/table-2/${it.date}/graph/`;
+      const layoutUrl = `/admin-panel/table-2/${it.date}/layout/`;
+
+      return `
+        <tr class="t2-row">
+          <td class="num">${pagination.start_index + index}</td>
+
+          <td>
+            <div class="date">${escapeHtml(dateLabel)}</div>
+            <div class="submeta">Yil: <b>${escapeHtml(it.year)}</b> • Oy: <b>${escapeHtml(it.month)}</b></div>
+          </td>
+
+          <td>
+            <button
+              type="button"
+              class="statusBtn js-t2-status-detail"
+              data-date="${escapeHtml(it.date)}"
+              data-date-label="${escapeHtml(dateLabel)}"
+            >
+              <span class="statusBadge">
+                Jo'natganlar <b>${escapeHtml(it.submitted_count)}/${escapeHtml(it.total_count)}</b>
+              </span>
+              <span style="opacity:.8">Batafsil</span>
+            </button>
+          </td>
+
+          <td>
+            ${it.submitted_at ? `<b>${escapeHtml(it.submitted_at)}</b>` : '—'}
+          </td>
+
+          <td>
+            <div class="actions">
+              <a class="btnA btnPrimary" href="${escapeHtml(stationPickUrl)}">Filiallar kesimida</a>
+              <a class="btnA" href="${escapeHtml(graphUrl)}">jadval-1</a>
+              <a class="btnA" href="${escapeHtml(layoutUrl)}">jadval-2</a>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderPager(pagination){
+    currentPagination = pagination;
+
+    info.textContent =
+      `Sahifa ${pagination.page}/${pagination.num_pages} • Jami: ${pagination.total_items}`;
+
+    prev.disabled = !pagination.has_previous;
+    next.disabled = !pagination.has_next;
+
+    if (pagination.has_previous) {
+      prev.classList.remove('disabled');
+    } else {
+      prev.classList.add('disabled');
     }
 
-    function closeModal(id){
-      const m = document.getElementById(id);
-      if(!m) return;
-      m.classList.remove('open');
-      document.body.style.overflow = '';
-      setTimeout(()=> moveBack(m), 0);
+    if (pagination.has_next) {
+      next.classList.remove('disabled');
+    } else {
+      next.classList.add('disabled');
     }
+  }
 
-    document.addEventListener('click', (e)=>{
-      const ob = e.target.closest('[data-open]');
-      if(ob){ openModal(ob.getAttribute('data-open')); return; }
+  async function loadTable(page = 1, perPage = 10){
+    currentPage = page;
+    currentPerPage = perPage;
 
-      const cb = e.target.closest('[data-close]');
-      if(cb){ closeModal(cb.getAttribute('data-close')); return; }
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="loadingBox">Yuklanmoqda...</td>
+      </tr>
+    `;
+    info.textContent = 'Yuklanmoqda...';
 
-      // overlay click closes
-      if(e.target.classList && e.target.classList.contains('modal')){
-        e.target.classList.remove('open');
-        document.body.style.overflow = '';
-        setTimeout(()=> moveBack(e.target), 0);
-      }
-    });
-
-    document.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape'){
-        document.querySelectorAll('.modal.open').forEach(m=>{
-          m.classList.remove('open');
-          setTimeout(()=> moveBack(m), 0);
-        });
-        document.body.style.overflow = '';
-      }
-    });
-
-    // -------- FRONT PAGINATION (10 rows) ----------
-    const rows = Array.from(document.querySelectorAll('#t2Body .t2-row'));
-    const perPage = 10;
-    let page = 1;
-    const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
-
-    const info = document.getElementById('t2Info');
-    const prev = document.getElementById('t2Prev');
-    const next = document.getElementById('t2Next');
-
-    function render(){
-      const start = (page-1)*perPage;
-      const end = start + perPage;
-
-      rows.forEach((r, idx)=>{
-        const show = idx >= start && idx < end;
-        r.style.display = show ? '' : 'none';
-        if(show){
-          const nCell = r.querySelector('.t2-num');
-          if(nCell) nCell.textContent = (idx + 1).toString();
+    try {
+      const url = `{% url 'admin_table2_reports_json' %}?page=${page}&per_page=${perPage}`;
+      const res = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
         }
       });
 
-      info.textContent = `Sahifa ${page}/${totalPages} • Jami: ${rows.length}`;
-      prev.disabled = page <= 1;
-      next.disabled = page >= totalPages;
+      if(!res.ok){
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if(!data.ok){
+        throw new Error('Invalid JSON response');
+      }
+
+      renderRows(data.items || [], data.pagination || {
+        page: 1,
+        num_pages: 1,
+        total_items: 0,
+        start_index: 1,
+        has_previous: false,
+        has_next: false
+      });
+
+      renderPager(data.pagination || {
+        page: 1,
+        num_pages: 1,
+        total_items: 0,
+        has_previous: false,
+        has_next: false
+      });
+    } catch (err) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="emptyBox">Ma'lumotni yuklashda xatolik yuz berdi.</td>
+        </tr>
+      `;
+      info.textContent = 'Xatolik yuz berdi';
+      console.error(err);
+    }
+  }
+
+  async function loadStatus(dateStr, dateLabel){
+    modalTitle.textContent = `Filiallar holati — ${dateLabel}`;
+    modalBody.innerHTML = `<div class="loadingBox">Yuklanmoqda...</div>`;
+    openModal();
+
+    try {
+      const url = `/admin/table2/status/${dateStr}/`;
+      const res = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if(!res.ok){
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if(!data.ok){
+        throw new Error('Invalid response');
+      }
+
+      modalBody.innerHTML = `
+        <div class="cols">
+          <div class="col">
+            <div style="margin-bottom:10px;">
+              <span class="pill ok">Jo'natganlar (${data.submitted_count})</span>
+            </div>
+            ${renderList(data.submitted, "Hech kim jo‘natmagan", true)}
+          </div>
+
+          <div class="col">
+            <div style="margin-bottom:10px;">
+              <span class="pill no">Jo'natmaganlar (${data.not_submitted_count})</span>
+            </div>
+            ${renderList(data.not_submitted, "Hamma jo‘natgan", false)}
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      modalBody.innerHTML = `<div class="emptyBox">Ma'lumotni yuklashda xatolik yuz berdi.</div>`;
+      console.error(err);
+    }
+  }
+
+  perPageSelect.addEventListener('change', function(){
+    loadTable(1, Number(this.value));
+  });
+
+  prev.addEventListener('click', function(){
+    if(currentPagination && currentPagination.has_previous){
+      loadTable(currentPagination.previous_page_number, currentPerPage);
+    }
+  });
+
+  next.addEventListener('click', function(){
+    if(currentPagination && currentPagination.has_next){
+      loadTable(currentPagination.next_page_number, currentPerPage);
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.js-t2-status-detail');
+    if(btn){
+      const dateStr = btn.getAttribute('data-date');
+      const dateLabel = btn.getAttribute('data-date-label');
+      loadStatus(dateStr, dateLabel);
+      return;
     }
 
-    prev.addEventListener('click', ()=>{ if(page>1){ page--; render(); window.scrollTo({top:0,behavior:'smooth'});} });
-    next.addEventListener('click', ()=>{ if(page<totalPages){ page++; render(); window.scrollTo({top:0,behavior:'smooth'});} });
+    if(e.target === modal || e.target === closeBtn){
+      closeModal();
+    }
+  });
 
-    render();
-  })();
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal.classList.contains('open')){
+      closeModal();
+    }
+  });
+
+  loadTable(currentPage, currentPerPage);
+})();
 </script>
 {% endblock %}
