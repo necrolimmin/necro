@@ -1526,8 +1526,7 @@ def admin_table2_layout(request, date_str):
         "buckets": buckets,
     })
 
-
-@staff_required
+@login_required(login_url='login')
 def admin_table2_station_pick(request, date_str):
     d = _parse_date(date_str)
 
