@@ -2,6 +2,7 @@ from django.urls import path
 
 from reports.kvartalniy import kvartalniy, kvartalniy_daily_list, kvartalniy_kun, kvartalniy_monthly_list
 from reports.umumiy import kvartalniy_range, kvartalniy_range_export_excel
+from reports.user_kvartalniy import kvartalniy_station_detail
 from .views import *
 from .views import notifications_latest, notifications_ack, notifications_send
 
@@ -58,6 +59,12 @@ urlpatterns = [
     path("kvartalniy/daily/list/", kvartalniy_daily_list, name="kvartalniy_daily_list"),
     path("kvartalniy/monthly/list/", kvartalniy_monthly_list, name="kvartalniy_monthly_list"),
     path("kvartalniy/range/export/", kvartalniy_range_export_excel, name="kvartalniy_range_export_excel"),
+
+    path(
+    "kvartalniy/station/",
+    kvartalniy_station_detail,
+    name="kvartalniy_station_detail",
+),
 ]
 
 
