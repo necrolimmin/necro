@@ -41,7 +41,7 @@ DISPLAY_GROUPS = [
             "Toshkent LM",
             "Sergeli LM",
             "Jaloir LM",
-            "Axangaron LM",
+            "Ohangaron LM",
             "Nazarbek LM",
             "Urtavul LM",
             "Sirdaryo LM",
