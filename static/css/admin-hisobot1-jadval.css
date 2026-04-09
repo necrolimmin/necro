@@ -359,27 +359,27 @@ table.t1a-table thead{
 /* ====== maxsus LM lar ====== */
   .t1a-thick-top > td,
   .t1a-thick-top > th{
-    border-top: 3px solid rgba(15,23,42,.55) !important;
+    border-top: 2px solid rgba(15,23,42,.55) !important;
   }
   html[data-theme="dark"] .t1a-thick-top > td,
   html[data-theme="dark"] .t1a-thick-top > th{
-    border-top: 3px solid rgba(255,255,255,.45) !important;
+    border-top: 2px solid rgba(255,255,255,.45) !important;
   }
 
   /* 4 ta LM blokidan keyin pastki chiziq ham qalin */
   .t1a-thick-bottom > td,
   .t1a-thick-bottom > th{
-    border-bottom: 3px solid rgba(15,23,42,.55) !important;
+    border-bottom: 2px solid rgba(15,23,42,.55) !important;
   }
   html[data-theme="dark"] .t1a-thick-bottom > td,
   html[data-theme="dark"] .t1a-thick-bottom > th{
-    border-bottom: 3px solid rgba(255,255,255,.45) !important;
+    border-bottom: 2px solid rgba(255,255,255,.45) !important;
   }
 
   /* Tushirish | Tushirishda | Ortish | Ortishda bloklari orasidagi vertikal border */
   .t1a-sep-r{
-    border-right: 3px solid rgba(15,23,42,.55) !important;
+    border-right: 2px solid rgba(15,23,42,.55) !important;
   }
   html[data-theme="dark"] .t1a-sep-r{
-    border-right: 3px solid rgba(255,255,255,.45) !important;
+    border-right: 2px solid rgba(255,255,255,.45) !important;
   }

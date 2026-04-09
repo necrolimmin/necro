@@ -54,7 +54,7 @@
   }
 
   .kv-shell{
-    background: var(--kv-bg);
+    
     border: 1px solid var(--kv-stroke);
     border-radius: 28px;
     box-shadow: var(--kv-shadow);
@@ -184,7 +184,7 @@
   }
 
   .kv-table-card{
-    background: var(--kv-surface-2);
+    
     border:1px solid var(--kv-stroke);
     
     overflow: hidden;
@@ -202,7 +202,7 @@
   }
 
   .kv-table-wrap::-webkit-scrollbar-thumb{
-    background: rgba(15,23,42,.20);
+    
     border-radius:999px;
   }
 
@@ -215,7 +215,7 @@
     
     border-collapse: collapse;
     table-layout: fixed;
-    background:#fff;
+    
   }
 
   html[data-theme="dark"] .kv-table{
@@ -238,14 +238,14 @@
   }
 
   .kv-super-title th{
-    background: #f3f4f6;
+    
     color:#000;
     font-size:17px;
     line-height:1.35;
     padding:12px 10px 10px;
-    border-top:3px solid var(--kv-table-border) !important;
-    border-left:3px solid var(--kv-table-border) !important;
-    border-right:3px solid var(--kv-table-border) !important;
+    border-top:2px solid var(--kv-table-border) !important;
+    border-left:2px solid var(--kv-table-border) !important;
+    border-right:2px solid var(--kv-table-border) !important;
   }
 
   html[data-theme="dark"] .kv-super-title th{
@@ -254,11 +254,11 @@
   }
 
   .kv-head-1 th{
-    background: var(--kv-head-bg);
+    
     color:#000;
     font-size:14px;
-    border-top:3px solid var(--kv-table-border) !important;
-    border-bottom:3px solid var(--kv-table-border) !important;
+    border-top:2px solid var(--kv-table-border) !important;
+    border-bottom:2px solid var(--kv-table-border) !important;
   }
 
   .kv-head-2 th{
@@ -301,11 +301,11 @@
   }
 
   .kv-group-left{
-    border-left:3px solid var(--kv-table-border) !important;
+    border-left:2px solid var(--kv-table-border) !important;
   }
 
   .kv-group-sep{
-    border-right:3px solid var(--kv-table-border) !important;
+    border-right:2px solid var(--kv-table-border) !important;
   }
 
   .kv-row-title{
@@ -496,12 +496,12 @@
                 "O'ztemiryo'lkonteyner" AJ ga qarashli {{ station.station_name }} va sektorlarida,
                 vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar
                 <br>
-                {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }}
+                {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }} / taqqoslash: {{ prev_from_date|date:"d.m.Y" }} — {{ prev_to_date|date:"d.m.Y" }}
               </th>
             </tr>
 
             <tr class="kv-head-1">
-              <th rowspan="2" class="kv-station-col kv-group-left">Filial nomi</th>
+              <th rowspan="2" class="kv-station-col kv-group-left kv-group-sep">Filial nomi</th>
 
               <th colspan="4" class="kv-group-left">Ortish (vagon)</th>
               <th colspan="4" class="kv-group-left">Tushirish (vagon)</th>
@@ -541,7 +541,7 @@
 
           <tbody>
             <tr>
-              <td class="kv-row-title kv-number">
+              <td class="kv-row-title kv-number kv-group-sep kv-group-left">
                 {{ row.station_name }}
               </td>
 
