@@ -58,7 +58,7 @@
   const dict = {
     ru: {
       brand:  "\"O‘ztemiryo‘lkonteyner\" AJ",
-      subtitle: "Платформа контейнерных операций",
+      subtitle: "Платформа E-stat",
       menu: "Меню",
       dash: "Dashboard",
       r1: "Отчёт 1",
@@ -72,7 +72,7 @@
     },
     uz: {
       brand: "\"O‘ztemiryo‘lkonteyner\" AJ",
-      subtitle: "Konteyner operatsiyalar platformasi",
+      subtitle: "E-stat platformasi",
       menu: "Menyu",
       dash: "Dashboard",
       r1: "Hisobot 1",
