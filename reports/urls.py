@@ -25,7 +25,7 @@ urlpatterns = [
     path("admin-panel/table-1/json/",admin_table1_reports_json,name="admin_table1_reports_json"),
     path("admin-panel/table-1/<str:date_str>/", admin_table1_report_view, name="admin_table1_report_view"),
     path("admin/table1/status/<str:date_str>/", admin_table1_status_detail, name="admin_table1_status_detail"),
-    
+    path('admin/table2/status/<str:date_str>/', admin_table2_status_detail, name='admin_table2_status_detail'),
     
 
 

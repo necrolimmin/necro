@@ -964,6 +964,61 @@ def admin_table1_status_detail(request, date_str):
     })
 
 
+@staff_required
+@require_GET
+def admin_table2_status_detail(request, date_str):
+    d = _parse_date(date_str)
+
+    all_stations = _get_all_stations()
+    all_station_ids = [sid for sid, _ in all_stations]
+
+    station_name_map = {
+        sp.user_id: (sp.station_name or getattr(sp.user, "username", str(sp.user)))
+        for sp in StationProfile.objects.select_related("user").filter(user_id__in=all_station_ids)
+    }
+
+    sent_rows = list(
+        StationDailyTable2.objects
+        .filter(
+            date=d,
+            shift="total",
+            station_user_id__in=all_station_ids,
+            submitted_at__isnull=False,
+        )
+        .values("station_user_id")
+        .annotate(last=Max("submitted_at"))
+        .order_by("station_user_id")
+    )
+
+    sent_map = {x["station_user_id"]: x["last"] for x in sent_rows}
+
+    submitted = []
+    not_submitted = []
+
+    for sid, username in all_stations:
+        station_name = station_name_map.get(sid, username)
+        last_dt = sent_map.get(sid)
+
+        if last_dt:
+            submitted.append({
+                "name": station_name,
+                "submitted_at": last_dt.strftime("%d.%m.%Y %H:%M"),
+            })
+        else:
+            not_submitted.append({
+                "name": station_name
+            })
+
+    return JsonResponse({
+        "ok": True,
+        "date": d.strftime("%d.%m.%Y"),
+        "submitted_count": len(submitted),
+        "not_submitted_count": len(not_submitted),
+        "submitted": submitted,
+        "not_submitted": not_submitted,
+    })
+
+
 
 def _apply_itogo_rules(data: dict) -> dict:
     d = dict(data or {})
