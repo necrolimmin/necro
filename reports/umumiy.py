@@ -375,7 +375,7 @@ def _build_kvartalniy_range_context(from_date, to_date):
 
             extra_qs = KvartalniyGroupExtraPlan.objects.filter(
                 monthly=monthly_obj,
-                row_name="Вес.хоз"
+                row_name="Boshqa Stansiya"
             )
 
             for extra_obj in extra_qs:
@@ -384,7 +384,7 @@ def _build_kvartalniy_range_context(from_date, to_date):
                 if group_key not in result:
                     result[group_key] = {
                         "station_id": None,
-                        "station_name": "Вес.хоз",
+                        "station_name": "Boshqa Stansiya",
                         "is_other": False,
                         "is_veshoz": True,
                         "group_key": group_key,
@@ -524,7 +524,7 @@ def _build_kvartalniy_range_context(from_date, to_date):
             if not veshoz_row:
                 veshoz_row = {
                     "station_id": None,
-                    "station_name": "Вес.хоз",
+                    "station_name": "Boshqa Stansiya",
                     "is_other": False,
                     "is_veshoz": True,
                     "group_key": group_key,
@@ -676,7 +676,7 @@ def kvartalniy_range(request):
 
             extra_qs = KvartalniyGroupExtraPlan.objects.filter(
                 monthly=monthly_obj,
-                row_name="Вес.хоз"
+                row_name="Boshqa Stansiya"
             )
 
             for extra_obj in extra_qs:
@@ -685,7 +685,7 @@ def kvartalniy_range(request):
                 if group_key not in result:
                     result[group_key] = {
                         "station_id": None,
-                        "station_name": "Вес.хоз",
+                        "station_name": "Boshqa Stansiya",
                         "is_other": False,
                         "is_veshoz": True,
                         "group_key": group_key,
@@ -838,7 +838,7 @@ def kvartalniy_range(request):
                 extra_obj, _ = KvartalniyGroupExtraPlan.objects.get_or_create(
                     monthly=monthly_obj,
                     group_key=group_key,
-                    row_name="Вес.хоз",
+                    row_name="Boshqa Stansiya",
                     defaults={
                         "pogr_plan": 0,
                         "vygr_plan": 0,
@@ -922,7 +922,7 @@ def kvartalniy_range(request):
             if not veshoz_row:
                 veshoz_row = {
                     "station_id": None,
-                    "station_name": "Вес.хоз",
+                    "station_name": "Boshqa Stansiya",
                     "is_other": False,
                     "is_veshoz": True,
                     "group_key": group_key,

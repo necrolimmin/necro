@@ -119,7 +119,7 @@
               {% with rowsp=3 %}
                 <tr >
                   <td rowspan="{{ rowsp }}"
-                      class="t1a-name t1a-stickyA {% if st.blocks_url %}is-clickable{% endif %}"
+                      class="t1a-name t1a-thick-bottom t1a-stickyA {% if st.blocks_url %}is-clickable{% endif %} "
                       {% if st.blocks_url %}data-href="{{ st.blocks_url }}"{% endif %} style="font-size: 14px;">
                     {% if st.blocks_url %}
                       <a class="t1a-stname-link" href="{{ st.blocks_url }}" title="Открыть детализацию станции">
@@ -238,7 +238,7 @@
                   <td class="g-gray t1a-multi"><div class="t1a-lines">{% for t in st.terminals %}<div class="t1a-line">{{ t.night_data|get_item:"income_daily"|default_if_none:"0" }}</div>{% empty %}<div class="t1a-line">—</div>{% endfor %}</div></td>
                 </tr>
 
-                <tr class="t1a-total">
+                <tr class="t1a-total t1a-thick-bottom">
                   <td colspan="2" class="t1a-shift t1a-stickyB t1a-sep-r" data-i18n="shift_all">всего</td>
                   
 
@@ -853,6 +853,7 @@
       "Toshkent LM",
       "Sergeli LM",
       "Ulug'bek LM",
+      "Marokand LM",
 
       "Jaloir LM",
       "Ohangaron LM",
@@ -875,8 +876,7 @@
       "Tinchlik LM",
       "Karmana LM",
       "Yangi-Zarafshon LM",
-      "Marokand LM",
-
+      
 
       "Qarshi LM",
       "Dehqonobod LM",

@@ -698,7 +698,7 @@ def _veshoz_row_to_period_dict(
 
     return {
         "station_id": None,
-        "station_name": "Вес.хоз",
+        "station_name": "Boshqa Stansiya",
         "is_veshoz": True,
         "group_key": group_key,
 
@@ -950,7 +950,7 @@ def kvartalniy(request, month_str=None):
             extra_obj, _ = KvartalniyGroupExtraPlan.objects.get_or_create(
                 monthly=monthly_obj,
                 group_key=group_key,
-                row_name="Вес.хоз",
+                row_name="Boshqa Stansiya",
                 defaults={
                     "pogr_plan": 0,
                     "vygr_plan": 0,
@@ -1095,7 +1095,7 @@ def kvartalniy(request, month_str=None):
             _add_to_totals(grand_total, row)
 
         if cfg.get("has_veshoz"):
-            extra_obj = extras_by_key.get(f"{group_key}:Вес.хоз")
+            extra_obj = extras_by_key.get(f"{group_key}:Boshqa Stansiya")
 
             veshoz_row = _veshoz_row_to_period_dict(
                 group_key=group_key,
