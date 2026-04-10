@@ -260,6 +260,39 @@
   }
   html[data-theme="dark"] .termcell:focus{ background: rgba(255,255,255,.10); }
 
+
+  .xhdr-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .xhdr-title{
+    flex:1;
+    text-align:center;
+  }
+  .terminal-tools{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    min-width:120px;
+  }
+  .t1-btn.danger{
+    color:#fff;
+    background: linear-gradient(135deg, rgba(239,68,68,.96), rgba(220,38,38,.92));
+    box-shadow: 0 14px 34px rgba(239,68,68,.22);
+    border-color: rgba(239,68,68,.30);
+  }
+  .t1-btn.danger:hover{ transform: translateY(-1px); filter: saturate(1.05); }
+  .t1-btn.danger:active{ transform: translateY(0); }
+  .terminal-remove-btn[disabled]{
+    opacity:.55;
+    cursor:not-allowed;
+    box-shadow:none;
+    filter:grayscale(.15);
+  }
+
   @media (max-width: 980px){
     .t1-card{ padding: 12px; border-radius: 18px; }
     .t1-title{ font-size: 16px; }
@@ -348,10 +381,21 @@
         {% with k_val=total_obj|data_val:'k_podache_so_st' %}
         {% with term_val=total_obj|data_val:'terminal_name' %}
         <div class="xwrap terminal-block" data-block="{{ b }}">
-          <div class="xhdr" data-i18n="t1_hdr">
-            Оперативная информация о работе логистических центров АО "Узтемирйулконтейнер" в сутки —
-            {{ date|date:"d.m.Y" }} — к 18:00 час
-            {% if blocks_ctx|length > 1 %} — Блок {{ b }}{% endif %}
+          <div class="xhdr">
+            <div class="xhdr-top">
+              <div class="xhdr-title" data-i18n="t1_hdr">
+                Оперативная информация о работе логистических центров АО "Узтемирйулконтейнер" в сутки —
+                {{ date|date:"d.m.Y" }} — к 18:00 час
+                {% if blocks_ctx|length > 1 %} — Блок {{ b }}{% endif %}
+              </div>
+              {% if mode != "view" %}
+                <div class="terminal-tools">
+                  <button type="button" class="t1-btn danger terminal-remove-btn" data-block="{{ b }}">
+                    🗑 O‘chirish
+                  </button>
+                </div>
+              {% endif %}
+            </div>
           </div>
 
           <div class="xscroll">
@@ -753,22 +797,46 @@
     return name.replace(/^b\d+__/, "b"+newB+"__");
   }
 
+  function updateRemoveButtonsState(){
+    const blocks = container.querySelectorAll('.terminal-block');
+    const disable = blocks.length <= 1;
+
+    blocks.forEach((wrap, index) => {
+      const btn = wrap.querySelector('.terminal-remove-btn');
+      if(!btn) return;
+      btn.disabled = disable;
+      btn.title = disable ? 'Kamida bitta terminal qolishi kerak' : 'Terminalni o‘chirish';
+
+      const blockNo = wrap.getAttribute('data-block') || String(index + 1);
+      btn.dataset.block = blockNo;
+
+      const title = wrap.querySelector('.xhdr-title');
+      if(title && blocks.length > 1){
+        const original = title.dataset.baseTitle || title.textContent.replace(/\s+—\s+Блок\s+\d+\s*$/u, '').trim();
+        title.dataset.baseTitle = original;
+        title.textContent = `${original} — Блок ${blockNo}`;
+      } else if (title && blocks.length === 1 && title.dataset.baseTitle) {
+        title.textContent = title.dataset.baseTitle;
+      }
+    });
+  }
+
   function clearTerminalBlock(wrap){
-    // очищаем все input кроме date (его внутри wrap нет)
-    wrap.querySelectorAll("input").forEach(inp=>{
-      if(inp.name && inp.name.includes("__terminal__name")){
-        inp.value = "";
+    wrap.querySelectorAll('input').forEach(inp=>{
+      if(inp.name && inp.name.includes('__terminal__name')){
+        inp.value = '';
         return;
       }
-      if(inp.name && inp.name.includes("__common__k_podache_so_st")){
-        inp.value = "";
+      if(inp.name && inp.name.includes('__common__k_podache_so_st')){
+        inp.value = '';
         return;
       }
-      // остальные числовые
-      if(inp.type === "number" || inp.inputMode === "numeric" || /__day__|__night__|__total__/.test(inp.name||"")){
-        inp.value = "";
-        inp.placeholder = "";
+      if(inp.type === 'number' || inp.inputMode === 'numeric' || /__day__|__night__|__total__/.test(inp.name||'')){
+        inp.value = '';
+        inp.placeholder = '';
       }
+      delete inp.dataset.manual;
+      delete inp.dataset.manualBound;
     });
   }
 
@@ -781,83 +849,104 @@
       if(!row) return 0;
       const inp = row.querySelector('input[data-key="'+key+'"]');
       if(!inp) return 0;
-      const n = parseInt((inp.value||"0").replace(/\s+/g,''), 10);
+      const n = parseInt((inp.value||'0').replace(/\s+/g,''), 10);
       return isNaN(n) ? 0 : n;
     }
 
     function calcAuto(){
-  // 1) boshqa total kataklar: faqat placeholder (xohlasang value ham qilamiz)
-  totalInputs.forEach(inp=>{
-    const key = inp.getAttribute("data-total-key");
-    if(key === "income_daily") return;
+      totalInputs.forEach(inp=>{
+        const key = inp.getAttribute('data-total-key');
+        if(key === 'income_daily') return;
 
-    const auto = val(dayRow, key) + val(nightRow, key);
-    inp.placeholder = auto;
-  });
-
-  // 2) ✅ sutkalik daromad: DAY + NIGHT income_daily bo‘yicha
-  const incomeInp  = table.querySelector('input[data-total-key="income_daily"]');
-  const incomeAuto = val(dayRow, "income_daily") + val(nightRow, "income_daily");
-
-  if (incomeInp){
-    // user qo'lda kiritsa, endi auto bosib ketmasin
-    if (!incomeInp.dataset.manualBound){
-      incomeInp.dataset.manualBound = "1";
-      incomeInp.addEventListener("input", () => {
-        incomeInp.dataset.manual = "1";
+        const auto = val(dayRow, key) + val(nightRow, key);
+        inp.placeholder = auto;
       });
+
+      const incomeInp  = table.querySelector('input[data-total-key="income_daily"]');
+      const incomeAuto = val(dayRow, 'income_daily') + val(nightRow, 'income_daily');
+
+      if (incomeInp){
+        if (!incomeInp.dataset.manualBound){
+          incomeInp.dataset.manualBound = '1';
+          incomeInp.addEventListener('input', () => {
+            incomeInp.dataset.manual = '1';
+          });
+        }
+
+        incomeInp.placeholder = incomeAuto;
+
+        if (incomeInp.dataset.manual !== '1'){
+          incomeInp.value = incomeAuto;
+        }
+      }
     }
 
-    incomeInp.placeholder = incomeAuto;
-
-    // ✅ agar user manual kiritmagan bo'lsa — doim auto qiymatni yozamiz
-    if (incomeInp.dataset.manual !== "1"){
-      incomeInp.value = incomeAuto;
-    }
-  }
-}
-
-    table.addEventListener("input", calcAuto);
+    table.addEventListener('input', calcAuto);
     calcAuto();
+  }
+
+  function bindRemoveButton(wrap){
+    const removeBtn = wrap.querySelector('.terminal-remove-btn');
+    if(!removeBtn) return;
+
+    removeBtn.onclick = function(){
+      const blocks = container.querySelectorAll('.terminal-block');
+      if(blocks.length <= 1){
+        updateRemoveButtonsState();
+        return;
+      }
+
+      wrap.remove();
+      updateRemoveButtonsState();
+    };
   }
 
   function addTerminal(){
     if(!canEdit) return;
-    const blocks = container.querySelectorAll(".terminal-block");
+    const blocks = container.querySelectorAll('.terminal-block');
     if(!blocks.length) return;
 
     const last = blocks[blocks.length - 1];
     const clone = last.cloneNode(true);
 
     const newB = nextBlock();
-    clone.setAttribute("data-block", String(newB));
+    clone.setAttribute('data-block', String(newB));
 
-    // обновляем data-block у table
-    clone.querySelectorAll("table.t1-table").forEach(t=>{
-      t.setAttribute("data-block", String(newB));
+    clone.querySelectorAll('table.t1-table').forEach(t=>{
+      t.setAttribute('data-block', String(newB));
     });
 
-    // обновляем name у всех инпутов bX__...
-    clone.querySelectorAll("[name]").forEach(el=>{
-      const n = el.getAttribute("name");
+    clone.querySelectorAll('[name]').forEach(el=>{
+      const n = el.getAttribute('name');
       if(!n) return;
-      el.setAttribute("name", replacePrefix(n, newB));
+      el.setAttribute('name', replacePrefix(n, newB));
     });
 
-    // включаем (если вдруг было disabled из view)
-    clone.querySelectorAll("input").forEach(inp=>{
+    clone.querySelectorAll('input').forEach(inp=>{
       inp.disabled = false;
     });
 
-    clearTerminalBlock(clone);
+    const removeBtn = clone.querySelector('.terminal-remove-btn');
+    if(removeBtn){
+      removeBtn.dataset.block = String(newB);
+      removeBtn.disabled = false;
+    }
 
+    clearTerminalBlock(clone);
     container.appendChild(clone);
 
-    // перепривязать авто-плейсхолдеры на новом table
-    clone.querySelectorAll("table.t1-table").forEach(rebindAutoForTable);
+    clone.querySelectorAll('table.t1-table').forEach(rebindAutoForTable);
+    bindRemoveButton(clone);
+    updateRemoveButtonsState();
   }
 
-  if(btn) btn.addEventListener("click", addTerminal);
+  container.querySelectorAll('.terminal-block').forEach(wrap => {
+    bindRemoveButton(wrap);
+    wrap.querySelectorAll('table.t1-table').forEach(rebindAutoForTable);
+  });
+
+  updateRemoveButtonsState();
+  if(btn) btn.addEventListener('click', addTerminal);
 })();
 </script>
 <script>
