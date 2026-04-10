@@ -17,61 +17,26 @@ class StationProfile(models.Model):
     def __str__(self):
         return self.station_name
 
-class KvartalniyDaily(models.Model):
-    station = models.ForeignKey("StationProfile", on_delete=models.CASCADE)
-    date = models.DateField()
-
-    pogr_this_year = models.IntegerField(default=0)
-    pogr_last_year = models.IntegerField(null=True, blank=True)
-
-    vygr_this_year = models.IntegerField(default=0)
-    vygr_last_year = models.IntegerField(null=True, blank=True)
-
-    pogr_kont_this_year = models.IntegerField(default=0)
-    pogr_kont_last_year = models.IntegerField(null=True, blank=True)
-
-    vygr_kont_this_year = models.IntegerField(default=0)
-    vygr_kont_last_year = models.IntegerField(null=True, blank=True)
-
-    income_this_year = models.IntegerField(default=0)
-    income_last_year = models.IntegerField(null=True, blank=True, default=0)
-
-    class Meta:
-        unique_together = ("station", "date")
-        ordering = ["date"]
-
-    def __str__(self):
-        return f"{self.station} - {self.date}"
-    
-
+from django.db import models
+from django.db.models import Sum
 
 
 class KvartalniyMonthly(models.Model):
-    date = models.DateField()
-    kunlik_list = models.ManyToManyField(KvartalniyDaily, blank=True)
+    date = models.DateField(unique=True)
 
-    def totals(self):
-        return self.kunlik_list.aggregate(
-            pogr_this_year_total=Sum("pogr_this_year"),
-            pogr_last_year_total=Sum("pogr_last_year"),
-            vygr_this_year_total=Sum("vygr_this_year"),
-            vygr_last_year_total=Sum("vygr_last_year"),
-            pogr_kont_this_year_total=Sum("pogr_kont_this_year"),
-            pogr_kont_last_year_total=Sum("pogr_kont_last_year"),
-            vygr_kont_this_year_total=Sum("vygr_kont_this_year"),
-            vygr_kont_last_year_total=Sum("vygr_kont_last_year"),
-            income_this_year_total=Sum("income_this_year"),
-            income_last_year_total=Sum("income_last_year"),
-        )
-    
+    class Meta:
+        ordering = ["date"]
+
+    def __str__(self):
+        return f"{self.date:%Y-%m}"
+
 
 class KvartalniyMonthlyPlan(models.Model):
     monthly = models.ForeignKey(
         KvartalniyMonthly,
         on_delete=models.CASCADE,
-        related_name="plans"
+        related_name="plans",
     )
-
     station = models.ForeignKey("StationProfile", on_delete=models.CASCADE)
 
     pogr_plan = models.IntegerField(default=0)
@@ -82,12 +47,12 @@ class KvartalniyMonthlyPlan(models.Model):
 
     class Meta:
         unique_together = ("monthly", "station")
+        ordering = ["station__station_name"]
 
     def __str__(self):
         return f"{self.monthly.date:%Y-%m} - {self.station}"
-    
 
-# accounts/models.py
+
 class KvartalniyGroupExtraPlan(models.Model):
     monthly = models.ForeignKey(
         KvartalniyMonthly,
@@ -95,7 +60,7 @@ class KvartalniyGroupExtraPlan(models.Model):
         related_name="group_extra_plans",
     )
     group_key = models.CharField(max_length=50)
-    row_name = models.CharField(max_length=100, default="Вес.хоз")
+    row_name = models.CharField(max_length=100, default="Boshqa Stansiya")
 
     pogr_plan = models.IntegerField(default=0)
     vygr_plan = models.IntegerField(default=0)
@@ -103,6 +68,7 @@ class KvartalniyGroupExtraPlan(models.Model):
     vygr_kont_plan = models.IntegerField(default=0)
     income_plan = models.IntegerField(default=0)
 
+    # manual veshoz facts
     pogr_this_year = models.IntegerField(default=0)
     pogr_last_year = models.IntegerField(default=0)
 
@@ -120,6 +86,7 @@ class KvartalniyGroupExtraPlan(models.Model):
 
     class Meta:
         unique_together = ("monthly", "group_key", "row_name")
+        ordering = ["monthly__date", "group_key", "row_name"]
 
     def __str__(self):
         return f"{self.monthly.date:%Y-%m} | {self.group_key} | {self.row_name}"

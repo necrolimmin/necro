@@ -1,20 +1,24 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.db import transaction
 
 from accounts.models import StationProfile
 from reports.kvartalniy import _safe_date, _same_day_last_year
-from reports.umumiy import _build_date_range, _row_to_range_dict, _sum_daily_last_fields_for_date_list, _sum_daily_this_fields_for_date_list, _sum_scaled_plans_between
-
-# keep your existing imports
+from reports.umumiy import (
+    _aggregate_table1_by_station,
+    _build_date_range,
+    _row_to_range_dict,
+    _sum_scaled_plans_between,
+)
 
 
 @transaction.atomic
 def kvartalniy_station_detail(request):
     if request.user.is_superuser:
         return redirect("station_table_1_list")
-    elif hasattr(request.user, 'station_profile'):
-        pass
+
+    if not hasattr(request.user, "station_profile"):
+        return redirect("station_table_1_list")
 
     if request.method == "POST":
         from_date_str = request.POST.get("from_date")
@@ -39,9 +43,10 @@ def kvartalniy_station_detail(request):
     prev_to_date = _same_day_last_year(to_date)
 
     selected_dates = _build_date_range(from_date, to_date)
+    prev_selected_dates = [_same_day_last_year(d) for d in selected_dates]
 
-    current_data = _sum_daily_this_fields_for_date_list(selected_dates)
-    last_year_data = _sum_daily_last_fields_for_date_list(selected_dates)
+    current_data = _aggregate_table1_by_station(selected_dates)
+    last_year_data = _aggregate_table1_by_station(prev_selected_dates)
     scaled_plans, month_info, all_full_months = _sum_scaled_plans_between(from_date, to_date)
 
     row = _row_to_range_dict(

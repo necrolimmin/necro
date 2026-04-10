@@ -1,729 +1,303 @@
 {% extends "base.html" %}
-{% block title %}Admin - Kvartalniy Monthly List{% endblock %}
+{% block title %}Kvartalniy Oylar Ro‘yxati{% endblock %}
 
 {% block content %}
 <style>
-  .kvm-page{
-    --kvm-bg: linear-gradient(180deg, #f6f8ff 0%, #eef4ff 100%);
-    --kvm-surface: rgba(255,255,255,.82);
-    --kvm-surface-2: rgba(255,255,255,.94);
-    --kvm-text: #0f172a;
-    --kvm-muted: #64748b;
-    --kvm-stroke: rgba(15,23,42,.10);
-    --kvm-stroke-2: rgba(15,23,42,.16);
-    --kvm-shadow: 0 24px 60px rgba(2,6,23,.10);
-    --kvm-shadow-2: 0 10px 24px rgba(2,6,23,.08);
-    --kvm-accent: #4f46e5;
-    --kvm-accent-2: #22c55e;
-    --kvm-accent-3: #06b6d4;
-    --kvm-table-head: #f8fafc;
-    --kvm-table-row: rgba(79,70,229,.05);
-    --kvm-table-row-dark: rgba(99,102,241,.12);
-    --kvm-radius: 24px;
-
-    min-height: calc(100vh - 40px);
-   
-  }
-
-  [data-theme="dark"] .kvm-page,
-  .dark .kvm-page{
-    --kvm-bg: radial-gradient(circle at top, #182235 0%, #0b1120 45%, #070b14 100%);
-    --kvm-surface: rgba(15,23,42,.64);
-    --kvm-surface-2: rgba(15,23,42,.84);
-    --kvm-text: #e5eefb;
-    --kvm-muted: #94a3b8;
-    --kvm-stroke: rgba(148,163,184,.16);
-    --kvm-stroke-2: rgba(148,163,184,.26);
-    --kvm-shadow: 0 28px 70px rgba(0,0,0,.42);
-    --kvm-shadow-2: 0 12px 32px rgba(0,0,0,.34);
-    --kvm-table-head: rgba(15,23,42,.98);
-    --kvm-table-row: rgba(99,102,241,.10);
-    --kvm-table-row-dark: rgba(99,102,241,.16);
-  }
-
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]) .kvm-page{
-      --kvm-bg: radial-gradient(circle at top, #182235 0%, #0b1120 45%, #070b14 100%);
-      --kvm-surface: rgba(15,23,42,.64);
-      --kvm-surface-2: rgba(15,23,42,.84);
-      --kvm-text: #e5eefb;
-      --kvm-muted: #94a3b8;
-      --kvm-stroke: rgba(148,163,184,.16);
-      --kvm-stroke-2: rgba(148,163,184,.26);
-      --kvm-shadow: 0 28px 70px rgba(0,0,0,.42);
-      --kvm-shadow-2: 0 12px 32px rgba(0,0,0,.34);
-      --kvm-table-head: rgba(15,23,42,.98);
-      --kvm-table-row: rgba(99,102,241,.10);
-      --kvm-table-row-dark: rgba(99,102,241,.16);
-    }
-  }
-
-  .kvm-shell{
-    width: 100%;
-    max-width: 1500px;
+  .kv-list-page{
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 16px;
   }
 
-  .kvm-panel{
-    border: 1px solid var(--kvm-stroke);
-    border-radius: var(--kvm-radius);
-    box-shadow: var(--kvm-shadow);
-    backdrop-filter: blur(16px);
-    
-    padding: 18px;
+  .kv-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+    padding:16px;
+    margin-bottom:16px;
   }
 
-  .kvm-head{
-    display:grid;
-    grid-template-columns: 1.4fr .9fr;
-    gap: 14px;
-    margin-bottom: 16px;
-  }
-
-  .kvm-hero,
-  .kvm-cta-box{
-    border: 1px solid var(--kvm-stroke);
-    border-radius: 22px;
-    padding: 18px;
-    background: var(--kvm-surface-2);
-    box-shadow: var(--kvm-shadow-2);
-  }
-
-  .kvm-hero{
-    position: relative;
-    overflow: hidden;
-  }
-
-  .kvm-hero::before{
-    content:"";
-    position:absolute;
-    inset:auto -40px -50px auto;
-    width:220px;
-    height:220px;
-    background: radial-gradient(circle, rgba(79,70,229,.18), transparent 70%);
-    pointer-events:none;
-  }
-
-  .kvm-title{
-    margin:0;
-    font-size: 23px;
-    line-height: 1.1;
-    font-weight: 950;
-    letter-spacing: -.02em;
-    color: var(--kvm-text);
-  }
-
-  .kvm-muted{
-    margin: 8px 0 0;
-    color: var(--kvm-muted);
-    font-size: 13px;
-    line-height: 1.5;
-    max-width: 760px;
-  }
-
-  .kvm-badges{
-    margin-top: 14px;
+  .kv-top{
     display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-  }
-
-  .kvm-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:8px 12px;
-    border-radius:999px;
-    border:1px solid var(--kvm-stroke);
-    background:linear-gradient(135deg, rgba(79,70,229,.12), rgba(34,197,94,.08), rgba(6,182,212,.10));
-    color:var(--kvm-text);
-    font-size:12px;
-    font-weight:900;
-    white-space:nowrap;
-  }
-
-  .kvm-cta-box{
-    display:flex;
-    flex-direction:column;
     justify-content:space-between;
-    gap:14px;
+    align-items:end;
+    gap:16px;
+    flex-wrap:wrap;
   }
 
-  .kvm-cta-title{
+  .kv-title{
     margin:0;
-    font-size:17px;
-    font-weight:950;
-    color:var(--kvm-text);
-  }
-
-  .kvm-cta-sub{
-    margin:6px 0 0;
-    font-size:13px;
-    color:var(--kvm-muted);
-    line-height:1.45;
-  }
-
-  .btn-cta{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    min-height:48px;
-    padding:0 18px;
-    border-radius:16px;
+    font-size:24px;
     font-weight:900;
-    text-decoration:none;
-    color:#fff;
-    background:linear-gradient(135deg, var(--kvm-accent), var(--kvm-accent-2), var(--kvm-accent-3));
-    box-shadow:0 16px 36px rgba(79,70,229,.24);
-    transition:.2s ease;
-    position:relative;
-    overflow:hidden;
-    white-space:nowrap;
   }
 
-  .btn-cta svg{
-    width:18px;
-    height:18px;
-    stroke:#fff;
-    flex:0 0 auto;
+  .kv-muted{
+    margin-top:6px;
+    color:#6b7280;
+    font-size:13px;
   }
 
-  .btn-cta::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:linear-gradient(120deg, transparent, rgba(255,255,255,.32), transparent);
-    transform:translateX(-120%);
-    transition:.7s ease;
-  }
-
-  .btn-cta:hover{
-    transform:translateY(-2px);
-    box-shadow:0 22px 44px rgba(79,70,229,.32);
-  }
-
-  .btn-cta:hover::after{
-    transform:translateX(120%);
-  }
-
-  .kvm-filter{
-    margin-top: 6px;
-    display:grid;
-    grid-template-columns: minmax(0,1.2fr) auto auto;
-    gap:12px;
+  .kv-filters{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
     align-items:end;
   }
 
-  .kvm-search{
-    display:flex;
-    align-items:flex-end;
-    gap:10px;
-    flex-wrap:wrap;
-    padding:12px;
-    border-radius:18px;
-    border:1px solid var(--kvm-stroke);
-    background:var(--kvm-surface-2);
-    box-shadow:var(--kvm-shadow-2);
-  }
-
-  .kvm-search-ico{
-    width:40px;
-    height:46px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:14px;
-    border:1px solid var(--kvm-stroke);
-    background:rgba(79,70,229,.08);
-    color:var(--kvm-accent);
-    font-size:16px;
-    font-weight:900;
-  }
-
-  .kvm-field{
+  .kv-field{
     display:flex;
     flex-direction:column;
     gap:6px;
-    min-width:170px;
   }
 
-  .kvm-field label{
+  .kv-field label{
     font-size:12px;
-    font-weight:900;
-    color:var(--kvm-muted);
+    font-weight:700;
+    color:#6b7280;
   }
 
-  .kvm-input{
-    height:46px;
-    border:1px solid var(--kvm-stroke-2);
-    background:var(--kvm-surface);
-    color:var(--kvm-text);
-    border-radius:14px;
-    padding:0 14px;
-    outline:none;
-    font-weight:800;
-    transition:border-color .15s ease, box-shadow .15s ease;
+  .kv-input{
+    height:42px;
+    min-width:140px;
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    padding:0 12px;
+    font-weight:700;
   }
 
-  .kvm-input:focus{
-    border-color: rgba(79,70,229,.48);
-    box-shadow: 0 0 0 4px rgba(79,70,229,.14);
-  }
-
-  .btn-secondary{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-height:46px;
+  .kv-btn{
+    height:42px;
     padding:0 16px;
-    border-radius:14px;
-    font-weight:900;
-    text-decoration:none;
-    color:var(--kvm-text);
-    background:var(--kvm-surface);
-    border:1px solid var(--kvm-stroke-2);
-    transition:.18s ease;
-    white-space:nowrap;
-  }
-
-  .btn-secondary:hover{
-    transform:translateY(-1px);
-    border-color:rgba(79,70,229,.38);
-    box-shadow:0 10px 20px rgba(2,6,23,.08);
-  }
-
-  .kvm-stat{
-    min-height:70px;
-    min-width:130px;
-    padding:12px 14px;
-    border-radius:18px;
-    border:1px solid var(--kvm-stroke);
-    background:var(--kvm-surface-2);
-    box-shadow:var(--kvm-shadow-2);
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:6px;
-  }
-
-  .kvm-stat-label{
-    font-size:12px;
+    border:none;
+    border-radius:12px;
     font-weight:800;
-    color:var(--kvm-muted);
-  }
-
-  .kvm-stat-value{
-    font-size:20px;
-    line-height:1;
-    font-weight:950;
-    color:var(--kvm-text);
-  }
-
-  .kvm-table-wrap{
-    margin-top:16px;
-    overflow:hidden;
-    border-radius:22px;
-    border:1px solid var(--kvm-stroke);
-    background:var(--kvm-surface-2);
-    box-shadow:var(--kvm-shadow-2);
-  }
-
-  .kvm-table-scroll{
-    overflow:auto;
-    max-width:100%;
-  }
-
-  .kvm-table{
-    width:100%;
-    min-width:780px;
-    border-collapse:separate;
-    border-spacing:0;
-    text-align:left;
-  }
-
-  .kvm-table thead th{
-    position:sticky;
-    top:0;
-    z-index:2;
-    text-align:left;
-    font-size:12.5px;
-    font-weight:950;
-    color:var(--kvm-text);
-    background:var(--kvm-table-head);
-    border-bottom:1px solid var(--kvm-stroke);
-    padding:14px 14px;
-    white-space:nowrap;
-  }
-
-  .kvm-table thead th:first-child{
-    border-top-left-radius:18px;
-  }
-
-  .kvm-table thead th:last-child{
-    border-top-right-radius:18px;
-  }
-
-  .kvm-table tbody td{
-    padding:14px 14px;
-    border-bottom:1px solid rgba(15,23,42,.06);
-    color:var(--kvm-text);
-    font-size:13px;
-    vertical-align:middle;
-    background:transparent;
-  }
-
-  [data-theme="dark"] .kvm-table tbody td,
-  .dark .kvm-table tbody td,
-  :root:not([data-theme="light"]) .kvm-table tbody td{
-    border-bottom:1px solid rgba(255,255,255,.08);
-  }
-
-  .kvm-table tbody tr:nth-child(even) td{
-    background:rgba(255,255,255,.12);
-  }
-
-  [data-theme="dark"] .kvm-table tbody tr:nth-child(even) td,
-  .dark .kvm-table tbody tr:nth-child(even) td,
-  :root:not([data-theme="light"]) .kvm-table tbody tr:nth-child(even) td{
-    background:rgba(255,255,255,.02);
-  }
-
-  .kvm-table tbody tr:hover td{
-    background:var(--kvm-table-row);
-  }
-
-  [data-theme="dark"] .kvm-table tbody tr:hover td,
-  .dark .kvm-table tbody tr:hover td,
-  :root:not([data-theme="light"]) .kvm-table tbody tr:hover td{
-    background:var(--kvm-table-row-dark);
-  }
-
-  .kvm-num{
-    width:72px;
-    font-weight:950;
-    opacity:.88;
-  }
-
-  .kvm-date{
-    font-weight:950;
-    font-size:15px;
-    color:var(--kvm-text);
-  }
-
-  .kvm-submeta{
-    margin-top:4px;
-    color:var(--kvm-muted);
-    font-size:12px;
-    line-height:1.4;
-  }
-
-  .btn-view{
+    cursor:pointer;
+    background:#111827;
+    color:#fff;
+    text-decoration:none;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    min-height:42px;
-    padding:0 14px;
-    border-radius:14px;
-    border:1px solid rgba(79,70,229,.24);
-    font-weight:900;
-    text-decoration:none;
-    color:#fff;
-    background:linear-gradient(135deg, var(--kvm-accent), var(--kvm-accent-2), var(--kvm-accent-3));
-    box-shadow:0 14px 40px rgba(79,70,229,.18);
-    white-space:nowrap;
-    transition:transform .12s ease, filter .12s ease, box-shadow .12s ease;
   }
 
-  .btn-view:hover{
-    filter:brightness(1.03);
-    transform:translateY(-1px);
-    box-shadow:0 18px 34px rgba(79,70,229,.24);
+  .kv-table-wrap{
+    overflow:auto;
   }
 
-  .kvm-empty{
-    padding:22px !important;
-    color:var(--kvm-muted) !important;
+  .kv-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:700px;
+  }
+
+  .kv-table th,
+  .kv-table td{
+    border:1px solid #e5e7eb;
+    padding:10px 12px;
     text-align:center;
-    font-weight:800;
+    font-size:14px;
   }
 
-  .kvm-pager{
-    margin-top:16px;
+  .kv-table th{
+    background:#f9fafb;
+    font-weight:900;
+  }
+
+  .kv-empty{
+    text-align:center;
+    color:#6b7280;
+    padding:24px 0;
+    font-weight:700;
+  }
+
+  .kv-pager{
     display:flex;
     justify-content:space-between;
     align-items:center;
     gap:12px;
     flex-wrap:wrap;
-    padding:14px 16px;
-    border-radius:18px;
-    border:1px solid var(--kvm-stroke);
-    background:var(--kvm-surface-2);
-    box-shadow:var(--kvm-shadow-2);
+    margin-top:14px;
   }
 
-  .kvm-pager-left{
-    color:var(--kvm-muted);
-    font-size:13px;
-    font-weight:700;
-  }
-
-  .kvm-pager-right{
+  .kv-pager-controls{
     display:flex;
     gap:8px;
-    flex-wrap:wrap;
   }
 
-  .pgBtn{
-    min-height:42px;
-    padding:0 14px;
-    border-radius:14px;
-    border:1px solid var(--kvm-stroke-2);
-    background:var(--kvm-surface);
-    color:var(--kvm-text);
-    font-weight:950;
-    font-size:12.5px;
+  .kv-page-btn{
+    min-width:40px;
+    height:38px;
+    border:1px solid #d1d5db;
+    background:#fff;
+    border-radius:10px;
     cursor:pointer;
-    transition:.18s ease;
+    font-weight:800;
   }
 
-  .pgBtn:hover:not(:disabled){
-    transform:translateY(-1px);
-    border-color:rgba(79,70,229,.34);
-    box-shadow:0 10px 20px rgba(2,6,23,.08);
-  }
-
-  .pgBtn:disabled{
+  .kv-page-btn:disabled{
     opacity:.5;
     cursor:not-allowed;
   }
-
-  @media (max-width: 1024px){
-    .kvm-head{
-      grid-template-columns:1fr;
-    }
-
-    .kvm-filter{
-      grid-template-columns:1fr;
-    }
-
-    .kvm-stat{
-      min-width:unset;
-    }
-  }
-
-  @media (max-width: 720px){
-    .kvm-page{
-      padding:12px;
-    }
-
-    .kvm-panel{
-      padding:14px;
-      border-radius:20px;
-    }
-
-    .kvm-title{
-      font-size:20px;
-    }
-
-    .kvm-search{
-      align-items:stretch;
-    }
-
-    .kvm-search-ico{
-      display:none;
-    }
-
-    .kvm-field{
-      width:100%;
-      min-width:100%;
-    }
-
-    .btn-secondary,
-    .btn-cta{
-      width:100%;
-    }
-
-    .kvm-table{
-      min-width:640px;
-    }
-
-    .kvm-table thead th,
-    .kvm-table tbody td{
-      padding:12px 10px;
-    }
-
-    .kvm-pager{
-      padding:12px;
-    }
-  }
 </style>
 
-<div class="kvm-page">
-  <div class="kvm-shell">
-    <div class="kvm-panel">
-
-      <div class="kvm-head">
-        <div class="kvm-hero">
-          <h2 class="kvm-title">Kvartalniy oylik hisobotlar ro‘yxati</h2>
-          <div class="kvm-muted">
-            Oy oralig‘i bo‘yicha oylik kvartalniy yozuvlar ro‘yxati. Bu bo‘lim orqali kerakli oy bo‘yicha umumiy hisobot sahifasiga tez o‘tishingiz mumkin.
-          </div>
-
-          <div class="kvm-badges">
-            <span class="kvm-badge">Oylik yozuvlar</span>
-            <span class="kvm-badge">Oy bo‘yicha filtrlash</span>
-            <span class="kvm-badge">Tezkor ko‘rish</span>
-          </div>
-        </div>
-
-        <div class="kvm-cta-box">
-          <div>
-            <h3 class="kvm-cta-title">Umumiy hisobot</h3>
-            <div class="kvm-cta-sub">
-              Oylik umumiy hisobot sahifasiga o‘tib, tanlangan oy bo‘yicha yig‘ma ma’lumotlarni ko‘rishingiz mumkin.
-            </div>
-          </div>
-
-          <a class="btn-cta" href="{% url 'kvartalniy_umumiy' %}">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Oylik hisobot
-          </a>
-        </div>
+<div class="kv-list-page">
+  <div class="kv-card">
+    <div class="kv-top">
+      <div>
+        <h2 class="kv-title">Kvartalniy oylar ro‘yxati</h2>
+        <div class="kv-muted">Mavjud oylarni tanlang va oylik hisobot sahifasini oching</div>
       </div>
 
-      <form method="get" class="kvm-filter">
-        <div class="kvm-search">
-          <span class="kvm-search-ico">⌕</span>
-
-          <div class="kvm-field">
-            <label>Dan oy</label>
-            <input class="kvm-input" type="month" name="from_month" value="{{ from_month|date:'Y-m' }}">
-          </div>
-
-          <div class="kvm-field">
-            <label>Gacha oy</label>
-            <input class="kvm-input" type="month" name="to_month" value="{{ to_month|date:'Y-m' }}">
-          </div>
-
-          <button class="btn-secondary" type="submit">Ko‘rsatish</button>
+      <form class="kv-filters" id="filtersForm">
+        <div class="kv-field">
+          <label>Yil</label>
+          <input class="kv-input" type="number" name="year" value="{{ selected_year|default:'' }}" placeholder="2026">
         </div>
 
-        <div class="kvm-stat">
-          <div class="kvm-stat-label">Ko‘rsatilmoqda</div>
-          <div class="kvm-stat-value" id="shownCount">{{ rows|length }}</div>
+        <div class="kv-field">
+          <label>Sahifada</label>
+          <select class="kv-input" name="per_page">
+            <option value="6" {% if per_page == 6 %}selected{% endif %}>6</option>
+            <option value="12" {% if per_page == 12 %}selected{% endif %}>12</option>
+            <option value="24" {% if per_page == 24 %}selected{% endif %}>24</option>
+            <option value="36" {% if per_page == 36 %}selected{% endif %}>36</option>
+            <option value="60" {% if per_page == 60 %}selected{% endif %}>60</option>
+          </select>
         </div>
 
-        <div class="kvm-stat">
-          <div class="kvm-stat-label">Jami</div>
-          <div class="kvm-stat-value" id="totalCount">{{ rows|length }}</div>
-        </div>
+        <button class="kv-btn" type="submit">Ko‘rsatish</button>
       </form>
+    </div>
+  </div>
 
-      <div class="kvm-table-wrap">
-        <div class="kvm-table-scroll">
-          <table class="kvm-table" id="monthlyTable">
-            <thead>
-              <tr>
-                <th style="width:72px;">№</th>
-                <th>Oy / Yil</th>
-                <th style="width:170px;">Amallar</th>
-              </tr>
-            </thead>
-            <tbody id="monthlyBody">
-              {% for it in rows %}
-                <tr class="list-row">
-                  <td class="kvm-num row-num"></td>
-                  <td>
-                    <div class="kvm-date">{{ it.date|date:"m.Y" }}</div>
-                    <div class="kvm-submeta">Oy bosh sanasi: {{ it.date|date:"d.m.Y" }}</div>
-                  </td>
-                  <td>
-                    <a class="btn-view" href="{% url 'kvartalniy_umumiy' %}?month={{ it.date|date:'Y-m' }}">
-                      Ko‘rish
-                    </a>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="3" class="kvm-empty">
-                    Oylik kvartalniy ma’lumot topilmadi.
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+  <div class="kv-card">
+    <div class="kv-table-wrap">
+      <table class="kv-table">
+        <thead>
+          <tr>
+            <th>Oy</th>
+            <th>Fakt yozuvlari</th>
+            <th>Reja satrlari</th>
+            <th>Qo‘shimcha satrlar</th>
+            <th>Ochish</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyTableBody">
+          <tr>
+            <td colspan="5" class="kv-empty">Yuklanmoqda...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="kv-pager">
+      <div id="pagerInfo">—</div>
+      <div class="kv-pager-controls">
+        <button class="kv-page-btn" id="prevBtn" type="button">←</button>
+        <button class="kv-page-btn" id="nextBtn" type="button">→</button>
       </div>
-
-      <div class="kvm-pager">
-        <div class="kvm-pager-left" id="pgInfo">—</div>
-        <div class="kvm-pager-right">
-          <button class="pgBtn" id="pgPrev" type="button">‹ Oldingi</button>
-          <button class="pgBtn" id="pgNext" type="button">Keyingi ›</button>
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
 
 <script>
-(function(){
-  const rows = Array.from(document.querySelectorAll('#monthlyBody .list-row'));
-  const perPage = 10;
-  let page = 1;
-  const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+(function () {
+  const form = document.getElementById("filtersForm");
+  const tbody = document.getElementById("monthlyTableBody");
+  const pagerInfo = document.getElementById("pagerInfo");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
 
-  const pgInfo = document.getElementById('pgInfo');
-  const pgPrev = document.getElementById('pgPrev');
-  const pgNext = document.getElementById('pgNext');
-  const shownCount = document.getElementById('shownCount');
-  const totalCount = document.getElementById('totalCount');
+  let pagination = null;
 
-  function render(){
-    const start = (page - 1) * perPage;
-    const end = start + perPage;
-    let shown = 0;
+  function buildQuery(page) {
+    const fd = new FormData(form);
+    const params = new URLSearchParams();
 
-    rows.forEach((r, idx) => {
-      const show = idx >= start && idx < end;
-      r.style.display = show ? '' : 'none';
+    for (const [key, value] of fd.entries()) {
+      if (value !== "") params.set(key, value);
+    }
 
-      if (show) {
-        shown++;
-        const nCell = r.querySelector('.row-num');
-        if (nCell) nCell.textContent = String(idx + 1);
-      }
-    });
-
-    if (shownCount) shownCount.textContent = shown;
-    if (totalCount) totalCount.textContent = rows.length;
-
-    pgInfo.textContent = `Sahifa ${page}/${totalPages} • Jami yozuvlar: ${rows.length}`;
-    pgPrev.disabled = page <= 1;
-    pgNext.disabled = page >= totalPages;
+    params.set("page", page);
+    return params.toString();
   }
 
-  pgPrev?.addEventListener('click', ()=> {
-    if(page > 1){
-      page--;
-      render();
-      window.scrollTo({top:0, behavior:'smooth'});
+  function renderRows(rows) {
+    if (!rows.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="kv-empty">Hech qanday oy topilmadi.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(row => `
+      <tr>
+        <td>${row.month_label}</td>
+        <td>${row.facts_count}</td>
+        <td>${row.plans_count}</td>
+        <td>${row.extras_count}</td>
+        <td>
+          <a class="kv-btn" href="${row.open_url}">Ochish</a>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function renderPager(data) {
+    pagination = data.pagination;
+    pagerInfo.textContent = `Sahifa ${pagination.page} / ${pagination.pages} • Jami: ${pagination.total}`;
+    prevBtn.disabled = !pagination.has_prev;
+    nextBtn.disabled = !pagination.has_next;
+  }
+
+  async function loadPage(page = 1) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="kv-empty">Yuklanmoqda...</td>
+      </tr>
+    `;
+
+    const query = buildQuery(page);
+    const res = await fetch(`{% url 'kvartalniy_monthly_list_json' %}?${query}`, {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    const data = await res.json();
+
+    if (!data.ok) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="kv-empty">Xatolik yuz berdi.</td>
+        </tr>
+      `;
+      pagerInfo.textContent = "—";
+      return;
+    }
+
+    renderRows(data.rows);
+    renderPager(data);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    loadPage(1);
+  });
+
+  prevBtn.addEventListener("click", function () {
+    if (pagination && pagination.has_prev) {
+      loadPage(pagination.prev_page);
     }
   });
 
-  pgNext?.addEventListener('click', ()=> {
-    if(page < totalPages){
-      page++;
-      render();
-      window.scrollTo({top:0, behavior:'smooth'});
+  nextBtn.addEventListener("click", function () {
+    if (pagination && pagination.has_next) {
+      loadPage(pagination.next_page);
     }
   });
 
-  render();
+  loadPage(1);
 })();
 </script>
 {% endblock %}

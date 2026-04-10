@@ -1,10 +1,15 @@
 from django.urls import path
 
-from reports.kvartalniy import kvartalniy, kvartalniy_daily_list, kvartalniy_kun, kvartalniy_monthly_list
+from reports.kvartalniy import kvartalniy
 from reports.umumiy import kvartalniy_range, kvartalniy_range_export_excel
 from reports.user_kvartalniy import kvartalniy_station_detail
 from .views import *
 from .views import notifications_latest, notifications_ack, notifications_send
+from reports.kvartalniy import (
+    kvartalniy,
+    kvartalniy_monthly_list,
+    kvartalniy_monthly_list_json,
+)
 
 urlpatterns = [
     # path('station/table-1/', station_table_1, name='station_table_1'),
@@ -19,15 +24,11 @@ urlpatterns = [
     path('station/table-2/edit/<str:date_str>/', station_table_2_edit, name='station_table_2_edit'),
     path('station/table-2/delete/<str:date_str>/', station_table_2_delete, name='station_table_2_delete'),
 
-
-
     path("admin-panel/table-1/", admin_table1_reports, name="admin_table1_reports"),
-    path("admin-panel/table-1/json/",admin_table1_reports_json,name="admin_table1_reports_json"),
+    path("admin-panel/table-1/json/", admin_table1_reports_json, name="admin_table1_reports_json"),
     path("admin-panel/table-1/<str:date_str>/", admin_table1_report_view, name="admin_table1_report_view"),
     path("admin/table1/status/<str:date_str>/", admin_table1_status_detail, name="admin_table1_status_detail"),
     path('admin/table2/status/<str:date_str>/', admin_table2_status_detail, name='admin_table2_status_detail'),
-    
-
 
     path("admin-panel/table-2/", admin_table2_reports, name="admin_table2_reports"),
     path("admin-panel/table-2/json/", admin_table2_reports_json, name="admin_table2_reports_json"),
@@ -38,33 +39,30 @@ urlpatterns = [
     path("admin/table2/<str:date_str>/stations/", admin_table2_station_pick, name="admin_table2_station_pick"),
     path("admin/table2/<str:date_str>/stations/<int:user_id>/", admin_table2_station_view, name="admin_table2_station_view"),
 
-
     # path('admin-panel/report-1/', admin_report_1, name='admin_report_1'),
     path('admin-panel/report-2/', admin_report_2, name='admin_report_2'),
 
-    path('admin-panel/station/promote/<int:pk>/' , promote_station , name="promote_station"),
+    path('admin-panel/station/promote/<int:pk>/', promote_station, name="promote_station"),
     path("admin/table1/<date_str>/excel/", admin_table1_export_excel, name="admin_table1_export_excel"),
-    path("admin/table1/<str:date_str>/station/<int:user_id>/blocks/",admin_table1_station_blocks,name="admin_table1_station_blocks"), 
+    path(
+        "admin/table1/<str:date_str>/station/<int:user_id>/blocks/",
+        admin_table1_station_blocks,
+        name="admin_table1_station_blocks",
+    ),
 
-    # ✅ Notifications API
+    # Notifications API
     path("api/notifications/latest/", notifications_latest, name="notifications_latest"),
-    path("api/notifications/ack/",    notifications_ack,    name="notifications_ack"),
-    path("api/notifications/send/",   notifications_send,   name="notifications_send"),
-    path("kvartalniy/kun/", kvartalniy_kun, name="kvartalniy_kun"),
-    path("kvartalniy/kun/<str:date_str>/", kvartalniy_kun, name="kvartalniy_kun_by_date"),
+    path("api/notifications/ack/", notifications_ack, name="notifications_ack"),
+    path("api/notifications/send/", notifications_send, name="notifications_send"),
+
+    
     path("kvartalniy/umumiy/", kvartalniy, name="kvartalniy_umumiy"),
     path("kvartalniy/umumiy/<str:month_str>/", kvartalniy, name="kvartalniy_month_by_date"),
-    path("kvartalniy/u/", kvartalniy_range, name="kvartalniy_um"),
 
-    path("kvartalniy/daily/list/", kvartalniy_daily_list, name="kvartalniy_daily_list"),
-    path("kvartalniy/monthly/list/", kvartalniy_monthly_list, name="kvartalniy_monthly_list"),
+    path("kvartalniy/u/", kvartalniy_range, name="kvartalniy_um"),
     path("kvartalniy/range/export/", kvartalniy_range_export_excel, name="kvartalniy_range_export_excel"),
 
-    path(
-    "kvartalniy/station/",
-    kvartalniy_station_detail,
-    name="kvartalniy_station_detail",
-),
+    path("kvartalniy/station/", kvartalniy_station_detail, name="kvartalniy_station_detail"),
+    path("kvartalniy/monthly/list/", kvartalniy_monthly_list, name="kvartalniy_monthly_list"),
+    path("kvartalniy/monthly/list/json/", kvartalniy_monthly_list_json, name="kvartalniy_monthly_list_json"),
 ]
-
-

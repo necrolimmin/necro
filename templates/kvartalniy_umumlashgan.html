@@ -34,9 +34,7 @@
     grid-template-columns:minmax(0,1fr) 300px;
     gap:16px;
     align-items:start;
-    
     min-height: calc(100vh - 30px);
-    
   }
 
   [data-theme="dark"] .kv-page,
@@ -140,37 +138,6 @@
     align-items:flex-end;
   }
 
-  .kv-field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    min-width:180px;
-  }
-
-  .kv-field label{
-    font-size:12px;
-    font-weight:900;
-    color:var(--kv-muted);
-  }
-
-  .kv-input{
-    height:44px;
-    border-radius:14px;
-    border:1px solid var(--kv-stroke-2);
-    background:var(--kv-surface-2);
-    color:var(--kv-text);
-    padding:0 12px;
-    outline:none;
-    box-shadow:0 10px 28px rgba(15,23,42,.08);
-    font-weight:800;
-    transition:border-color .15s ease, box-shadow .15s ease;
-  }
-
-  .kv-input:focus{
-    border-color:rgba(79,70,229,.45);
-    box-shadow:0 0 0 4px rgba(79,70,229,.14);
-  }
-
   .kv-btn{
     display:inline-flex;
     align-items:center;
@@ -207,7 +174,6 @@
 
   .kv-wrap{
     border:1px solid var(--kv-stroke);
-    
     overflow:hidden;
     background:var(--kv-surface-2);
     box-shadow:var(--kv-shadow-2);
@@ -216,7 +182,6 @@
   .kv-scroll{
     overflow:auto;
     max-width:100%;
-    
   }
 
   .kv-scroll::-webkit-scrollbar{
@@ -421,7 +386,9 @@
   .kv-table td:nth-child(10),
   .kv-table th:nth-child(10),
   .kv-table td:nth-child(14),
-  .kv-table th:nth-child(14){
+  .kv-table th:nth-child(14),
+  .kv-table td:nth-child(18),
+  .kv-table th:nth-child(18){
     border-left:2px solid var(--kv-grid-strong) !important;
   }
 
@@ -619,377 +586,376 @@
 <div class="kv-page">
 
   <div class="kv-card">
-  <form method="post">
-    {% csrf_token %}
+    <form method="post">
+      {% csrf_token %}
 
-    {% for d in selected_days %}
-      <input type="hidden" name="selected_days" value="{{ d }}">
-    {% endfor %}
-    <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
+      {% for d in selected_days %}
+        <input type="hidden" name="selected_days" value="{{ d }}">
+      {% endfor %}
+      <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
 
-    <div class="kv-top">
-      <div>
-        <h2 class="kv-title">Kvartalniy oylik hisobot</h2>
-        <p class="kv-muted">
-          Belgilangan kunlar bo‘yicha fakt hisoblanadi. Reja esa tanlangan kunlar ulushiga mos ravishda ko‘rsatiladi.
-          Har bir guruhda <b>Вес.хоз</b> alohida oylik to‘ldiriladi.
-        </p>
+      <div class="kv-top">
+        <div>
+          <h2 class="kv-title">Kvartalniy oylik hisobot</h2>
+          <p class="kv-muted">
+            Belgilangan kunlar bo‘yicha fakt hisoblanadi. Reja esa tanlangan kunlar ulushiga mos ravishda ko‘rsatiladi.
+            Har bir guruhda <b>Boshqa Stansiya</b> alohida oylik to‘ldiriladi.
+          </p>
+        </div>
+
+        <div class="kv-actions">
+          <a class="kv-btn" href="{% url 'kvartalniy_umumiy' %}?month={{ month|date:'Y-m' }}{% for d in selected_days %}&selected_days={{ d }}{% endfor %}">← Ortga</a>
+          <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
+            Saqlash
+          </button>
+        </div>
       </div>
 
-      <div class="kv-actions">
-        <button class="kv-btn" type="button"><a href="{% url 'kvartalniy_monthly_list' %}">← Ortga</a></button>
-        <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
-          Saqlash
-        </button>
-      </div>
-    </div>
+      {% if all_selected %}
+        <div class="alert ok">
+          Barcha kunlar tanlangan — reja maydonlarini tahrirlash mumkin.
+        </div>
+      {% else %}
+        <div class="alert warn">
+          Hammasi tanlanmagan. Reja avtomatik hisoblandi: oy reja / oy kunlari × tanlangan kunlar. Tahrirlash vaqtincha yopiq.
+        </div>
+      {% endif %}
 
-    {% if all_selected %}
-      <div class="alert ok">
-        Barcha kunlar tanlangan — reja maydonlarini tahrirlash mumkin.
-      </div>
-    {% else %}
-      <div class="alert warn">
-        Hammasi tanlanmagan. Reja avtomatik hisoblandi: oy reja / oy kunlari × tanlangan kunlar. Tahrirlash vaqtincha yopiq.
-      </div>
-    {% endif %}
-
-    <div class="kv-wrap">
-      <div class="kv-scroll">
-        <table class="kv-table">
-          <thead>
-            <tr>
-              <th class="kv-main-title" colspan="21">
-                Оперативная месячная информация по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
-                за {{ month|date:"m.Y" }} / {{ current_year }} - {{ prev_year }}
-              </th>
-            </tr>
-
-            <tr>
-              <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
-              <th class="kv-group" colspan="4">Погрузка вагонов</th>
-              <th class="kv-group" colspan="4">Выгрузка вагонов</th>
-              <th class="kv-group" colspan="4">Погрузка конт</th>
-              <th class="kv-group" colspan="4">Выгрузка конт</th>
-              <th class="kv-group" colspan="4">Доходы</th>
-            </tr>
-
-            <tr>
-              <th class="kv-sub">план</th>
-              <th class="kv-sub green">{{ current_year }}</th>
-              <th class="kv-sub blue">{{ prev_year }}</th>
-              <th class="kv-sub red">+/-</th>
-
-              <th class="kv-sub">план</th>
-              <th class="kv-sub green">{{ current_year }}</th>
-              <th class="kv-sub blue">{{ prev_year }}</th>
-              <th class="kv-sub red">+/-</th>
-
-              <th class="kv-sub">план</th>
-              <th class="kv-sub green">{{ current_year }}</th>
-              <th class="kv-sub blue">{{ prev_year }}</th>
-              <th class="kv-sub red">+/-</th>
-
-              <th class="kv-sub">план</th>
-              <th class="kv-sub green">{{ current_year }}</th>
-              <th class="kv-sub blue">{{ prev_year }}</th>
-              <th class="kv-sub red">+/-</th>
-
-              <th class="kv-sub">план</th>
-              <th class="kv-sub green">{{ current_year }}</th>
-              <th class="kv-sub blue">{{ prev_year }}</th>
-              <th class="kv-sub red">+/-</th>
-            </tr>
-
-            <tr>
-              <th class="kv-sub">reja</th>
-              <th class="kv-sub green">fakt</th>
-              <th class="kv-sub blue">fakt</th>
-              <th class="kv-sub red">farq</th>
-
-              <th class="kv-sub">reja</th>
-              <th class="kv-sub green">fakt</th>
-              <th class="kv-sub blue">fakt</th>
-              <th class="kv-sub red">farq</th>
-
-              <th class="kv-sub">reja</th>
-              <th class="kv-sub green">fakt</th>
-              <th class="kv-sub blue">fakt</th>
-              <th class="kv-sub red">farq</th>
-
-              <th class="kv-sub">reja</th>
-              <th class="kv-sub green">fakt</th>
-              <th class="kv-sub blue">fakt</th>
-              <th class="kv-sub red">farq</th>
-
-              <th class="kv-sub">reja</th>
-              <th class="kv-sub green">fakt</th>
-              <th class="kv-sub blue">fakt</th>
-              <th class="kv-sub red">farq</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for group in groups %}
-              <tr class="group-title-row">
-                <td colspan="21">{{ group.title }}</td>
+      <div class="kv-wrap">
+        <div class="kv-scroll">
+          <table class="kv-table">
+            <thead>
+              <tr>
+                <th class="kv-main-title" colspan="21">
+                  Оперативная месячная информация по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
+                  за {{ month|date:"m.Y" }} / {{ current_year }} - {{ prev_year }}
+                </th>
               </tr>
 
-              {% for row in group.rows %}
-                <tr class="{% if row.is_veshoz %}veshoz-row{% endif %}">
-                  <td class="name-col
-                    {% if row.is_veshoz %}
-                      brown
-                    {% elif row.is_other %}
-                      blue
-                    {% else %}
-                      purple
-                    {% endif %}">
-                    {{ row.station_name }}
-                    {% if row.station_id %}
-                      <input type="hidden" name="station_ids" value="{{ row.station_id }}">
-                    {% endif %}
-                  </td>
+              <tr>
+                <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
+                <th class="kv-group" colspan="4">Погрузка вагонов</th>
+                <th class="kv-group" colspan="4">Выгрузка вагонов</th>
+                <th class="kv-group" colspan="4">Погрузка конт</th>
+                <th class="kv-group" colspan="4">Выгрузка конт</th>
+                <th class="kv-group" colspan="4">Доходы</th>
+              </tr>
 
-                  <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                    {% if all_selected %}
+              <tr>
+                <th class="kv-sub">план</th>
+                <th class="kv-sub green">{{ current_year }}</th>
+                <th class="kv-sub blue">{{ prev_year }}</th>
+                <th class="kv-sub red">+/-</th>
+
+                <th class="kv-sub">план</th>
+                <th class="kv-sub green">{{ current_year }}</th>
+                <th class="kv-sub blue">{{ prev_year }}</th>
+                <th class="kv-sub red">+/-</th>
+
+                <th class="kv-sub">план</th>
+                <th class="kv-sub green">{{ current_year }}</th>
+                <th class="kv-sub blue">{{ prev_year }}</th>
+                <th class="kv-sub red">+/-</th>
+
+                <th class="kv-sub">план</th>
+                <th class="kv-sub green">{{ current_year }}</th>
+                <th class="kv-sub blue">{{ prev_year }}</th>
+                <th class="kv-sub red">+/-</th>
+
+                <th class="kv-sub">план</th>
+                <th class="kv-sub green">{{ current_year }}</th>
+                <th class="kv-sub blue">{{ prev_year }}</th>
+                <th class="kv-sub red">+/-</th>
+              </tr>
+
+              <tr>
+                <th class="kv-sub">reja</th>
+                <th class="kv-sub green">fakt</th>
+                <th class="kv-sub blue">fakt</th>
+                <th class="kv-sub red">farq</th>
+
+                <th class="kv-sub">reja</th>
+                <th class="kv-sub green">fakt</th>
+                <th class="kv-sub blue">fakt</th>
+                <th class="kv-sub red">farq</th>
+
+                <th class="kv-sub">reja</th>
+                <th class="kv-sub green">fakt</th>
+                <th class="kv-sub blue">fakt</th>
+                <th class="kv-sub red">farq</th>
+
+                <th class="kv-sub">reja</th>
+                <th class="kv-sub green">fakt</th>
+                <th class="kv-sub blue">fakt</th>
+                <th class="kv-sub red">farq</th>
+
+                <th class="kv-sub">reja</th>
+                <th class="kv-sub green">fakt</th>
+                <th class="kv-sub blue">fakt</th>
+                <th class="kv-sub red">farq</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for group in groups %}
+                <tr class="group-title-row">
+                  <td colspan="21">{{ group.title }}</td>
+                </tr>
+
+                {% for row in group.rows %}
+                  <tr class="{% if row.is_veshoz %}veshoz-row{% endif %}">
+                    <td class="name-col
                       {% if row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_pogr_plan_{{ row.group_key }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
-                      {% elif row.station_id %}
-                        <input class="edit-input" type="number" name="pogr_plan_{{ row.station_id }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
+                        brown
+                      {% elif row.is_other %}
+                        blue
+                      {% else %}
+                        purple
+                      {% endif %}">
+                      {{ row.station_name }}
+                      {% if row.station_id %}
+                        <input type="hidden" name="station_ids" value="{{ row.station_id }}">
+                      {% endif %}
+                    </td>
+
+                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                      {% if all_selected %}
+                        {% if row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_pogr_plan_{{ row.group_key }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
+                        {% elif row.station_id %}
+                          <input class="edit-input" type="number" name="pogr_plan_{{ row.station_id }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_plan }}
+                        {% endif %}
                       {% else %}
                         {{ row.pogr_plan }}
                       {% endif %}
-                    {% else %}
-                      {{ row.pogr_plan }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_pogr_this_year_{{ row.group_key }}" value="{{ row.pogr_this_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.pogr_this_year }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_pogr_last_year_{{ row.group_key }}" value="{{ row.pogr_last_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.pogr_last_year }}
-                    {% endif %}
-                  </td>
-                  <td class="readonly-red">{{ row.pogr_diff }}</td>
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_pogr_this_year_{{ row.group_key }}" value="{{ row.pogr_this_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.pogr_this_year }}
+                      {% endif %}
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_pogr_last_year_{{ row.group_key }}" value="{{ row.pogr_last_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.pogr_last_year }}
+                      {% endif %}
+                    </td>
+                    <td class="readonly-red">{{ row.pogr_diff }}</td>
 
-                  <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                    {% if all_selected %}
-                      {% if row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_vygr_plan_{{ row.group_key }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
-                      {% elif row.station_id %}
-                        <input class="edit-input" type="number" name="vygr_plan_{{ row.station_id }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
+                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                      {% if all_selected %}
+                        {% if row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_vygr_plan_{{ row.group_key }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
+                        {% elif row.station_id %}
+                          <input class="edit-input" type="number" name="vygr_plan_{{ row.station_id }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_plan }}
+                        {% endif %}
                       {% else %}
                         {{ row.vygr_plan }}
                       {% endif %}
-                    {% else %}
-                      {{ row.vygr_plan }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_vygr_this_year_{{ row.group_key }}" value="{{ row.vygr_this_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.vygr_this_year }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_vygr_last_year_{{ row.group_key }}" value="{{ row.vygr_last_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.vygr_last_year }}
-                    {% endif %}
-                  </td>
-                  <td class="readonly-red">{{ row.vygr_diff }}</td>
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_vygr_this_year_{{ row.group_key }}" value="{{ row.vygr_this_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.vygr_this_year }}
+                      {% endif %}
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_vygr_last_year_{{ row.group_key }}" value="{{ row.vygr_last_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.vygr_last_year }}
+                      {% endif %}
+                    </td>
+                    <td class="readonly-red">{{ row.vygr_diff }}</td>
 
-                  <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                    {% if all_selected %}
-                      {% if row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_pogr_kont_plan_{{ row.group_key }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
-                      {% elif row.station_id %}
-                        <input class="edit-input" type="number" name="pogr_kont_plan_{{ row.station_id }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
+                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                      {% if all_selected %}
+                        {% if row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_pogr_kont_plan_{{ row.group_key }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
+                        {% elif row.station_id %}
+                          <input class="edit-input" type="number" name="pogr_kont_plan_{{ row.station_id }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_kont_plan }}
+                        {% endif %}
                       {% else %}
                         {{ row.pogr_kont_plan }}
                       {% endif %}
-                    {% else %}
-                      {{ row.pogr_kont_plan }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_pogr_kont_this_year_{{ row.group_key }}" value="{{ row.pogr_kont_this_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.pogr_kont_this_year }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_pogr_kont_last_year_{{ row.group_key }}" value="{{ row.pogr_kont_last_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.pogr_kont_last_year }}
-                    {% endif %}
-                  </td>
-                  <td class="readonly-red">{{ row.pogr_kont_diff }}</td>
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_pogr_kont_this_year_{{ row.group_key }}" value="{{ row.pogr_kont_this_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.pogr_kont_this_year }}
+                      {% endif %}
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_pogr_kont_last_year_{{ row.group_key }}" value="{{ row.pogr_kont_last_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.pogr_kont_last_year }}
+                      {% endif %}
+                    </td>
+                    <td class="readonly-red">{{ row.pogr_kont_diff }}</td>
 
-                  <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                    {% if all_selected %}
-                      {% if row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_vygr_kont_plan_{{ row.group_key }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
-                      {% elif row.station_id %}
-                        <input class="edit-input" type="number" name="vygr_kont_plan_{{ row.station_id }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
+                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                      {% if all_selected %}
+                        {% if row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_vygr_kont_plan_{{ row.group_key }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
+                        {% elif row.station_id %}
+                          <input class="edit-input" type="number" name="vygr_kont_plan_{{ row.station_id }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_kont_plan }}
+                        {% endif %}
                       {% else %}
                         {{ row.vygr_kont_plan }}
                       {% endif %}
-                    {% else %}
-                      {{ row.vygr_kont_plan }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_vygr_kont_this_year_{{ row.group_key }}" value="{{ row.vygr_kont_this_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.vygr_kont_this_year }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_vygr_kont_last_year_{{ row.group_key }}" value="{{ row.vygr_kont_last_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.vygr_kont_last_year }}
-                    {% endif %}
-                  </td>
-                  <td class="readonly-red">{{ row.vygr_kont_diff }}</td>
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_vygr_kont_this_year_{{ row.group_key }}" value="{{ row.vygr_kont_this_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.vygr_kont_this_year }}
+                      {% endif %}
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_vygr_kont_last_year_{{ row.group_key }}" value="{{ row.vygr_kont_last_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.vygr_kont_last_year }}
+                      {% endif %}
+                    </td>
+                    <td class="readonly-red">{{ row.vygr_kont_diff }}</td>
 
-                  <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                    {% if all_selected %}
-                      {% if row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_income_plan_{{ row.group_key }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
-                      {% elif row.station_id %}
-                        <input class="edit-input" type="number" name="income_plan_{{ row.station_id }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                      {% if all_selected %}
+                        {% if row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_income_plan_{{ row.group_key }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                        {% elif row.station_id %}
+                          <input class="edit-input" type="number" name="income_plan_{{ row.station_id }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.income_plan }}
+                        {% endif %}
                       {% else %}
                         {{ row.income_plan }}
                       {% endif %}
-                    {% else %}
-                      {{ row.income_plan }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_income_this_year_{{ row.group_key }}" value="{{ row.income_this_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.income_this_year }}
-                    {% endif %}
-                  </td>
-                  <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                    {% if all_selected and row.is_veshoz %}
-                      <input class="edit-input" type="number" name="veshoz_income_last_year_{{ row.group_key }}" value="{{ row.income_last_year_raw|default_if_none:0 }}">
-                    {% else %}
-                      {{ row.income_last_year }}
-                    {% endif %}
-                  </td>
-                  <td class="readonly-red">{{ row.income_diff }}</td>
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_income_this_year_{{ row.group_key }}" value="{{ row.income_this_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.income_this_year }}
+                      {% endif %}
+                    </td>
+                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                      {% if all_selected and row.is_veshoz %}
+                        <input class="edit-input" type="number" name="veshoz_income_last_year_{{ row.group_key }}" value="{{ row.income_last_year_raw|default_if_none:0 }}">
+                      {% else %}
+                        {{ row.income_last_year }}
+                      {% endif %}
+                    </td>
+                    <td class="readonly-red">{{ row.income_diff }}</td>
+                  </tr>
+                {% endfor %}
+
+                <tr class="subtotal">
+                  <td class="name-col">{{ group.subtotal.station_name }}</td>
+
+                  <td>{{ group.subtotal.pogr_plan }}</td>
+                  <td>{{ group.subtotal.pogr_this_year }}</td>
+                  <td class="green">{{ group.subtotal.pogr_last_year }}</td>
+                  <td>{{ group.subtotal.pogr_diff }}</td>
+
+                  <td>{{ group.subtotal.vygr_plan }}</td>
+                  <td>{{ group.subtotal.vygr_this_year }}</td>
+                  <td class="green">{{ group.subtotal.vygr_last_year }}</td>
+                  <td>{{ group.subtotal.vygr_diff }}</td>
+
+                  <td>{{ group.subtotal.pogr_kont_plan }}</td>
+                  <td>{{ group.subtotal.pogr_kont_this_year }}</td>
+                  <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
+                  <td>{{ group.subtotal.pogr_kont_diff }}</td>
+
+                  <td>{{ group.subtotal.vygr_kont_plan }}</td>
+                  <td>{{ group.subtotal.vygr_kont_this_year }}</td>
+                  <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
+                  <td>{{ group.subtotal.vygr_kont_diff }}</td>
+
+                  <td>{{ group.subtotal.income_plan }}</td>
+                  <td>{{ group.subtotal.income_this_year }}</td>
+                  <td class="green">{{ group.subtotal.income_last_year }}</td>
+                  <td>{{ group.subtotal.income_diff }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="21">Ma’lumot topilmadi.</td>
                 </tr>
               {% endfor %}
 
-              <tr class="subtotal">
-                <td class="name-col">{{ group.subtotal.station_name }}</td>
+              <tr class="grandtotal">
+                <td class="name-col">{{ grand_total.station_name }}</td>
 
-                <td>{{ group.subtotal.pogr_plan }}</td>
-                <td>{{ group.subtotal.pogr_this_year }}</td>
-                <td class="green">{{ group.subtotal.pogr_last_year }}</td>
-                <td>{{ group.subtotal.pogr_diff }}</td>
+                <td>{{ grand_total.pogr_plan }}</td>
+                <td>{{ grand_total.pogr_this_year }}</td>
+                <td class="green">{{ grand_total.pogr_last_year }}</td>
+                <td>{{ grand_total.pogr_diff }}</td>
 
-                <td>{{ group.subtotal.vygr_plan }}</td>
-                <td>{{ group.subtotal.vygr_this_year }}</td>
-                <td class="green">{{ group.subtotal.vygr_last_year }}</td>
-                <td>{{ group.subtotal.vygr_diff }}</td>
+                <td>{{ grand_total.vygr_plan }}</td>
+                <td>{{ grand_total.vygr_this_year }}</td>
+                <td class="green">{{ grand_total.vygr_last_year }}</td>
+                <td>{{ grand_total.vygr_diff }}</td>
 
-                <td>{{ group.subtotal.pogr_kont_plan }}</td>
-                <td>{{ group.subtotal.pogr_kont_this_year }}</td>
-                <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
-                <td>{{ group.subtotal.pogr_kont_diff }}</td>
+                <td>{{ grand_total.pogr_kont_plan }}</td>
+                <td>{{ grand_total.pogr_kont_this_year }}</td>
+                <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
+                <td>{{ grand_total.pogr_kont_diff }}</td>
 
-                <td>{{ group.subtotal.vygr_kont_plan }}</td>
-                <td>{{ group.subtotal.vygr_kont_this_year }}</td>
-                <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
-                <td>{{ group.subtotal.vygr_kont_diff }}</td>
+                <td>{{ grand_total.vygr_kont_plan }}</td>
+                <td>{{ grand_total.vygr_kont_this_year }}</td>
+                <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
+                <td>{{ grand_total.vygr_kont_diff }}</td>
 
-                <td>{{ group.subtotal.income_plan }}</td>
-                <td>{{ group.subtotal.income_this_year }}</td>
-                <td class="green">{{ group.subtotal.income_last_year }}</td>
-                <td>{{ group.subtotal.income_diff }}</td>
+                <td>{{ grand_total.income_plan }}</td>
+                <td>{{ grand_total.income_this_year }}</td>
+                <td class="green">{{ grand_total.income_last_year }}</td>
+                <td>{{ grand_total.income_diff }}</td>
               </tr>
-            {% empty %}
-              <tr>
-                <td colspan="21" style="padding:16px; color:var(--muted); text-align:center;">
-                  Hech qanday ma’lumot topilmadi.
-                </td>
-              </tr>
-            {% endfor %}
-
-            <tr class="grandtotal">
-              <td class="name-col">{{ grand_total.station_name }}</td>
-
-              <td>{{ grand_total.pogr_plan }}</td>
-              <td>{{ grand_total.pogr_this_year }}</td>
-              <td class="green">{{ grand_total.pogr_last_year }}</td>
-              <td>{{ grand_total.pogr_diff }}</td>
-
-              <td>{{ grand_total.vygr_plan }}</td>
-              <td>{{ grand_total.vygr_this_year }}</td>
-              <td class="green">{{ grand_total.vygr_last_year }}</td>
-              <td>{{ grand_total.vygr_diff }}</td>
-
-              <td>{{ grand_total.pogr_kont_plan }}</td>
-              <td>{{ grand_total.pogr_kont_this_year }}</td>
-              <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
-              <td>{{ grand_total.pogr_kont_diff }}</td>
-
-              <td>{{ grand_total.vygr_kont_plan }}</td>
-              <td>{{ grand_total.vygr_kont_this_year }}</td>
-              <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
-              <td>{{ grand_total.vygr_kont_diff }}</td>
-
-              <td>{{ grand_total.income_plan }}</td>
-              <td>{{ grand_total.income_this_year }}</td>
-              <td class="green">{{ grand_total.income_last_year }}</td>
-              <td>{{ grand_total.income_diff }}</td>
-            </tr>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </form>
-</div>
-  
-  <div class="kv-card side-card">
-    <form method="get" id="dayFilterForm">
-      <h3 class="side-title">Kunlarni tanlash</h3>
+    </form>
+  </div>
 
-      <div class="kv-field">
-        <label>Oy</label>
-        <input class="kv-input" type="month" name="month" value="{{ month|date:'Y-m' }}" required>
+  <div class="kv-card side-card">
+    <h3 class="side-title">{{ month|date:"F Y" }} kunlari</h3>
+    <form method="get">
+      <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
+
+      <div class="calendar-grid">
+        {% for day in calendar_days %}
+          <label class="day-item">
+            <input
+              type="checkbox"
+              name="selected_days"
+              value="{{ day }}"
+              {% if day in selected_days %}checked{% endif %}
+            >
+            <span>{{ day }}</span>
+          </label>
+        {% endfor %}
       </div>
 
       <div class="side-actions">
-        <button type="button" class="mini-btn" id="selectAllDays">Barchasi</button>
-        <button type="button" class="mini-btn" id="clearAllDays">Tozalash</button>
-      </div>
-
-      <div class="calendar-grid">
-        {% for d in calendar_days %}
-          <label class="day-item">
-            <input type="checkbox" name="selected_days" value="{{ d }}" {% if d in selected_days %}checked{% endif %}>
-            <span>{{ d }} ✓</span>
-          </label>
-        {% endfor %}
+        <button type="button" class="mini-btn" id="select-all-days">Hammasi</button>
+        <button type="button" class="mini-btn" id="clear-all-days">Tozalash</button>
       </div>
 
       <div class="side-actions">
@@ -997,8 +963,12 @@
       </div>
 
       <div class="note">
-        Tanlangan kunlar: <b>{{ selected_days_count }}</b> / <b>{{ month_days_count }}</b><br>
-        Agar barcha kunlar tanlansa, reja maydonlari va har guruhdagi <b>Вес.хоз</b> tahrirlanadi.
+        Tanlangan kunlar: <b>{{ selected_days_count }}</b> / {{ month_days_count }}<br>
+        {% if all_selected %}
+          To‘liq oy tanlangan.
+        {% else %}
+          Reja proporsional ko‘rsatilmoqda.
+        {% endif %}
       </div>
     </form>
   </div>
@@ -1006,22 +976,23 @@
 </div>
 
 <script>
-  (function(){
-    const selectAllBtn = document.getElementById("selectAllDays");
-    const clearAllBtn = document.getElementById("clearAllDays");
-    const boxes = Array.from(document.querySelectorAll('input[name="selected_days"]'));
+(function () {
+  const selectAllBtn = document.getElementById("select-all-days");
+  const clearAllBtn = document.getElementById("clear-all-days");
+  const checkboxes = Array.from(document.querySelectorAll('.calendar-grid input[type="checkbox"]'));
 
-    if (selectAllBtn) {
-      selectAllBtn.addEventListener("click", function(){
-        boxes.forEach(b => b.checked = true);
-      });
-    }
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener("click", function () {
+      checkboxes.forEach(cb => cb.checked = true);
+    });
+  }
 
-    if (clearAllBtn) {
-      clearAllBtn.addEventListener("click", function(){
-        boxes.forEach(b => b.checked = false);
-      });
-    }
-  })();
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener("click", function () {
+      checkboxes.forEach(cb => cb.checked = false);
+    });
+  }
+})();
 </script>
+
 {% endblock %}
