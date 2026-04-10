@@ -5,137 +5,172 @@
 
 <style>
   .kv-page{
-    --kv-bg: linear-gradient(180deg, #f6f8ff 0%, #edf3ff 100%);
-    --kv-surface: rgba(255,255,255,.84);
-    --kv-surface-2: rgba(255,255,255,.94);
-    --kv-text: #0f172a;
-    --kv-muted: #64748b;
-    --kv-stroke: rgba(15,23,42,.10);
-    --kv-stroke-2: rgba(15,23,42,.16);
-    --kv-grid: #353535;
-    --kv-grid-strong: #111827;
-    --kv-head: #f2f4f7;
-    --kv-head-2: #fafafa;
-    --kv-group: #eef1f5;
-    --kv-subtotal: #fff7f7;
-    --kv-grand: #f2f7ff;
-    --kv-veshoz: #fcfaf2;
-    --kv-shadow: 0 20px 60px rgba(2,6,23,.10);
-    --kv-shadow-2: 0 10px 24px rgba(2,6,23,.08);
-    --kv-accent: #4f46e5;
-    --kv-accent-2: #22c55e;
-    --kv-purple: #6a1fb1;
-    --kv-blue: #165DCC;
-    --kv-green: #00A43A;
-    --kv-red: #ff0000;
-    --kv-brown: #7c4a03;
+    --bg:
+      radial-gradient(1200px 520px at -10% -10%, rgba(79,70,229,.10), transparent 60%),
+      radial-gradient(900px 420px at 110% 0%, rgba(16,185,129,.10), transparent 50%),
+      linear-gradient(180deg, #f7faff 0%, #eef4ff 100%);
+    --surface: rgba(255,255,255,.84);
+    --surface-strong: rgba(255,255,255,.96);
+    --surface-soft: #f8fbff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --stroke: rgba(15,23,42,.10);
+    --stroke-strong: rgba(15,23,42,.18);
+    --grid: #4b5563;
+    --grid-strong: #111827;
+    --head: #f3f6fb;
+    --head-2: #eef3fb;
+    --group: #e8eef6;
+    --subtotal: #fff7f7;
+    --grand: #f2f7ff;
+    --veshoz: #fcfaf2;
+    --shadow: 0 22px 70px rgba(2,6,23,.10);
+    --shadow-soft: 0 10px 28px rgba(2,6,23,.08);
+
+    --accent: #4f46e5;
+    --accent-2: #10b981;
+    --green: #0f9f47;
+    --blue: #2563eb;
+    --red: #dc2626;
+    --purple: #7c3aed;
+    --brown: #92400e;
+
+    --radius-xl: 26px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
 
     display:grid;
-    grid-template-columns:minmax(0,1fr) 300px;
-    gap:16px;
+    grid-template-columns:minmax(0,1fr) 320px;
+    gap:18px;
     align-items:start;
-    min-height: calc(100vh - 30px);
+    min-height:calc(100vh - 30px);
+    padding:12px;
+    background:var(--bg);
   }
 
   [data-theme="dark"] .kv-page,
   .dark .kv-page{
-    --kv-bg: radial-gradient(circle at top, #172036 0%, #0b1120 48%, #060a13 100%);
-    --kv-surface: rgba(15,23,42,.68);
-    --kv-surface-2: rgba(15,23,42,.86);
-    --kv-text: #e5eefb;
-    --kv-muted: #94a3b8;
-    --kv-stroke: rgba(148,163,184,.16);
-    --kv-stroke-2: rgba(148,163,184,.25);
-    --kv-grid: rgba(255,255,255,.22);
-    --kv-grid-strong: rgba(255,255,255,.68);
-    --kv-head: rgba(30,41,59,.98);
-    --kv-head-2: rgba(15,23,42,.98);
-    --kv-group: rgba(51,65,85,.95);
-    --kv-subtotal: rgba(127,29,29,.18);
-    --kv-grand: rgba(30,64,175,.16);
-    --kv-veshoz: rgba(120, 90, 20, .16);
-    --kv-shadow: 0 24px 70px rgba(0,0,0,.42);
-    --kv-shadow-2: 0 12px 32px rgba(0,0,0,.34);
-    --kv-purple: #c084fc;
-    --kv-blue: #60a5fa;
-    --kv-green: #4ade80;
-    --kv-red: #f87171;
-    --kv-brown: #fbbf24;
+    --bg:
+      radial-gradient(1100px 520px at -10% -10%, rgba(129,140,248,.14), transparent 60%),
+      radial-gradient(900px 420px at 110% 0%, rgba(52,211,153,.10), transparent 50%),
+      radial-gradient(circle at top, #162235 0%, #0b1220 48%, #060b14 100%);
+    --surface: rgba(15,23,42,.72);
+    --surface-strong: rgba(15,23,42,.90);
+    --surface-soft: rgba(15,23,42,.98);
+    --text: #e5eefb;
+    --muted: #94a3b8;
+    --stroke: rgba(148,163,184,.16);
+    --stroke-strong: rgba(148,163,184,.28);
+    --grid: rgba(255,255,255,.24);
+    --grid-strong: rgba(255,255,255,.70);
+    --head: rgba(30,41,59,.98);
+    --head-2: rgba(15,23,42,.98);
+    --group: rgba(51,65,85,.96);
+    --subtotal: rgba(127,29,29,.18);
+    --grand: rgba(30,64,175,.18);
+    --veshoz: rgba(120,90,20,.16);
+    --shadow: 0 26px 70px rgba(0,0,0,.42);
+    --shadow-soft: 0 12px 32px rgba(0,0,0,.30);
+
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --red: #f87171;
+    --purple: #c084fc;
+    --brown: #fbbf24;
   }
 
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]) .kv-page{
-      --kv-bg: radial-gradient(circle at top, #172036 0%, #0b1120 48%, #060a13 100%);
-      --kv-surface: rgba(15,23,42,.68);
-      --kv-surface-2: rgba(15,23,42,.86);
-      --kv-text: #e5eefb;
-      --kv-muted: #94a3b8;
-      --kv-stroke: rgba(148,163,184,.16);
-      --kv-stroke-2: rgba(148,163,184,.25);
-      --kv-grid: rgba(255,255,255,.22);
-      --kv-grid-strong: rgba(255,255,255,.68);
-      --kv-head: rgba(30,41,59,.98);
-      --kv-head-2: rgba(15,23,42,.98);
-      --kv-group: rgba(51,65,85,.95);
-      --kv-subtotal: rgba(127,29,29,.18);
-      --kv-grand: rgba(30,64,175,.16);
-      --kv-veshoz: rgba(120, 90, 20, .16);
-      --kv-shadow: 0 24px 70px rgba(0,0,0,.42);
-      --kv-shadow-2: 0 12px 32px rgba(0,0,0,.34);
-      --kv-purple: #c084fc;
-      --kv-blue: #60a5fa;
-      --kv-green: #4ade80;
-      --kv-red: #f87171;
-      --kv-brown: #fbbf24;
+      --bg:
+        radial-gradient(1100px 520px at -10% -10%, rgba(129,140,248,.14), transparent 60%),
+        radial-gradient(900px 420px at 110% 0%, rgba(52,211,153,.10), transparent 50%),
+        radial-gradient(circle at top, #162235 0%, #0b1220 48%, #060b14 100%);
+      --surface: rgba(15,23,42,.72);
+      --surface-strong: rgba(15,23,42,.90);
+      --surface-soft: rgba(15,23,42,.98);
+      --text: #e5eefb;
+      --muted: #94a3b8;
+      --stroke: rgba(148,163,184,.16);
+      --stroke-strong: rgba(148,163,184,.28);
+      --grid: rgba(255,255,255,.24);
+      --grid-strong: rgba(255,255,255,.70);
+      --head: rgba(30,41,59,.98);
+      --head-2: rgba(15,23,42,.98);
+      --group: rgba(51,65,85,.96);
+      --subtotal: rgba(127,29,29,.18);
+      --grand: rgba(30,64,175,.18);
+      --veshoz: rgba(120,90,20,.16);
+      --shadow: 0 26px 70px rgba(0,0,0,.42);
+      --shadow-soft: 0 12px 32px rgba(0,0,0,.30);
+
+      --green: #4ade80;
+      --blue: #60a5fa;
+      --red: #f87171;
+      --purple: #c084fc;
+      --brown: #fbbf24;
     }
   }
 
-  @media (max-width: 1180px){
+  @media (max-width: 1240px){
     .kv-page{
       grid-template-columns:1fr;
     }
   }
 
   .kv-card{
-    border:1px solid var(--kv-stroke);
-    border-radius:22px;
-    box-shadow:var(--kv-shadow);
-    padding:14px;
-    backdrop-filter:blur(16px);
-    background:var(--kv-surface);
+    background:var(--surface);
+    border:1px solid var(--stroke);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow);
+    backdrop-filter:blur(18px);
+  }
+
+  .kv-main-card{
+    overflow:hidden;
+  }
+
+  .kv-header{
+    padding:18px 18px 14px;
+    border-bottom:1px solid var(--stroke);
+    background:linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0)), transparent;
   }
 
   .kv-top{
     display:flex;
     justify-content:space-between;
-    align-items:flex-end;
-    gap:12px;
+    align-items:flex-start;
+    gap:14px;
     flex-wrap:wrap;
-    margin-bottom:14px;
+  }
+
+  .kv-title-wrap{
+    flex:1 1 520px;
+    min-width:0;
   }
 
   .kv-title{
     margin:0;
-    font-size:22px;
+    font-size:28px;
+    line-height:1.06;
+    letter-spacing:-.03em;
     font-weight:950;
-    color:var(--kv-text);
-    letter-spacing:-.02em;
-    line-height:1.08;
+    color:var(--text);
   }
 
-  .kv-muted{
-    margin:7px 0 0;
-    color:var(--kv-muted);
+  .kv-subtitle{
+    margin:10px 0 0;
+    max-width:980px;
+    color:var(--muted);
     font-size:13px;
-    line-height:1.45;
-    max-width:900px;
+    line-height:1.6;
   }
 
   .kv-actions{
     display:flex;
+    align-items:center;
     gap:10px;
     flex-wrap:wrap;
-    align-items:flex-end;
+    justify-content:flex-end;
   }
 
   .kv-btn{
@@ -143,95 +178,130 @@
     align-items:center;
     justify-content:center;
     gap:8px;
-    height:44px;
-    padding:0 16px;
+    min-height:46px;
+    padding:0 18px;
     border-radius:14px;
-    border:1px solid var(--kv-stroke-2);
+    border:1px solid var(--stroke-strong);
+    background:var(--surface-strong);
+    color:var(--text);
     text-decoration:none;
     font-weight:900;
-    cursor:pointer;
-    transition:.15s ease;
     white-space:nowrap;
-    background:var(--kv-surface-2);
-    color:var(--kv-text);
+    cursor:pointer;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+  }
+
+  .kv-btn:hover:not(:disabled){
+    transform:translateY(-1px);
+    box-shadow:var(--shadow-soft);
   }
 
   .kv-btn.primary{
     color:#fff;
-    background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(34,197,94,.92));
-    box-shadow:0 12px 28px rgba(79,70,229,.22);
-    border-color:rgba(79,70,229,.32);
+    border-color:transparent;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow:0 16px 30px rgba(79,70,229,.20);
   }
 
   .kv-btn:disabled{
     opacity:.55;
     cursor:not-allowed;
+    box-shadow:none;
+    transform:none;
   }
 
-  .kv-btn:hover:not(:disabled){
-    transform:translateY(-1px);
+  .kv-status{
+    margin-top:12px;
+    padding:12px 14px;
+    border-radius:14px;
+    font-size:12px;
+    font-weight:800;
+    border:1px solid transparent;
+  }
+
+  .kv-status.ok{
+    background:rgba(34,197,94,.12);
+    color:#15803d;
+    border-color:rgba(34,197,94,.18);
+  }
+
+  .kv-status.warn{
+    background:rgba(245,158,11,.12);
+    color:#b45309;
+    border-color:rgba(245,158,11,.18);
+  }
+
+  [data-theme="dark"] .kv-status.ok,
+  .dark .kv-status.ok{
+    color:#86efac;
+  }
+
+  [data-theme="dark"] .kv-status.warn,
+  .dark .kv-status.warn{
+    color:#fcd34d;
+  }
+
+  .kv-table-shell{
+    padding:14px;
   }
 
   .kv-wrap{
-    border:1px solid var(--kv-stroke);
+    border:1px solid var(--stroke);
+    border-radius:18px;
     overflow:hidden;
-    background:var(--kv-surface-2);
-    box-shadow:var(--kv-shadow-2);
+    background:var(--surface-strong);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
   }
 
   .kv-scroll{
     overflow:auto;
     max-width:100%;
+    max-height:calc(100vh - 260px);
+    scrollbar-width:thin;
+    scrollbar-color:rgba(100,116,139,.40) transparent;
   }
 
   .kv-scroll::-webkit-scrollbar{
-    height:10px;
     width:10px;
+    height:10px;
   }
 
   .kv-scroll::-webkit-scrollbar-thumb{
-    background:rgba(15,23,42,.22);
+    background:rgba(100,116,139,.40);
     border-radius:999px;
-  }
-
-  html[data-theme="dark"] .kv-scroll::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,.16);
   }
 
   .kv-table{
     border-collapse:collapse;
-    width:100%;
-    min-width:1280px;
+    width:max-content;
+    min-width:100%;
     table-layout:fixed;
     background:#fff;
     font-family:"Times New Roman", serif;
   }
 
   [data-theme="dark"] .kv-table,
-  .dark .kv-table,
-  :root:not([data-theme="light"]) .kv-table{
+  .dark .kv-table{
     background:#0f172a;
   }
 
   .kv-table th,
   .kv-table td{
-    border:1px solid var(--kv-grid);
-    padding:3px 4px;
+    border:1px solid var(--grid);
+    padding:5px 5px;
     font-size:11px;
-    line-height:1.04;
+    line-height:1.1;
     text-align:center;
     vertical-align:middle;
+    white-space:nowrap;
     color:#000;
     background:#fff;
-    white-space:nowrap;
   }
 
   [data-theme="dark"] .kv-table th,
   [data-theme="dark"] .kv-table td,
   .dark .kv-table th,
-  .dark .kv-table td,
-  :root:not([data-theme="light"]) .kv-table th,
-  :root:not([data-theme="light"]) .kv-table td{
+  .dark .kv-table td{
     color:#e5eefb;
     background:#0f172a;
   }
@@ -240,28 +310,29 @@
     position:sticky;
     top:0;
     z-index:10;
-    background:var(--kv-head);
-    font-weight:700;
+    background:var(--head);
+    font-weight:900;
   }
 
   .kv-main-title{
     font-size:13px !important;
-    line-height:1.18 !important;
-    padding:8px 8px !important;
-    background:var(--kv-head-2) !important;
-    font-weight:800 !important;
-    border-bottom:2px solid var(--kv-grid-strong) !important;
+    line-height:1.28 !important;
+    padding:12px 10px !important;
+    background:var(--head-2) !important;
+    font-weight:900 !important;
+    border-bottom:2px solid var(--grid-strong) !important;
+    letter-spacing:-.01em;
   }
 
   .kv-group{
-    background:var(--kv-group) !important;
+    background:var(--group) !important;
     font-size:12px !important;
-    font-weight:800 !important;
-    border-bottom:2px solid var(--kv-grid-strong) !important;
+    font-weight:900 !important;
+    border-bottom:2px solid var(--grid-strong) !important;
   }
 
   .kv-sub{
-    background:var(--kv-head-2) !important;
+    background:var(--head-2) !important;
     font-size:10px !important;
     font-weight:800 !important;
   }
@@ -270,71 +341,84 @@
     position:sticky;
     left:0;
     z-index:11;
-    min-width:140px;
-    max-width:140px;
-    width:140px;
+    width:190px;
+    min-width:190px;
+    max-width:190px;
     text-align:left !important;
-    padding-left:6px !important;
+    white-space:normal !important;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+    padding:6px 9px !important;
     background:#fff !important;
-    font-weight:700;
-    border-right:2px solid var(--kv-grid-strong) !important;
+    font-weight:800;
+    border-right:2px solid var(--grid-strong) !important;
   }
 
   .kv-table thead .name-col{
-    background:var(--kv-head) !important;
     z-index:12;
     text-align:center !important;
-    padding-left:4px !important;
+    background:var(--head) !important;
   }
 
   [data-theme="dark"] .name-col,
-  .dark .name-col,
-  :root:not([data-theme="light"]) .name-col{
+  .dark .name-col{
     background:#111827 !important;
   }
 
-  .green{ color:var(--kv-green) !important; font-weight:700; }
-  .blue{ color:var(--kv-blue) !important; font-weight:700; }
-  .red{ color:var(--kv-red) !important; font-weight:700; }
-  .purple{ color:var(--kv-purple) !important; font-weight:700; }
-  .brown{ color:var(--kv-brown) !important; font-weight:700; }
+  .kv-table td:not(.name-col),
+  .kv-table th:not(.name-col){
+    min-width:66px;
+    width:66px;
+  }
 
-  .readonly-green{ color:var(--kv-green) !important; font-weight:700; }
-  .readonly-blue{ color:var(--kv-blue) !important; font-weight:700; }
-  .readonly-red{ color:var(--kv-red) !important; font-weight:700; }
+  .kv-table td:nth-child(17),
+  .kv-table th:nth-child(17),
+  .kv-table td:nth-child(18),
+  .kv-table th:nth-child(18),
+  .kv-table td:nth-child(19),
+  .kv-table th:nth-child(19){
+    min-width:112px;
+    width:112px;
+  }
+
+  .green, .readonly-green{ color:var(--green) !important; font-weight:800; }
+  .blue, .readonly-blue{ color:var(--blue) !important; font-weight:800; }
+  .red, .readonly-red{ color:var(--red) !important; font-weight:800; }
+  .purple{ color:var(--purple) !important; font-weight:800; }
+  .brown{ color:var(--brown) !important; font-weight:800; }
 
   .group-title-row td{
-    background:var(--kv-group) !important;
-    font-weight:800 !important;
+    background:var(--group) !important;
+    font-weight:900 !important;
     text-align:left !important;
-    padding:6px 8px !important;
-    border-top:2px solid var(--kv-grid-strong) !important;
-    border-bottom:2px solid var(--kv-grid-strong) !important;
+    padding:8px 10px !important;
+    border-top:2px solid var(--grid-strong) !important;
+    border-bottom:2px solid var(--grid-strong) !important;
   }
 
   .subtotal td{
-    font-weight:800;
-    background:var(--kv-subtotal) !important;
-    border-top:2px solid var(--kv-grid-strong) !important;
+    background:var(--subtotal) !important;
+    font-weight:900;
+    border-top:2px solid var(--grid-strong) !important;
   }
 
   .subtotal .name-col{
-    color:var(--kv-red) !important;
+    color:var(--red) !important;
   }
 
   .grandtotal td{
+    background:var(--grand) !important;
     font-weight:900;
-    background:var(--kv-grand) !important;
-    border-top:3px solid var(--kv-grid-strong) !important;
-    border-bottom:3px solid var(--kv-grid-strong) !important;
+    border-top:3px solid var(--grid-strong) !important;
+    border-bottom:3px solid var(--grid-strong) !important;
   }
 
   .grandtotal .name-col{
-    color:var(--kv-blue) !important;
+    color:var(--blue) !important;
   }
 
   .veshoz-row td{
-    background:var(--kv-veshoz) !important;
+    background:var(--veshoz) !important;
   }
 
   .edit-cell{
@@ -343,29 +427,22 @@
   }
 
   [data-theme="dark"] .edit-cell,
-  .dark .edit-cell,
-  :root:not([data-theme="light"]) .edit-cell{
+  .dark .edit-cell{
     background:#0f172a !important;
   }
 
   .edit-input{
     width:100%;
-    min-width:68px;
-    height:24px;
+    min-width:62px;
+    height:28px;
     border:none;
     outline:none;
     background:transparent;
     text-align:center;
     font-size:11px;
     font-family:"Times New Roman", serif;
-    color:#000;
-    font-weight:700;
-  }
-
-  [data-theme="dark"] .edit-input,
-  .dark .edit-input,
-  :root:not([data-theme="light"]) .edit-input{
-    color:#e5eefb;
+    color:inherit;
+    font-weight:800;
   }
 
   .kv-table td:nth-child(5),
@@ -374,9 +451,9 @@
   .kv-table th:nth-child(9),
   .kv-table td:nth-child(13),
   .kv-table th:nth-child(13),
-  .kv-table td:nth-child(17),
-  .kv-table th:nth-child(17){
-    border-right:2px solid var(--kv-grid-strong) !important;
+  .kv-table td:nth-child(16),
+  .kv-table th:nth-child(16){
+    border-right:2px solid var(--grid-strong) !important;
   }
 
   .kv-table td:nth-child(2),
@@ -387,28 +464,37 @@
   .kv-table th:nth-child(10),
   .kv-table td:nth-child(14),
   .kv-table th:nth-child(14),
-  .kv-table td:nth-child(18),
-  .kv-table th:nth-child(18){
-    border-left:2px solid var(--kv-grid-strong) !important;
+  .kv-table td:nth-child(17),
+  .kv-table th:nth-child(17){
+    border-left:2px solid var(--grid-strong) !important;
   }
 
   .side-card{
     position:sticky;
-    top:14px;
+    top:12px;
+    padding:18px;
   }
 
   .side-title{
-    margin:0 0 6px;
-    font-size:16px;
+    margin:0;
+    font-size:18px;
+    line-height:1.15;
     font-weight:900;
-    color:var(--kv-text);
+    color:var(--text);
+  }
+
+  .side-subtitle{
+    margin:8px 0 0;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.5;
   }
 
   .calendar-grid{
     display:grid;
-    grid-template-columns:repeat(7,1fr);
+    grid-template-columns:repeat(7, 1fr);
     gap:8px;
-    margin-top:12px;
+    margin-top:14px;
   }
 
   .day-item{
@@ -416,12 +502,12 @@
     align-items:center;
     justify-content:center;
     min-height:42px;
-    border:1px solid var(--kv-stroke);
+    border:1px solid var(--stroke);
     border-radius:12px;
-    background:var(--kv-surface-2);
+    background:var(--surface-strong);
     position:relative;
     overflow:hidden;
-    transition:.15s ease;
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
   }
 
   .day-item input{
@@ -432,19 +518,19 @@
   }
 
   .day-item span{
-    font-weight:800;
     font-size:11px;
-    color:var(--kv-text);
+    font-weight:900;
+    color:var(--text);
+  }
+
+  .day-item:has(input:checked){
+    border-color:transparent;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow:0 12px 24px rgba(79,70,229,.18);
   }
 
   .day-item input:checked + span{
     color:#fff;
-  }
-
-  .day-item:has(input:checked){
-    background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(34,197,94,.92));
-    border-color:transparent;
-    box-shadow:0 10px 22px rgba(79,70,229,.20);
   }
 
   .day-item:hover{
@@ -455,69 +541,34 @@
     display:flex;
     gap:8px;
     flex-wrap:wrap;
-    margin-top:12px;
+    margin-top:14px;
   }
 
   .mini-btn{
     flex:1 1 auto;
-    min-height:40px;
-    border:1px solid var(--kv-stroke-2);
-    background:var(--kv-surface-2);
+    min-height:42px;
     border-radius:12px;
-    font-weight:800;
+    border:1px solid var(--stroke-strong);
+    background:var(--surface-strong);
+    color:var(--text);
+    font-weight:900;
     cursor:pointer;
-    color:var(--kv-text);
-    transition:.15s ease;
+    transition:transform .16s ease, box-shadow .16s ease;
   }
 
   .mini-btn:hover{
     transform:translateY(-1px);
+    box-shadow:var(--shadow-soft);
   }
 
   .note{
     margin-top:12px;
-    color:var(--kv-muted);
+    color:var(--muted);
     font-size:12px;
-    line-height:1.5;
+    line-height:1.6;
   }
 
-  .alert{
-    margin-top:10px;
-    padding:10px 12px;
-    border-radius:12px;
-    font-size:12px;
-    font-weight:700;
-  }
-
-  .alert.ok{
-    background:rgba(34,197,94,.12);
-    color:#15803d;
-    border:1px solid rgba(34,197,94,.18);
-  }
-
-  .alert.warn{
-    background:rgba(245,158,11,.12);
-    color:#b45309;
-    border:1px solid rgba(245,158,11,.18);
-  }
-
-  [data-theme="dark"] .alert.ok,
-  .dark .alert.ok,
-  :root:not([data-theme="light"]) .alert.ok{
-    color:#86efac;
-  }
-
-  [data-theme="dark"] .alert.warn,
-  .dark .alert.warn,
-  :root:not([data-theme="light"]) .alert.warn{
-    color:#fcd34d;
-  }
-
-  @media (max-width: 900px){
-    .kv-card{
-      padding:12px;
-    }
-
+  @media (max-width: 920px){
     .kv-actions{
       width:100%;
     }
@@ -529,16 +580,22 @@
     .calendar-grid{
       gap:6px;
     }
-
-    .day-item{
-      min-height:38px;
-    }
   }
 
-  @media (max-width: 640px){
+  @media (max-width: 720px){
     .kv-page{
       padding:10px;
       gap:12px;
+    }
+
+    .kv-header,
+    .kv-table-shell,
+    .side-card{
+      padding:12px;
+    }
+
+    .kv-title{
+      font-size:22px;
     }
 
     .kv-top{
@@ -548,7 +605,6 @@
     .kv-actions{
       flex-direction:column;
       align-items:stretch;
-      width:100%;
     }
 
     .kv-btn{
@@ -560,32 +616,44 @@
     }
 
     .name-col{
-      min-width:100px;
-      max-width:100px;
-      width:100px;
+      width:150px;
+      min-width:150px;
+      max-width:150px;
       font-size:10px !important;
     }
 
-    .kv-table{
-      min-width:1120px;
+    .kv-table td:not(.name-col),
+    .kv-table th:not(.name-col){
+      min-width:60px;
+      width:60px;
+      font-size:10px;
+      padding:4px 3px;
     }
 
-    .kv-table th,
-    .kv-table td{
-      font-size:10px;
-      padding:2px 3px;
+    .kv-table td:nth-child(17),
+    .kv-table th:nth-child(17),
+    .kv-table td:nth-child(18),
+    .kv-table th:nth-child(18),
+    .kv-table td:nth-child(19),
+    .kv-table th:nth-child(19){
+      min-width:92px;
+      width:92px;
     }
 
     .edit-input{
-      min-width:56px;
+      min-width:54px;
       font-size:10px;
+    }
+
+    .kv-scroll{
+      max-height:none;
     }
   }
 </style>
 
 <div class="kv-page">
 
-  <div class="kv-card">
+  <div class="kv-card kv-main-card">
     <form method="post">
       {% csrf_token %}
 
@@ -594,348 +662,327 @@
       {% endfor %}
       <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
 
-      <div class="kv-top">
-        <div>
-          <h2 class="kv-title">Kvartalniy oylik hisobot</h2>
-          <p class="kv-muted">
-            Belgilangan kunlar bo‘yicha fakt hisoblanadi. Reja esa tanlangan kunlar ulushiga mos ravishda ko‘rsatiladi.
-            Har bir guruhda <b>Boshqa Stansiya</b> alohida oylik to‘ldiriladi.
-          </p>
+      <div class="kv-header">
+        <div class="kv-top">
+          <div class="kv-title-wrap">
+            <h2 class="kv-title">Kvartalniy oylik hisobot</h2>
+            <p class="kv-subtitle">
+              Belgilangan kunlar bo‘yicha fakt avtomatik hisoblanadi. Reja tanlangan kunlar ulushiga mos ko‘rsatiladi.
+              Har bir guruhda <b>Boshqa stansiya</b> qatori alohida to‘ldiriladi.
+            </p>
+          </div>
+
+          <div class="kv-actions">
+            <a class="kv-btn" href="{% url 'kvartalniy_monthly_list' %}">
+              Ortga
+            </a>
+            <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
+              Saqlash
+            </button>
+          </div>
         </div>
 
-        <div class="kv-actions">
-          <a class="kv-btn" href="{% url 'kvartalniy_umumiy' %}?month={{ month|date:'Y-m' }}{% for d in selected_days %}&selected_days={{ d }}{% endfor %}">← Ortga</a>
-          <button class="kv-btn primary" type="submit" name="save" value="1" {% if not all_selected %}disabled{% endif %}>
-            Saqlash
-          </button>
-        </div>
+        {% if all_selected %}
+          <div class="kv-status ok">
+            Barcha kunlar tanlangan. Reja maydonlarini tahrirlash mumkin.
+          </div>
+        {% else %}
+          <div class="kv-status warn">
+            Barcha kunlar tanlanmagan. Reja avtomatik hisoblangan va vaqtincha faqat ko‘rish rejimida.
+          </div>
+        {% endif %}
       </div>
 
-      {% if all_selected %}
-        <div class="alert ok">
-          Barcha kunlar tanlangan — reja maydonlarini tahrirlash mumkin.
-        </div>
-      {% else %}
-        <div class="alert warn">
-          Hammasi tanlanmagan. Reja avtomatik hisoblandi: oy reja / oy kunlari × tanlangan kunlar. Tahrirlash vaqtincha yopiq.
-        </div>
-      {% endif %}
-
-      <div class="kv-wrap">
-        <div class="kv-scroll">
-          <table class="kv-table">
-            <thead>
-              <tr>
-                <th class="kv-main-title" colspan="21">
-                  Оперативная месячная информация по ЛЦ АО "Ўзтемирйўлконтейнер"<br>
-                  за {{ month|date:"m.Y" }} / {{ current_year }} - {{ prev_year }}
-                </th>
-              </tr>
-
-              <tr>
-                <th class="name-col" rowspan="3">Наименование<br>ЛЦ</th>
-                <th class="kv-group" colspan="4">Погрузка вагонов</th>
-                <th class="kv-group" colspan="4">Выгрузка вагонов</th>
-                <th class="kv-group" colspan="4">Погрузка конт</th>
-                <th class="kv-group" colspan="4">Выгрузка конт</th>
-                <th class="kv-group" colspan="4">Доходы</th>
-              </tr>
-
-              <tr>
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-
-                <th class="kv-sub">план</th>
-                <th class="kv-sub green">{{ current_year }}</th>
-                <th class="kv-sub blue">{{ prev_year }}</th>
-                <th class="kv-sub red">+/-</th>
-              </tr>
-
-              <tr>
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-
-                <th class="kv-sub">reja</th>
-                <th class="kv-sub green">fakt</th>
-                <th class="kv-sub blue">fakt</th>
-                <th class="kv-sub red">farq</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {% for group in groups %}
-                <tr class="group-title-row">
-                  <td colspan="21">{{ group.title }}</td>
+      <div class="kv-table-shell">
+        <div class="kv-wrap">
+          <div class="kv-scroll">
+            <table class="kv-table">
+              <thead>
+                <tr>
+                  <th class="kv-main-title" colspan="19">
+                    “O‘ztemiryo‘lkonteyner” AJ logistika markazlari bo‘yicha oylik tezkor ma’lumot
+                    <br>
+                    {{ month|date:"m.Y" }} • Joriy yil: {{ current_year }} • Taqqoslash yili: {{ prev_year }}
+                  </th>
                 </tr>
 
-                {% for row in group.rows %}
-                  <tr class="{% if row.is_veshoz %}veshoz-row{% endif %}">
-                    <td class="name-col
-                      {% if row.is_veshoz %}
-                        brown
-                      {% elif row.is_other %}
-                        blue
-                      {% else %}
-                        purple
-                      {% endif %}">
-                      {{ row.station_name }}
-                      {% if row.station_id %}
-                        <input type="hidden" name="station_ids" value="{{ row.station_id }}">
-                      {% endif %}
-                    </td>
+                <tr>
+                  <th class="name-col" rowspan="2">LM nomi</th>
+                  <th class="kv-group" colspan="4">Ortish vagon</th>
+                  <th class="kv-group" colspan="4">Tushirish vagon</th>
+                  <th class="kv-group" colspan="4">Ortish konteyner</th>
+                  <th class="kv-group" colspan="3">Tushirish konteyner</th>
+                  <th class="kv-group" colspan="3">Daromad</th>
+                </tr>
 
-                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                      {% if all_selected %}
-                        {% if row.is_veshoz %}
-                          <input class="edit-input" type="number" name="veshoz_pogr_plan_{{ row.group_key }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
-                        {% elif row.station_id %}
-                          <input class="edit-input" type="number" name="pogr_plan_{{ row.station_id }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
+                <tr>
+                  <th class="kv-sub">Reja</th>
+                  <th class="kv-sub green">{{ current_year }}</th>
+                  <th class="kv-sub blue">{{ prev_year }}</th>
+                  <th class="kv-sub red">Farq</th>
+
+                  <th class="kv-sub">Reja</th>
+                  <th class="kv-sub green">{{ current_year }}</th>
+                  <th class="kv-sub blue">{{ prev_year }}</th>
+                  <th class="kv-sub red">Farq</th>
+
+                  <th class="kv-sub">Reja</th>
+                  <th class="kv-sub green">{{ current_year }}</th>
+                  <th class="kv-sub blue">{{ prev_year }}</th>
+                  <th class="kv-sub red">Farq</th>
+
+                  <!-- <th class="kv-sub">Reja</th> -->
+                  <th class="kv-sub green">{{ current_year }}</th>
+                  <th class="kv-sub blue">{{ prev_year }}</th>
+                  <th class="kv-sub red">Farq</th>
+
+                  <!-- <th class="kv-sub">Reja</th> -->
+                  <th class="kv-sub green">{{ current_year }}</th>
+                  <th class="kv-sub blue">{{ prev_year }}</th>
+                  <th class="kv-sub red">Farq</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for group in groups %}
+                  <tr class="group-title-row">
+                    <td colspan="19">{{ group.title }}</td>
+                  </tr>
+
+                  {% for row in group.rows %}
+                    <tr class="{% if row.is_veshoz %}veshoz-row{% endif %}">
+                      <td class="name-col {% if row.is_veshoz %}brown{% elif row.is_other %}blue{% else %}purple{% endif %}">
+                        {{ row.station_name }}
+                        {% if row.station_id %}
+                          <input type="hidden" name="station_ids" value="{{ row.station_id }}">
+                        {% endif %}
+                      </td>
+
+                      <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                        {% if all_selected %}
+                          {% if row.is_veshoz %}
+                            <input class="edit-input" type="number" name="veshoz_pogr_plan_{{ row.group_key }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
+                          {% elif row.station_id %}
+                            <input class="edit-input" type="number" name="pogr_plan_{{ row.station_id }}" value="{{ row.pogr_plan_raw|default_if_none:0 }}">
+                          {% else %}
+                            {{ row.pogr_plan }}
+                          {% endif %}
                         {% else %}
                           {{ row.pogr_plan }}
                         {% endif %}
-                      {% else %}
-                        {{ row.pogr_plan }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_pogr_this_year_{{ row.group_key }}" value="{{ row.pogr_this_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.pogr_this_year }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_pogr_last_year_{{ row.group_key }}" value="{{ row.pogr_last_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.pogr_last_year }}
-                      {% endif %}
-                    </td>
-                    <td class="readonly-red">{{ row.pogr_diff }}</td>
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_pogr_this_year_{{ row.group_key }}" value="{{ row.pogr_this_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_this_year }}
+                        {% endif %}
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_pogr_last_year_{{ row.group_key }}" value="{{ row.pogr_last_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.pogr_diff }}</td>
 
-                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                      {% if all_selected %}
-                        {% if row.is_veshoz %}
-                          <input class="edit-input" type="number" name="veshoz_vygr_plan_{{ row.group_key }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
-                        {% elif row.station_id %}
-                          <input class="edit-input" type="number" name="vygr_plan_{{ row.station_id }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
+                      <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                        {% if all_selected %}
+                          {% if row.is_veshoz %}
+                            <input class="edit-input" type="number" name="veshoz_vygr_plan_{{ row.group_key }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
+                          {% elif row.station_id %}
+                            <input class="edit-input" type="number" name="vygr_plan_{{ row.station_id }}" value="{{ row.vygr_plan_raw|default_if_none:0 }}">
+                          {% else %}
+                            {{ row.vygr_plan }}
+                          {% endif %}
                         {% else %}
                           {{ row.vygr_plan }}
                         {% endif %}
-                      {% else %}
-                        {{ row.vygr_plan }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_vygr_this_year_{{ row.group_key }}" value="{{ row.vygr_this_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.vygr_this_year }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_vygr_last_year_{{ row.group_key }}" value="{{ row.vygr_last_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.vygr_last_year }}
-                      {% endif %}
-                    </td>
-                    <td class="readonly-red">{{ row.vygr_diff }}</td>
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_vygr_this_year_{{ row.group_key }}" value="{{ row.vygr_this_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_this_year }}
+                        {% endif %}
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_vygr_last_year_{{ row.group_key }}" value="{{ row.vygr_last_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.vygr_diff }}</td>
 
-                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                      {% if all_selected %}
-                        {% if row.is_veshoz %}
-                          <input class="edit-input" type="number" name="veshoz_pogr_kont_plan_{{ row.group_key }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
-                        {% elif row.station_id %}
-                          <input class="edit-input" type="number" name="pogr_kont_plan_{{ row.station_id }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
+                      <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                        {% if all_selected %}
+                          {% if row.is_veshoz %}
+                            <input class="edit-input" type="number" name="veshoz_pogr_kont_plan_{{ row.group_key }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
+                          {% elif row.station_id %}
+                            <input class="edit-input" type="number" name="pogr_kont_plan_{{ row.station_id }}" value="{{ row.pogr_kont_plan_raw|default_if_none:0 }}">
+                          {% else %}
+                            {{ row.pogr_kont_plan }}
+                          {% endif %}
                         {% else %}
                           {{ row.pogr_kont_plan }}
                         {% endif %}
-                      {% else %}
-                        {{ row.pogr_kont_plan }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_pogr_kont_this_year_{{ row.group_key }}" value="{{ row.pogr_kont_this_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.pogr_kont_this_year }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_pogr_kont_last_year_{{ row.group_key }}" value="{{ row.pogr_kont_last_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.pogr_kont_last_year }}
-                      {% endif %}
-                    </td>
-                    <td class="readonly-red">{{ row.pogr_kont_diff }}</td>
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_pogr_kont_this_year_{{ row.group_key }}" value="{{ row.pogr_kont_this_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_kont_this_year }}
+                        {% endif %}
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_pogr_kont_last_year_{{ row.group_key }}" value="{{ row.pogr_kont_last_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.pogr_kont_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.pogr_kont_diff }}</td>
 
-                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                      {% if all_selected %}
-                        {% if row.is_veshoz %}
-                          <input class="edit-input" type="number" name="veshoz_vygr_kont_plan_{{ row.group_key }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
-                        {% elif row.station_id %}
-                          <input class="edit-input" type="number" name="vygr_kont_plan_{{ row.station_id }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
+                      <!-- <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                        {% if all_selected %}
+                          {% if row.is_veshoz %}
+                            <input class="edit-input" type="number" name="veshoz_vygr_kont_plan_{{ row.group_key }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
+                          {% elif row.station_id %}
+                            <input class="edit-input" type="number" name="vygr_kont_plan_{{ row.station_id }}" value="{{ row.vygr_kont_plan_raw|default_if_none:0 }}">
+                          {% else %}
+                            {{ row.vygr_kont_plan }}
+                          {% endif %}
                         {% else %}
                           {{ row.vygr_kont_plan }}
                         {% endif %}
-                      {% else %}
-                        {{ row.vygr_kont_plan }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_vygr_kont_this_year_{{ row.group_key }}" value="{{ row.vygr_kont_this_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.vygr_kont_this_year }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_vygr_kont_last_year_{{ row.group_key }}" value="{{ row.vygr_kont_last_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.vygr_kont_last_year }}
-                      {% endif %}
-                    </td>
-                    <td class="readonly-red">{{ row.vygr_kont_diff }}</td>
+                      </td> -->
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_vygr_kont_this_year_{{ row.group_key }}" value="{{ row.vygr_kont_this_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_kont_this_year }}
+                        {% endif %}
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_vygr_kont_last_year_{{ row.group_key }}" value="{{ row.vygr_kont_last_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.vygr_kont_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.vygr_kont_diff }}</td>
 
-                    <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
-                      {% if all_selected %}
-                        {% if row.is_veshoz %}
-                          <input class="edit-input" type="number" name="veshoz_income_plan_{{ row.group_key }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
-                        {% elif row.station_id %}
-                          <input class="edit-input" type="number" name="income_plan_{{ row.station_id }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                      <!-- <td class="{% if all_selected and row.station_id or all_selected and row.is_veshoz %}edit-cell{% endif %}">
+                        {% if all_selected %}
+                          {% if row.is_veshoz %}
+                            <input class="edit-input" type="number" name="veshoz_income_plan_{{ row.group_key }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                          {% elif row.station_id %}
+                            <input class="edit-input" type="number" name="income_plan_{{ row.station_id }}" value="{{ row.income_plan_raw|default_if_none:0 }}">
+                          {% else %}
+                            {{ row.income_plan }}
+                          {% endif %}
                         {% else %}
                           {{ row.income_plan }}
                         {% endif %}
-                      {% else %}
-                        {{ row.income_plan }}
-                      {% endif %}
+                      </td> -->
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_income_this_year_{{ row.group_key }}" value="{{ row.income_this_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.income_this_year }}
+                        {% endif %}
+                      </td>
+                      <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
+                        {% if all_selected and row.is_veshoz %}
+                          <input class="edit-input" type="number" name="veshoz_income_last_year_{{ row.group_key }}" value="{{ row.income_last_year_raw|default_if_none:0 }}">
+                        {% else %}
+                          {{ row.income_last_year }}
+                        {% endif %}
+                      </td>
+                      <td class="readonly-red">{{ row.income_diff }}</td>
+                    </tr>
+                  {% endfor %}
+
+                  <tr class="subtotal">
+                    <td class="name-col">{{ group.subtotal.station_name }}</td>
+
+                    <td>{{ group.subtotal.pogr_plan }}</td>
+                    <td>{{ group.subtotal.pogr_this_year }}</td>
+                    <td class="green">{{ group.subtotal.pogr_last_year }}</td>
+                    <td>{{ group.subtotal.pogr_diff }}</td>
+
+                    <td>{{ group.subtotal.vygr_plan }}</td>
+                    <td>{{ group.subtotal.vygr_this_year }}</td>
+                    <td class="green">{{ group.subtotal.vygr_last_year }}</td>
+                    <td>{{ group.subtotal.vygr_diff }}</td>
+
+                    <td>{{ group.subtotal.pogr_kont_plan }}</td>
+                    <td>{{ group.subtotal.pogr_kont_this_year }}</td>
+                    <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
+                    <td>{{ group.subtotal.pogr_kont_diff }}</td>
+
+                    <!-- <td>{{ group.subtotal.vygr_kont_plan }}</td> -->
+                    <td>{{ group.subtotal.vygr_kont_this_year }}</td>
+                    <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
+                    <td>{{ group.subtotal.vygr_kont_diff }}</td>
+
+                    <!-- <td>{{ group.subtotal.income_plan }}</td> -->
+                    <td>{{ group.subtotal.income_this_year }}</td>
+                    <td class="green">{{ group.subtotal.income_last_year }}</td>
+                    <td>{{ group.subtotal.income_diff }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="19" style="padding:18px; text-align:center; color:var(--muted); font-weight:800;">
+                      Ma’lumot topilmadi
                     </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-green{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_income_this_year_{{ row.group_key }}" value="{{ row.income_this_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.income_this_year }}
-                      {% endif %}
-                    </td>
-                    <td class="{% if all_selected and row.is_veshoz %}edit-cell{% else %}readonly-blue{% endif %}">
-                      {% if all_selected and row.is_veshoz %}
-                        <input class="edit-input" type="number" name="veshoz_income_last_year_{{ row.group_key }}" value="{{ row.income_last_year_raw|default_if_none:0 }}">
-                      {% else %}
-                        {{ row.income_last_year }}
-                      {% endif %}
-                    </td>
-                    <td class="readonly-red">{{ row.income_diff }}</td>
                   </tr>
                 {% endfor %}
 
-                <tr class="subtotal">
-                  <td class="name-col">{{ group.subtotal.station_name }}</td>
+                <tr class="grandtotal">
+                  <td class="name-col">{{ grand_total.station_name }}</td>
 
-                  <td>{{ group.subtotal.pogr_plan }}</td>
-                  <td>{{ group.subtotal.pogr_this_year }}</td>
-                  <td class="green">{{ group.subtotal.pogr_last_year }}</td>
-                  <td>{{ group.subtotal.pogr_diff }}</td>
+                  <td>{{ grand_total.pogr_plan }}</td>
+                  <td>{{ grand_total.pogr_this_year }}</td>
+                  <td class="green">{{ grand_total.pogr_last_year }}</td>
+                  <td>{{ grand_total.pogr_diff }}</td>
 
-                  <td>{{ group.subtotal.vygr_plan }}</td>
-                  <td>{{ group.subtotal.vygr_this_year }}</td>
-                  <td class="green">{{ group.subtotal.vygr_last_year }}</td>
-                  <td>{{ group.subtotal.vygr_diff }}</td>
+                  <td>{{ grand_total.vygr_plan }}</td>
+                  <td>{{ grand_total.vygr_this_year }}</td>
+                  <td class="green">{{ grand_total.vygr_last_year }}</td>
+                  <td>{{ grand_total.vygr_diff }}</td>
 
-                  <td>{{ group.subtotal.pogr_kont_plan }}</td>
-                  <td>{{ group.subtotal.pogr_kont_this_year }}</td>
-                  <td class="green">{{ group.subtotal.pogr_kont_last_year }}</td>
-                  <td>{{ group.subtotal.pogr_kont_diff }}</td>
+                  <td>{{ grand_total.pogr_kont_plan }}</td>
+                  <td>{{ grand_total.pogr_kont_this_year }}</td>
+                  <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
+                  <td>{{ grand_total.pogr_kont_diff }}</td>
 
-                  <td>{{ group.subtotal.vygr_kont_plan }}</td>
-                  <td>{{ group.subtotal.vygr_kont_this_year }}</td>
-                  <td class="green">{{ group.subtotal.vygr_kont_last_year }}</td>
-                  <td>{{ group.subtotal.vygr_kont_diff }}</td>
+                  <!-- <td>{{ grand_total.vygr_kont_plan }}</td> -->
+                  <td>{{ grand_total.vygr_kont_this_year }}</td>
+                  <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
+                  <td>{{ grand_total.vygr_kont_diff }}</td>
 
-                  <td>{{ group.subtotal.income_plan }}</td>
-                  <td>{{ group.subtotal.income_this_year }}</td>
-                  <td class="green">{{ group.subtotal.income_last_year }}</td>
-                  <td>{{ group.subtotal.income_diff }}</td>
+                  <!-- <td>{{ grand_total.income_plan }}</td> -->
+                  <td>{{ grand_total.income_this_year }}</td>
+                  <td class="green">{{ grand_total.income_last_year }}</td>
+                  <td>{{ grand_total.income_diff }}</td>
                 </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="21">Ma’lumot topilmadi.</td>
-                </tr>
-              {% endfor %}
-
-              <tr class="grandtotal">
-                <td class="name-col">{{ grand_total.station_name }}</td>
-
-                <td>{{ grand_total.pogr_plan }}</td>
-                <td>{{ grand_total.pogr_this_year }}</td>
-                <td class="green">{{ grand_total.pogr_last_year }}</td>
-                <td>{{ grand_total.pogr_diff }}</td>
-
-                <td>{{ grand_total.vygr_plan }}</td>
-                <td>{{ grand_total.vygr_this_year }}</td>
-                <td class="green">{{ grand_total.vygr_last_year }}</td>
-                <td>{{ grand_total.vygr_diff }}</td>
-
-                <td>{{ grand_total.pogr_kont_plan }}</td>
-                <td>{{ grand_total.pogr_kont_this_year }}</td>
-                <td class="green">{{ grand_total.pogr_kont_last_year }}</td>
-                <td>{{ grand_total.pogr_kont_diff }}</td>
-
-                <td>{{ grand_total.vygr_kont_plan }}</td>
-                <td>{{ grand_total.vygr_kont_this_year }}</td>
-                <td class="green">{{ grand_total.vygr_kont_last_year }}</td>
-                <td>{{ grand_total.vygr_kont_diff }}</td>
-
-                <td>{{ grand_total.income_plan }}</td>
-                <td>{{ grand_total.income_this_year }}</td>
-                <td class="green">{{ grand_total.income_last_year }}</td>
-                <td>{{ grand_total.income_diff }}</td>
-              </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </form>
   </div>
 
   <div class="kv-card side-card">
-    <h3 class="side-title">{{ month|date:"F Y" }} kunlari</h3>
+    <h3 class="side-title">{{ month|date:"m.Y" }} oyi kunlari</h3>
+    <p class="side-subtitle">
+      Hisobotga kiritiladigan kunlarni belgilang. Barcha kunlar tanlansa, reja maydonlari faollashadi.
+    </p>
+
     <form method="get">
       <input type="hidden" name="month" value="{{ month|date:'Y-m' }}">
 
@@ -959,20 +1006,15 @@
       </div>
 
       <div class="side-actions">
-        <button class="kv-btn primary" type="submit" style="width:100%;">Ko‘rsatish</button>
+        <button type="submit" class="kv-btn primary" style="width:100%;">Qo‘llash</button>
       </div>
 
       <div class="note">
-        Tanlangan kunlar: <b>{{ selected_days_count }}</b> / {{ month_days_count }}<br>
-        {% if all_selected %}
-          To‘liq oy tanlangan.
-        {% else %}
-          Reja proporsional ko‘rsatilmoqda.
-        {% endif %}
+        Tanlangan kunlar soni: <b id="selected-days-count">{{ selected_days|length }}</b><br>
+        To‘liq oy tanlanganda reja maydonlari tahrirlanadi.
       </div>
     </form>
   </div>
-
 </div>
 
 <script>
@@ -980,18 +1022,32 @@
   const selectAllBtn = document.getElementById("select-all-days");
   const clearAllBtn = document.getElementById("clear-all-days");
   const checkboxes = Array.from(document.querySelectorAll('.calendar-grid input[type="checkbox"]'));
+  const selectedCount = document.getElementById("selected-days-count");
+
+  function updateSelectedCount() {
+    if (!selectedCount) return;
+    selectedCount.textContent = checkboxes.filter(cb => cb.checked).length;
+  }
 
   if (selectAllBtn) {
     selectAllBtn.addEventListener("click", function () {
-      checkboxes.forEach(cb => cb.checked = true);
+      checkboxes.forEach(cb => { cb.checked = true; });
+      updateSelectedCount();
     });
   }
 
   if (clearAllBtn) {
     clearAllBtn.addEventListener("click", function () {
-      checkboxes.forEach(cb => cb.checked = false);
+      checkboxes.forEach(cb => { cb.checked = false; });
+      updateSelectedCount();
     });
   }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", updateSelectedCount);
+  });
+
+  updateSelectedCount();
 })();
 </script>
 

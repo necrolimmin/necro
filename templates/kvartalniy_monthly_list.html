@@ -3,172 +3,417 @@
 
 {% block content %}
 <style>
-  .kv-list-page{
-    max-width: 1200px;
+  /* Custom CSS - Dark mode base.html ga moslashadi */
+  .kv-list-page {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 16px;
+    padding: 24px;
   }
 
-  .kv-card{
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,.06);
-    padding:16px;
-    margin-bottom:16px;
+  /* Header section */
+  .kv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
-  .kv-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:end;
-    gap:16px;
-    flex-wrap:wrap;
+  .kv-title-section h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .kv-title{
-    margin:0;
-    font-size:24px;
-    font-weight:900;
+  .kv-subtitle {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 14px;
   }
 
-  .kv-muted{
-    margin-top:6px;
-    color:#6b7280;
-    font-size:13px;
+  [data-theme="dark"] .kv-subtitle {
+    color: #94a3b8;
   }
 
-  .kv-filters{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:end;
+  /* Back button */
+  .kv-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    color: var(--text-primary, #0f172a);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-size: 14px;
   }
 
-  .kv-field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
+  .kv-back-btn:hover {
+    transform: translateX(-4px);
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
-  .kv-field label{
-    font-size:12px;
-    font-weight:700;
-    color:#6b7280;
+  /* Cards */
+  .kv-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  .kv-input{
-    height:42px;
-    min-width:140px;
-    border:1px solid #d1d5db;
-    border-radius:12px;
-    padding:0 12px;
-    font-weight:700;
+  .kv-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
 
-  .kv-btn{
-    height:42px;
-    padding:0 16px;
-    border:none;
-    border-radius:12px;
-    font-weight:800;
-    cursor:pointer;
-    background:#111827;
-    color:#fff;
-    text-decoration:none;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
+  /* Filters section */
+  .kv-filters {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
   }
 
-  .kv-table-wrap{
-    overflow:auto;
+  .kv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 140px;
   }
 
-  .kv-table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:700px;
+  .kv-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  [data-theme="dark"] .kv-field label {
+    color: #94a3b8;
+  }
+
+  .kv-input {
+    height: 44px;
+    min-width: 140px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 0 16px;
+    font-weight: 500;
+    background: var(--bg-primary, #f8fafc);
+    color: var(--text-primary, #0f172a);
+    transition: all 0.2s ease;
+  }
+
+  .kv-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .kv-btn {
+    height: 44px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #0f172a;
+    color: #ffffff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+  }
+
+  [data-theme="dark"] .kv-btn {
+    background: #3b82f6;
+  }
+
+  .kv-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Table styles */
+  .kv-table-wrap {
+    overflow-x: auto;
+    border-radius: 16px;
+  }
+
+  .kv-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 800px;
   }
 
   .kv-table th,
-  .kv-table td{
-    border:1px solid #e5e7eb;
-    padding:10px 12px;
-    text-align:center;
-    font-size:14px;
+  .kv-table td {
+    padding: 16px 20px;
+    text-align: center;
+    font-size: 14px;
   }
 
-  .kv-table th{
-    background:#f9fafb;
-    font-weight:900;
+  .kv-table th {
+    background: var(--table-header-bg, #f1f5f9);
+    font-weight: 800;
+    color: var(--text-primary, #0f172a);
+    border-bottom: 2px solid var(--border-color, #e2e8f0);
   }
 
-  .kv-empty{
-    text-align:center;
-    color:#6b7280;
-    padding:24px 0;
-    font-weight:700;
+  [data-theme="dark"] .kv-table th {
+    background: #334155;
   }
 
-  .kv-pager{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    flex-wrap:wrap;
-    margin-top:14px;
+  .kv-table th:first-child {
+    border-top-left-radius: 12px;
   }
 
-  .kv-pager-controls{
-    display:flex;
-    gap:8px;
+  .kv-table th:last-child {
+    border-top-right-radius: 12px;
   }
 
-  .kv-page-btn{
-    min-width:40px;
-    height:38px;
-    border:1px solid #d1d5db;
-    background:#fff;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:800;
+  .kv-table td {
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
   }
 
-  .kv-page-btn:disabled{
-    opacity:.5;
-    cursor:not-allowed;
+  .kv-table tbody tr {
+    transition: background-color 0.2s ease;
+  }
+
+  .kv-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  /* Badges for counts */
+  .count-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .count-facts {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+  }
+
+  .count-plans {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+  }
+
+  .count-extras {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+  }
+
+  /* Open button in table */
+  .kv-table .kv-btn {
+    height: 36px;
+    padding: 0 20px;
+    font-size: 13px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+
+  /* Empty state */
+  .kv-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 48px 0;
+    font-weight: 500;
+  }
+
+  [data-theme="dark"] .kv-empty {
+    color: #94a3b8;
+  }
+
+  /* Pagination */
+  .kv-pager {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+  }
+
+  .kv-pager-info {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  [data-theme="dark"] .kv-pager-info {
+    color: #94a3b8;
+  }
+
+  .kv-pager-controls {
+    display: flex;
+    gap: 12px;
+  }
+
+  .kv-page-btn {
+    min-width: 44px;
+    height: 44px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-card, #ffffff);
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 800;
+    color: var(--text-primary, #0f172a);
+    transition: all 0.2s ease;
+  }
+
+  .kv-page-btn:hover:not(:disabled) {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: translateY(-1px);
+  }
+
+  .kv-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  [data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .kv-list-page {
+      padding: 16px;
+    }
+
+    .kv-card {
+      padding: 16px;
+    }
+
+    .kv-title-section h1 {
+      font-size: 24px;
+    }
+
+    .kv-filters {
+      flex-direction: column;
+    }
+
+    .kv-field {
+      width: 100%;
+    }
+
+    .kv-input, 
+    .kv-btn {
+      width: 100%;
+    }
+
+    .kv-pager {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .kv-pager-controls {
+      justify-content: center;
+    }
+
+    .kv-table th,
+    .kv-table td {
+      padding: 12px 8px;
+      font-size: 12px;
+    }
+  }
+
+  /* Animation for rows */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .kv-table tbody tr {
+    animation: fadeInUp 0.3s ease forwards;
   }
 </style>
 
 <div class="kv-list-page">
+  <div class="kv-header">
+    <div class="kv-title-section">
+      <button class="kv-back-btn" onclick="history.back()">
+        <span>←</span>
+        <span>Ortga</span>
+      </button>
+      <h1 style="margin-top: 16px;">📊 Kvartalniy Oylar Ro‘yxati</h1>
+      <div class="kv-subtitle">Mavjud oylarni tanlang va oylik hisobot sahifasini oching</div>
+    </div>
+  </div>
+
   <div class="kv-card">
-    <div class="kv-top">
-      <div>
-        <h2 class="kv-title">Kvartalniy oylar ro‘yxati</h2>
-        <div class="kv-muted">Mavjud oylarni tanlang va oylik hisobot sahifasini oching</div>
+    <form class="kv-filters" id="filtersForm">
+      <div class="kv-field">
+        <label>📅 Yil</label>
+        <input class="kv-input" type="number" name="year" value="{{ selected_year|default:'' }}" placeholder="2026" step="1">
       </div>
 
-      <form class="kv-filters" id="filtersForm">
-        <div class="kv-field">
-          <label>Yil</label>
-          <input class="kv-input" type="number" name="year" value="{{ selected_year|default:'' }}" placeholder="2026">
-        </div>
+      <div class="kv-field">
+        <label>📄 Sahifada</label>
+        <select class="kv-input" name="per_page">
+          <option value="6" {% if per_page == 6 %}selected{% endif %}>6 ta</option>
+          <option value="12" {% if per_page == 12 %}selected{% endif %}>12 ta</option>
+          <option value="24" {% if per_page == 24 %}selected{% endif %}>24 ta</option>
+          <option value="36" {% if per_page == 36 %}selected{% endif %}>36 ta</option>
+          <option value="60" {% if per_page == 60 %}selected{% endif %}>60 ta</option>
+        </select>
+      </div>
 
-        <div class="kv-field">
-          <label>Sahifada</label>
-          <select class="kv-input" name="per_page">
-            <option value="6" {% if per_page == 6 %}selected{% endif %}>6</option>
-            <option value="12" {% if per_page == 12 %}selected{% endif %}>12</option>
-            <option value="24" {% if per_page == 24 %}selected{% endif %}>24</option>
-            <option value="36" {% if per_page == 36 %}selected{% endif %}>36</option>
-            <option value="60" {% if per_page == 60 %}selected{% endif %}>60</option>
-          </select>
-        </div>
-
-        <button class="kv-btn" type="submit">Ko‘rsatish</button>
-      </form>
-    </div>
+      <button class="kv-btn" type="submit">
+        <span>🔍</span>
+        <span>Ko‘rsatish</span>
+      </button>
+    </form>
   </div>
 
   <div class="kv-card">
@@ -176,26 +421,28 @@
       <table class="kv-table">
         <thead>
           <tr>
-            <th>Oy</th>
-            <th>Fakt yozuvlari</th>
-            <th>Reja satrlari</th>
-            <th>Qo‘shimcha satrlar</th>
-            <th>Ochish</th>
+            <th>📆 Oy</th>
+            <th>📝 Fakt yozuvlari</th>
+            <th>📋 Reja satrlari</th>
+            <th>➕ Qo‘shimcha satrlar</th>
+            <th>🚀 Ochish</th>
           </tr>
         </thead>
         <tbody id="monthlyTableBody">
           <tr>
-            <td colspan="5" class="kv-empty">Yuklanmoqda...</td>
+            <td colspan="5" class="kv-empty">
+              <div class="skeleton" style="height: 60px; border-radius: 12px;"></div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="kv-pager">
-      <div id="pagerInfo">—</div>
+      <div class="kv-pager-info" id="pagerInfo">—</div>
       <div class="kv-pager-controls">
-        <button class="kv-page-btn" id="prevBtn" type="button">←</button>
-        <button class="kv-page-btn" id="nextBtn" type="button">→</button>
+        <button class="kv-page-btn" id="prevBtn" type="button">← Oldingi</button>
+        <button class="kv-page-btn" id="nextBtn" type="button">Keyingi →</button>
       </div>
     </div>
   </div>
@@ -210,6 +457,112 @@
   const nextBtn = document.getElementById("nextBtn");
 
   let pagination = null;
+  let isLoading = false;
+
+  function showSkeleton() {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          <div class="skeleton" style="height: 60px; border-radius: 12px;"></div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5">
+          <div class="skeleton" style="height: 60px; border-radius: 12px; margin-top: 8px;"></div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5">
+          <div class="skeleton" style="height: 60px; border-radius: 12px; margin-top: 8px;"></div>
+        </td>
+      </tr>
+    `;
+  }
+
+  function getCountBadge(count, type) {
+    let badgeClass = '';
+    let icon = '';
+    
+    switch(type) {
+      case 'facts':
+        badgeClass = 'count-facts';
+        icon = '📊';
+        break;
+      case 'plans':
+        badgeClass = 'count-plans';
+        icon = '🎯';
+        break;
+      case 'extras':
+        badgeClass = 'count-extras';
+        icon = '✨';
+        break;
+    }
+    
+    return `<span class="count-badge ${badgeClass}">${icon} ${count.toLocaleString()}</span>`;
+  }
+
+  function formatMonthLabel(monthLabel) {
+    const months = {
+      'January': 'Yanvar', 'February': 'Fevral', 'March': 'Mart',
+      'April': 'Aprel', 'May': 'May', 'June': 'Iyun',
+      'July': 'Iyul', 'August': 'Avgust', 'September': 'Sentabr',
+      'October': 'Oktabr', 'November': 'Noyabr', 'December': 'Dekabr'
+    };
+    
+    for (const [eng, uz] of Object.entries(months)) {
+      if (monthLabel.includes(eng)) {
+        return monthLabel.replace(eng, uz);
+      }
+    }
+    return monthLabel;
+  }
+
+  function renderRows(rows) {
+    if (!rows.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="kv-empty">
+            <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+            <div>Hech qanday oy topilmadi</div>
+            <div style="font-size: 12px; margin-top: 8px;">Boshqa yil yoki filtrlarni sinab ko'ring</div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = rows.map((row, index) => `
+      <tr style="animation-delay: ${index * 0.05}s">
+        <td style="font-weight: 700;">${formatMonthLabel(row.month_label)}</td>
+        <td>${getCountBadge(row.facts_count, 'facts')}</td>
+        <td>${getCountBadge(row.plans_count, 'plans')}</td>
+        <td>${getCountBadge(row.extras_count, 'extras')}</td>
+        <td>
+          <a class="kv-btn" href="${row.open_url}">
+            <span>🔗</span>
+            <span>Ochish</span>
+          </a>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function renderPager(data) {
+    pagination = data.pagination;
+    const startItem = (pagination.page - 1) * pagination.per_page + 1;
+    const endItem = Math.min(pagination.page * pagination.per_page, pagination.total);
+    
+    pagerInfo.innerHTML = `
+      <span>📄 Sahifa ${pagination.page} / ${pagination.pages}</span>
+      <span style="margin: 0 12px">•</span>
+      <span>📊 Ko‘rsatilmoqda: ${startItem} - ${endItem}</span>
+      <span style="margin: 0 12px">•</span>
+      <span>📈 Jami: ${pagination.total.toLocaleString()}</span>
+    `;
+    
+    prevBtn.disabled = !pagination.has_prev;
+    nextBtn.disabled = !pagination.has_next;
+  }
 
   function buildQuery(page) {
     const fd = new FormData(form);
@@ -223,81 +576,79 @@
     return params.toString();
   }
 
-  function renderRows(rows) {
-    if (!rows.length) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5" class="kv-empty">Hech qanday oy topilmadi.</td>
-        </tr>
-      `;
-      return;
-    }
-
-    tbody.innerHTML = rows.map(row => `
-      <tr>
-        <td>${row.month_label}</td>
-        <td>${row.facts_count}</td>
-        <td>${row.plans_count}</td>
-        <td>${row.extras_count}</td>
-        <td>
-          <a class="kv-btn" href="${row.open_url}">Ochish</a>
-        </td>
-      </tr>
-    `).join("");
-  }
-
-  function renderPager(data) {
-    pagination = data.pagination;
-    pagerInfo.textContent = `Sahifa ${pagination.page} / ${pagination.pages} • Jami: ${pagination.total}`;
-    prevBtn.disabled = !pagination.has_prev;
-    nextBtn.disabled = !pagination.has_next;
-  }
-
   async function loadPage(page = 1) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5" class="kv-empty">Yuklanmoqda...</td>
-      </tr>
-    `;
+    if (isLoading) return;
+    isLoading = true;
+    
+    showSkeleton();
 
     const query = buildQuery(page);
-    const res = await fetch(`{% url 'kvartalniy_monthly_list_json' %}?${query}`, {
-      headers: { "X-Requested-With": "XMLHttpRequest" }
-    });
-    const data = await res.json();
+    
+    try {
+      const res = await fetch(`{% url 'kvartalniy_monthly_list_json' %}?${query}`, {
+        headers: { 
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json"
+        }
+      });
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const data = await res.json();
 
-    if (!data.ok) {
+      if (!data.ok) {
+        throw new Error(data.error || "Server xatosi");
+      }
+
+      renderRows(data.rows);
+      renderPager(data);
+    } catch (error) {
+      console.error("Load error:", error);
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="kv-empty">Xatolik yuz berdi.</td>
-        </tr>
+          <td colspan="5" class="kv-empty">
+            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+            <div>Xatolik yuz berdi</div>
+            <div style="font-size: 12px; margin-top: 8px;">${error.message}</div>
+            <button class="kv-btn" onclick="location.reload()" style="margin-top: 16px;">🔄 Qayta urinish</button>
+           </td>
+         </tr>
       `;
       pagerInfo.textContent = "—";
-      return;
+    } finally {
+      isLoading = false;
     }
-
-    renderRows(data.rows);
-    renderPager(data);
   }
 
+  // Event listeners
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     loadPage(1);
   });
 
   prevBtn.addEventListener("click", function () {
-    if (pagination && pagination.has_prev) {
+    if (pagination && pagination.has_prev && !isLoading) {
       loadPage(pagination.prev_page);
     }
   });
 
   nextBtn.addEventListener("click", function () {
-    if (pagination && pagination.has_next) {
+    if (pagination && pagination.has_next && !isLoading) {
       loadPage(pagination.next_page);
     }
   });
 
+  // Load initial data
   loadPage(1);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' && pagination?.has_prev && !isLoading) {
+      loadPage(pagination.prev_page);
+    } else if (e.key === 'ArrowRight' && pagination?.has_next && !isLoading) {
+      loadPage(pagination.next_page);
+    }
+  });
 })();
 </script>
 {% endblock %}
