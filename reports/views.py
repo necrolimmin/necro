@@ -309,7 +309,23 @@ def station_table_1_edit(request, date_str):
             except Exception:
                 continue
 
-        blocks_to_save = sorted(posted_blocks) or blocks
+        blocks_to_save = sorted(posted_blocks)
+        if not blocks_to_save:
+            blocks_to_save = [1]
+
+        existing_blocks = set(
+            StationDailyTable1.objects
+            .filter(station_user=request.user, date=d_save)
+            .values_list("block", flat=True)
+            .distinct()
+        )
+        blocks_to_delete = existing_blocks - set(blocks_to_save)
+        if blocks_to_delete:
+            StationDailyTable1.objects.filter(
+                station_user=request.user,
+                date=d_save,
+                block__in=blocks_to_delete,
+            ).delete()
 
         for b in blocks_to_save:
             day_data = {}
@@ -402,7 +418,6 @@ def station_table_1_edit(request, date_str):
         "error": error,
         "status": has_night,
     })
-
 
 @login_required
 def station_table_1_delete(request, date_str):
@@ -2135,6 +2150,5 @@ def notifications_send(request):
             "avatar_url": _safe_avatar_url(notif),
         }
     })
-
 
 

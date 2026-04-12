@@ -569,174 +569,240 @@ def kvartalniy_range_export_excel(request):
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "Kvartalniy"
+    ws.title = "Kvartalniy Range"
+    ws.freeze_panes = "B4"
 
+    # ===== styles =====
     thin = Side(style="thin", color="000000")
-    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    medium = Side(style="medium", color="000000")
+
+    border_thin = Border(left=thin, right=thin, top=thin, bottom=thin)
+    border_medium = Border(left=medium, right=medium, top=medium, bottom=medium)
+
     center = Alignment(horizontal="center", vertical="center", wrap_text=True)
-    bold = Font(bold=True)
-    header_fill = PatternFill("solid", fgColor="D9EAF7")
+    left = Alignment(horizontal="left", vertical="center", wrap_text=True)
 
-    headers = [
-        "№",
-        "Станция",
-        "Погрузка план",
-        "Погрузка тек.",
-        "Погрузка пр.год",
-        "Погрузка разн.",
-        "Выгрузка план",
-        "Выгрузка тек.",
-        "Выгрузка пр.год",
-        "Выгрузка разн.",
-        "Погр. конт. план",
-        "Погр. конт. тек.",
-        "Погр. конт. пр.год",
-        "Погр. конт. разн.",
-        "Выгр. конт. план",
-        "Выгр. конт. тек.",
-        "Выгр. конт. пр.год",
-        "Выгр. конт. разн.",
-        "Доход план",
-        "Доход тек.",
-        "Доход пр.год",
-        "Доход разн.",
+    font_normal = Font(name="Times New Roman", size=11, bold=False)
+    font_bold = Font(name="Times New Roman", size=11, bold=True)
+    font_title = Font(name="Times New Roman", size=12, bold=True)
+
+    fill_title = PatternFill("solid", fgColor="D9D9D9")
+    fill_group_header = PatternFill("solid", fgColor="D9D9D9")
+    fill_sub_header = PatternFill("solid", fgColor="E7E7E7")
+    fill_group_row = PatternFill("solid", fgColor="DDEBF7")
+    fill_total = PatternFill("solid", fgColor="F2F2F2")
+
+    green_font = Font(name="Times New Roman", size=11, bold=False, color="008000")
+    blue_font = Font(name="Times New Roman", size=11, bold=False, color="0000FF")
+    red_font = Font(name="Times New Roman", size=11, bold=False, color="FF0000")
+
+    green_bold_font = Font(name="Times New Roman", size=11, bold=True, color="008000")
+    blue_bold_font = Font(name="Times New Roman", size=11, bold=True, color="0000FF")
+    red_bold_font = Font(name="Times New Roman", size=11, bold=True, color="FF0000")
+
+    purple_font = Font(name="Times New Roman", size=11, bold=True, color="800080")
+    brown_font = Font(name="Times New Roman", size=11, bold=True, color="7C4A03")
+
+    # ===== helper =====
+    def safe_percent(current, previous):
+        current = current or 0
+        previous = previous or 0
+        if previous == 0:
+            return 0 if current == 0 else 100
+        return round(((current - previous) / previous) * 100)
+
+    def set_cell(row, col, value, font=None, fill=None, border=None, alignment=None):
+        c = ws.cell(row=row, column=col, value=value)
+        c.font = font or font_normal
+        c.fill = fill or PatternFill(fill_type=None)
+        c.border = border or border_thin
+        c.alignment = alignment or center
+        return c
+
+    # ===== widths =====
+    widths = {
+        "A": 22,
+        "B": 10, "C": 10, "D": 10, "E": 10, "F": 10,
+        "G": 10, "H": 10, "I": 10, "J": 10, "K": 10,
+        "L": 10, "M": 10, "N": 10, "O": 10, "P": 10,
+        "Q": 10, "R": 10, "S": 10, "T": 10, "U": 10,
+        "V": 12, "W": 12, "X": 12, "Y": 12, "Z": 10,
+    }
+    for col_letter, width in widths.items():
+        ws.column_dimensions[col_letter].width = width
+
+    # ===== row heights =====
+    ws.row_dimensions[1].height = 36
+    ws.row_dimensions[2].height = 22
+    ws.row_dimensions[3].height = 22
+
+    # ===== title row =====
+    title = (
+        "\"O'ztemiryo'lkonteyner\" AJ ga qarashli Logistika Markazlari va sektorlarida "
+        "vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar\n"
+        f"{from_date.strftime('%d.%m.%Y')} — {to_date.strftime('%d.%m.%Y')}  "
+        f"taqqoslash: {context['prev_from_date'].strftime('%d.%m.%Y')} — {context['prev_to_date'].strftime('%d.%m.%Y')}"
+    )
+    ws.merge_cells("A1:Z1")
+    c = ws["A1"]
+    c.value = title
+    c.font = font_title
+    c.alignment = center
+    c.fill = fill_title
+    c.border = border_medium
+
+    # ===== grouped headers =====
+    ws.merge_cells("A2:A3")
+    set_cell(2, 1, "LM nomlari", font=font_bold, fill=fill_group_header, border=border_thin, alignment=center)
+    ws["A3"].border = border_thin
+
+    groups_header = [
+        ("B2:F2", "Ortish vagonda (dona)"),
+        ("G2:K2", "Tushirish vagonda (dona)"),
+        ("L2:P2", "Ortish konteyner (dona)"),
+        ("Q2:U2", "Tushirish konteyner (dona)"),
+        ("V2:Z2", "Daromad"),
     ]
-
-    ws.append(headers)
-
-    for cell in ws[1]:
-        cell.font = bold
+    for merged_range, label in groups_header:
+        ws.merge_cells(merged_range)
+        cell = ws[merged_range.split(":")[0]]
+        cell.value = label
+        cell.font = font_bold
         cell.alignment = center
-        cell.border = border
-        cell.fill = header_fill
+        cell.fill = fill_group_header
+        cell.border = border_thin
 
-    row_num = 2
-    counter = 1
+    subheaders = ["Reja", "Joriy", "Oldingi", "Farq", "%"] * 5
+    for col_idx, label in enumerate(subheaders, start=2):
+        set_cell(3, col_idx, label, font=font_bold, fill=fill_sub_header, border=border_thin, alignment=center)
 
+    row_num = 4
+
+    # ===== data rows =====
     for group in context["groups"]:
-        ws.cell(row=row_num, column=1, value=group["title"])
-        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=len(headers))
-        for col in range(1, len(headers) + 1):
-            c = ws.cell(row=row_num, column=col)
-            c.font = bold
-            c.alignment = center
-            c.border = border
-            c.fill = header_fill
+        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=26)
+        c = ws.cell(row=row_num, column=1, value=group["title"])
+        c.font = font_bold
+        c.alignment = left
+        c.fill = fill_group_row
+        c.border = border_thin
+        for col in range(2, 27):
+            cc = ws.cell(row=row_num, column=col)
+            cc.fill = fill_group_row
+            cc.border = border_thin
         row_num += 1
 
         for row in group["rows"]:
-            values = [
-                counter,
-                row["station_name"],
-                row["pogr_plan"],
-                row["pogr_this_year"],
-                row["pogr_last_year"],
-                row["pogr_diff"],
-                row["vygr_plan"],
-                row["vygr_this_year"],
-                row["vygr_last_year"],
-                row["vygr_diff"],
-                row["pogr_kont_plan"],
-                row["pogr_kont_this_year"],
-                row["pogr_kont_last_year"],
-                row["pogr_kont_diff"],
-                row["vygr_kont_plan"],
-                row["vygr_kont_this_year"],
-                row["vygr_kont_last_year"],
-                row["vygr_kont_diff"],
-                row["income_plan"],
-                row["income_this_year"],
-                row["income_last_year"],
-                row["income_diff"],
-            ]
-            ws.append(values)
-            for col in range(1, len(headers) + 1):
-                c = ws.cell(row=row_num, column=col)
-                c.alignment = center
-                c.border = border
-            row_num += 1
-            counter += 1
+            name_font = purple_font
+            if row.get("is_other"):
+                name_font = blue_bold_font
+            elif row.get("is_veshoz"):
+                name_font = brown_font
 
+            pogr_percent = safe_percent(row["pogr_this_year"], row["pogr_last_year"])
+            vygr_percent = safe_percent(row["vygr_this_year"], row["vygr_last_year"])
+            pogr_kont_percent = safe_percent(row["pogr_kont_this_year"], row["pogr_kont_last_year"])
+            vygr_kont_percent = safe_percent(row["vygr_kont_this_year"], row["vygr_kont_last_year"])
+            income_percent = safe_percent(row["income_this_year"], row["income_last_year"])
+
+            values = [
+                row["station_name"],
+                row["pogr_plan"], row["pogr_this_year"], row["pogr_last_year"], row["pogr_diff"], f"{pogr_percent}%",
+                row["vygr_plan"], row["vygr_this_year"], row["vygr_last_year"], row["vygr_diff"], f"{vygr_percent}%",
+                row["pogr_kont_plan"], row["pogr_kont_this_year"], row["pogr_kont_last_year"], row["pogr_kont_diff"], f"{pogr_kont_percent}%",
+                row["vygr_kont_plan"], row["vygr_kont_this_year"], row["vygr_kont_last_year"], row["vygr_kont_diff"], f"{vygr_kont_percent}%",
+                row["income_plan"], row["income_this_year"], row["income_last_year"], row["income_diff"], f"{income_percent}%",
+            ]
+
+            for col_idx, value in enumerate(values, start=1):
+                font = font_normal
+                align = center
+
+                if col_idx == 1:
+                    font = name_font
+                    align = left
+                elif col_idx in (3, 8, 13, 18, 23):
+                    font = green_font
+                elif col_idx in (4, 9, 14, 19, 24):
+                    font = blue_font
+                elif col_idx in (5, 10, 15, 20, 25):
+                    font = red_font
+
+                set_cell(row_num, col_idx, value, font=font, border=border_thin, alignment=align)
+
+            row_num += 1
+
+        # subtotal row
         subtotal = group["subtotal"]
-        values = [
-            "",
-            f'{group["title"]} ИТОГО',
-            subtotal["pogr_plan"],
-            subtotal["pogr_this_year"],
-            subtotal["pogr_last_year"],
-            subtotal["pogr_diff"],
-            subtotal["vygr_plan"],
-            subtotal["vygr_this_year"],
-            subtotal["vygr_last_year"],
-            subtotal["vygr_diff"],
-            subtotal["pogr_kont_plan"],
-            subtotal["pogr_kont_this_year"],
-            subtotal["pogr_kont_last_year"],
-            subtotal["pogr_kont_diff"],
-            subtotal["vygr_kont_plan"],
-            subtotal["vygr_kont_this_year"],
-            subtotal["vygr_kont_last_year"],
-            subtotal["vygr_kont_diff"],
-            subtotal["income_plan"],
-            subtotal["income_this_year"],
-            subtotal["income_last_year"],
-            subtotal["income_diff"],
+        pogr_percent = safe_percent(subtotal["pogr_this_year"], subtotal["pogr_last_year"])
+        vygr_percent = safe_percent(subtotal["vygr_this_year"], subtotal["vygr_last_year"])
+        pogr_kont_percent = safe_percent(subtotal["pogr_kont_this_year"], subtotal["pogr_kont_last_year"])
+        vygr_kont_percent = safe_percent(subtotal["vygr_kont_this_year"], subtotal["vygr_kont_last_year"])
+        income_percent = safe_percent(subtotal["income_this_year"], subtotal["income_last_year"])
+
+        subtotal_values = [
+            subtotal["station_name"],
+            subtotal["pogr_plan"], subtotal["pogr_this_year"], subtotal["pogr_last_year"], subtotal["pogr_diff"], f"{pogr_percent}%",
+            subtotal["vygr_plan"], subtotal["vygr_this_year"], subtotal["vygr_last_year"], subtotal["vygr_diff"], f"{vygr_percent}%",
+            subtotal["pogr_kont_plan"], subtotal["pogr_kont_this_year"], subtotal["pogr_kont_last_year"], subtotal["pogr_kont_diff"], f"{pogr_kont_percent}%",
+            subtotal["vygr_kont_plan"], subtotal["vygr_kont_this_year"], subtotal["vygr_kont_last_year"], subtotal["vygr_kont_diff"], f"{vygr_kont_percent}%",
+            subtotal["income_plan"], subtotal["income_this_year"], subtotal["income_last_year"], subtotal["income_diff"], f"{income_percent}%",
         ]
-        ws.append(values)
-        for col in range(1, len(headers) + 1):
-            c = ws.cell(row=row_num, column=col)
-            c.font = bold
-            c.alignment = center
-            c.border = border
+
+        for col_idx, value in enumerate(subtotal_values, start=1):
+            font = font_bold
+            align = center
+
+            if col_idx == 1:
+                align = left
+            elif col_idx in (4, 9, 14, 19, 24):
+                font = green_bold_font
+
+            set_cell(row_num, col_idx, value, font=font, fill=fill_total, border=border_thin, alignment=align)
+
         row_num += 1
 
+    # grand total
     grand = context["grand_total"]
-    ws.append([
-        "",
-        "ОБЩИЙ ИТОГО",
-        grand["pogr_plan"],
-        grand["pogr_this_year"],
-        grand["pogr_last_year"],
-        grand["pogr_diff"],
-        grand["vygr_plan"],
-        grand["vygr_this_year"],
-        grand["vygr_last_year"],
-        grand["vygr_diff"],
-        grand["pogr_kont_plan"],
-        grand["pogr_kont_this_year"],
-        grand["pogr_kont_last_year"],
-        grand["pogr_kont_diff"],
-        grand["vygr_kont_plan"],
-        grand["vygr_kont_this_year"],
-        grand["vygr_kont_last_year"],
-        grand["vygr_kont_diff"],
-        grand["income_plan"],
-        grand["income_this_year"],
-        grand["income_last_year"],
-        grand["income_diff"],
-    ])
+    pogr_percent = safe_percent(grand["pogr_this_year"], grand["pogr_last_year"])
+    vygr_percent = safe_percent(grand["vygr_this_year"], grand["vygr_last_year"])
+    pogr_kont_percent = safe_percent(grand["pogr_kont_this_year"], grand["pogr_kont_last_year"])
+    vygr_kont_percent = safe_percent(grand["vygr_kont_this_year"], grand["vygr_kont_last_year"])
+    income_percent = safe_percent(grand["income_this_year"], grand["income_last_year"])
 
-    for col in range(1, len(headers) + 1):
-        c = ws.cell(row=row_num, column=col)
-        c.font = bold
-        c.alignment = center
-        c.border = border
-        c.fill = header_fill
+    grand_values = [
+        "Всего",
+        grand["pogr_plan"], grand["pogr_this_year"], grand["pogr_last_year"], grand["pogr_diff"], f"{pogr_percent}%",
+        grand["vygr_plan"], grand["vygr_this_year"], grand["vygr_last_year"], grand["vygr_diff"], f"{vygr_percent}%",
+        grand["pogr_kont_plan"], grand["pogr_kont_this_year"], grand["pogr_kont_last_year"], grand["pogr_kont_diff"], f"{pogr_kont_percent}%",
+        grand["vygr_kont_plan"], grand["vygr_kont_this_year"], grand["vygr_kont_last_year"], grand["vygr_kont_diff"], f"{vygr_kont_percent}%",
+        grand["income_plan"], grand["income_this_year"], grand["income_last_year"], grand["income_diff"], f"{income_percent}%",
+    ]
 
-    widths = {
-        1: 8,
-        2: 28,
-    }
-    for col_idx in range(3, len(headers) + 1):
-        widths[col_idx] = 14
+    for col_idx, value in enumerate(grand_values, start=1):
+        font = font_bold
+        align = center
 
-    for col_idx, width in widths.items():
-        ws.column_dimensions[get_column_letter(col_idx)].width = width
+        if col_idx == 1:
+            align = left
+        elif col_idx in (4, 9, 14, 19, 24):
+            font = green_bold_font
+
+        set_cell(row_num, col_idx, value, font=font, fill=fill_total, border=border_thin, alignment=align)
+
+    # outline medium border around header row 1
+    for col in range(1, 27):
+        ws.cell(1, col).border = Border(
+            left=medium if col == 1 else thin,
+            right=medium if col == 26 else thin,
+            top=medium,
+            bottom=medium,
+        )
 
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    filename = f"kvartalniy_{from_date.strftime('%Y%m%d')}_{to_date.strftime('%Y%m%d')}.xlsx"
+    filename = f"kvartalniy_range_{from_date}_{to_date}.xlsx"
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     wb.save(response)
     return response
