@@ -1,0 +1,676 @@
+
+    /* ===========================
+       UTK login (SCOPED ONLY)
+       =========================== */
+
+    html, body{height:100%; margin:0; align-items: center;}
+
+
+    .utk-login{
+      position:relative;
+      /* min-height:calc(100vh - 120px); */
+      min-height: 93vh;
+      padding:28px 16px 38px;
+      overflow:hidden;
+      isolation:isolate;
+      display: flex;
+      align-items: center;
+
+      /* Theme tokens (scoped) */
+      --panel: rgba(255,255,255,.08);
+      --panelStroke: rgba(255,255,255,.14);
+      --text: #fff;
+      --muted: rgba(255,255,255,.72);
+      --muted2: rgba(255,255,255,.55);
+      --fieldBg: rgba(255,255,255,.08);
+      --fieldStroke: rgba(255,255,255,.14);
+      --fieldBgFocus: rgba(255,255,255,.10);
+      --focusRing: rgba(90,170,255,.16);
+      --link: rgba(120,200,255,.90);
+      --btnText: #041022;
+      --btnGradA: rgba(65,170,255,1);
+      --btnGradB: rgba(0,255,205,1);
+
+      --bgBase: #050914;
+      --overlayA: rgba(8,18,50,.92);
+      --overlayB: rgba(5,9,20,.78);
+      --overlayC: rgba(5,9,20,.55);
+      --overlayD: rgba(5,9,20,.20);
+
+      --gridOpacity: .78;
+      --vignetteA: rgba(0,0,0,0);
+      --vignetteB: rgba(0,0,0,.65);
+      --vignetteC: rgba(0,0,0,.90);
+    }
+
+    /* Light mode (only for this section) */
+    .utk-login[data-theme="light"]{
+      --panel: rgba(255,255,255,.72);
+      --panelStroke: rgba(2,6,23,.10);
+      --text: #0b1220;
+      --muted: rgba(15,23,42,.70);
+      --muted2: rgba(15,23,42,.55);
+      --fieldBg: rgba(255,255,255,.78);
+      --fieldStroke: rgba(2,6,23,.10);
+      --fieldBgFocus: rgba(255,255,255,.92);
+      --focusRing: rgba(59,130,246,.20);
+      --link: rgba(37,99,235,.92);
+      --btnText: #041022;
+
+      --bgBase: #eaf3ff;
+      --overlayA: rgba(245,250,255,.92);
+      --overlayB: rgba(234,243,255,.80);
+      --overlayC: rgba(234,243,255,.55);
+      --overlayD: rgba(234,243,255,.10);
+
+      --gridOpacity: .10;
+      --vignetteA: rgba(255,255,255,0);
+      --vignetteB: rgba(255,255,255,.45);
+      --vignetteC: rgba(255,255,255,.72);
+    }
+
+    .utk-login__bg{
+      position:absolute; inset:0;
+      z-index:-2;
+      background: var(--bgBase);
+    }
+
+    /* background image layers + smooth "Ken Burns" */
+    .utk-login__bg::before,
+    .utk-login__bg::after{
+      content:"";
+      position:absolute; inset:-2%;
+      background-position:center;
+      background-size:cover;
+      background-repeat:no-repeat;
+
+      /* start state */
+      transform: scale(1.06) translate3d(0,0,0);
+      filter:saturate(1.08) contrast(1.05);
+      opacity:0;
+
+      transition: opacity 1200ms ease;
+      will-change: opacity, transform, filter;
+      animation: utkKenBurns 12s ease-in-out infinite;
+    }
+
+
+    /* alternate animation phase */
+    .utk-login__bg::after{ animation-delay: -4s; }
+
+    @keyframes utkKenBurns{
+      0%   { transform: scale(1.06) translate3d(0%,0%,0); }
+      50%  { transform: scale(1.12) translate3d(-1.5%, -1%, 0); }
+      100% { transform: scale(1.06) translate3d(0%,0%,0); }
+    }
+
+    /* active image layers: we fade between ::before and ::after */
+    .utk-login__bg[data-layer="a"]::before{ opacity:1; }
+    .utk-login__bg[data-layer="a"]::after{ opacity:0; }
+    .utk-login__bg[data-layer="b"]::before{ opacity:0; }
+    .utk-login__bg[data-layer="b"]::after{ opacity:1; }
+
+    /* overlay: add subtle gradient drift */
+    .utk-login__bgOverlay{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(1200px 600px at 18% 50%, var(--overlayA) 0%, var(--overlayB) 55%, var(--overlayC) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%); /* placeholder */
+      z-index:1;
+      animation: utkOverlayDrift 14s ease-in-out infinite;
+    }
+    @keyframes utkOverlayDrift{
+      0%,100%{
+        filter: saturate(1.0) brightness(1.0);
+        transform: translate3d(0,0,0);
+      }
+      50%{
+        filter: saturate(1.06) brightness(1.03);
+        transform: translate3d(0.5%, -0.5%, 0);
+      }
+    }
+
+    .utk-login__bgVignette{
+      position:absolute; inset:-20%;
+      background:radial-gradient(circle at 50% 40%, var(--vignetteA) 0%, var(--vignetteB) 62%, var(--vignetteC) 100%);
+      z-index:2;
+      pointer-events:none;
+    }
+    .utk-login__bgGrid{
+      position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px);
+      background-size:48px 48px;
+      opacity:var(--gridOpacity);
+      z-index:2;
+      mask-image:radial-gradient(600px 500px at 25% 45%, #000 0%, transparent 70%);
+      pointer-events:none;
+      animation:utkGrid 10s linear infinite;
+    }
+    
+    @keyframes utkGrid{ to{ transform:translate3d(-48px,-48px,0); } }
+
+    .utk-login__wrap{
+      max-width:1100px;
+      width: 100%;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    
+    @media (max-width: 980px){
+      .utk-login__wrap{ grid-template-columns:1fr; }
+      .utk-login__side{ display:none; }
+    }
+
+    .utk-login__panel{
+      background: var(--panel);
+      border:1px solid var(--panelStroke);
+      border-radius:22px;
+      padding:22px 22px 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .utk-login__panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(500px 200px at 30% 0%, rgba(40,140,255,.25), transparent 60%),
+                  radial-gradient(520px 220px at 90% 40%, rgba(0,255,200,.14), transparent 60%);
+      filter: blur(12px);
+      opacity:.9;
+      pointer-events:none;
+    }
+
+    .utk-login__brand{
+      display:flex; gap:10px; align-items:center;
+      position:relative;
+      justify-content:space-between;
+      flex-wrap: wrap;
+  
+    }
+    .utk-login__brandLeft{
+      display:flex; gap:12px; align-items:center;
+      min-width:0;
+    }
+    /* Mobile: controls pastga tushsin va to‘g‘ri joylashsin */
+    @media (max-width: 520px){
+      .utk-login__brand{
+        align-items: flex-start;
+      }
+
+      .utk-login__brandLeft{
+        width: 100%;
+      }
+
+      .utk-login__controls{
+        width: 100%;
+        justify-content: flex-end; /* o‘ng tomonga */
+      }
+
+      /* ixtiyoriy: title juda katta bo‘lsa */
+      .utk-login__title{ font-size: 24px; }
+    }
+    @media (max-width: 380px){
+      .utk-pill span{ display:none; } /* “Tema” yashirib, faqat switch qoldiradi */
+    }
+
+    /* RESPONSIVE: cardlar ekranga yopishib ketmasin, o‘rtada tursin */
+    .utk-login__wrap{
+      width: min(1100px, 100%);   /* desktopda 1100px, kichikda 100% */
+      margin: 0 auto;            /* o‘rtaga */
+    }
+
+    /* Mobil/Tablet: wrap kengligini cheklaymiz */
+    @media (max-width: 980px){
+      .utk-login__wrap{
+        width: min(720px, calc(100% - 24px));  /* 12px+12px bo‘sh joy */
+        margin: 0 auto;
+      }
+
+      /* panel(lar) ichida padding ok, lekin juda katta bo‘lib ketmasin */
+      .utk-login__panel{
+        padding: 18px 16px 16px;
+      }
+      .utk-login__sideCard{
+        padding: 16px;
+      }
+    }
+
+    /* Juda kichik ekranlar: yanada chiroyli */
+    @media (max-width: 420px){
+      .utk-login__wrap{
+        width: min(380px, calc(100% - 20px));
+      }
+    }
+
+
+    .utk-login__logo{
+      width:44px; height:44px;
+      border-radius:14px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      display:grid; place-items:center;
+      overflow:hidden;
+      flex:0 0 auto;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    }
+    .utk-login[data-theme="light"] .utk-login__logo{
+      background: rgba(255,255,255,.85);
+      border-color: rgba(2,6,23,.08);
+    }
+    .utk-login__logo img{ width:80%; height:auto; display:block; }
+
+    .utk-login__brandTitle{
+      font-weight:900;
+      letter-spacing:.02em;
+      color:var(--text);
+      font-size:14px;
+      line-height:1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .utk-login__brandSub{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* Top-right controls (theme + language) */
+    .utk-login__controls{
+      display:flex; gap:10px; align-items:center;
+      flex:0 0 auto;
+    }
+    .utk-pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+    .utk-login[data-theme="light"] .utk-pill{
+      background: rgba(255,255,255,.70);
+      border-color: rgba(2,6,23,.10);
+      color: rgba(15,23,42,.75);
+    }
+
+    .utk-toggle{
+      position:relative;
+      width:46px; height:26px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      cursor:pointer;
+      outline:0;
+      transition: background .2s ease, border-color .2s ease;
+      flex:0 0 auto;
+    }
+    .utk-toggle::after{
+      content:"";
+      position:absolute;
+      top:3px; left:3px;
+      width:20px; height:20px;
+      border-radius:999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.70));
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+      transition: transform .22s ease;
+    }
+    .utk-login[data-theme="light"] .utk-toggle{
+      background: rgba(2,6,23,.06);
+      border-color: rgba(2,6,23,.12);
+    }
+    .utk-login[data-theme="light"] .utk-toggle::after{
+      background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.78));
+    }
+    .utk-toggle[aria-checked="true"]::after{
+      transform: translateX(20px);
+    }
+
+    .utk-lang{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border-radius: 999px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+      outline:0;
+    }
+    .utk-login[data-theme="light"] .utk-lang{
+      border-color: rgba(2,6,23,.10);
+      background: rgba(255,255,255,.72);
+      color: rgba(15,23,42,.88);
+    }
+
+    .utk-login__title{
+      margin:14px 0 6px;
+      font-size:28px;
+      font-weight:950;
+      letter-spacing:-.02em;
+      color:var(--text);
+      position:relative;
+    }
+    .utk-login__desc{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      max-width:54ch;
+      position:relative;
+    }
+
+    .utk-login__alert{
+      display:flex; align-items:center; gap:10px;
+      background:rgba(255,75,75,.12);
+      border:1px solid rgba(255,75,75,.28);
+      color:#ffd7d7;
+      padding:10px 12px;
+      border-radius:14px;
+      margin:10px 0 14px;
+      position:relative;
+    }
+    .utk-login__alertDot{
+      width:10px; height:10px; border-radius:999px;
+      background:rgba(255,75,75,.9);
+      box-shadow:0 0 0 6px rgba(255,75,75,.12);
+      flex:0 0 auto;
+    }
+
+    .utk-login__form{ position:relative; }
+
+    .utk-login__field{ margin:12px 0; }
+    .utk-login__label{
+      display:block;
+      margin:0 0 6px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.01em;
+    }
+
+    .utk-login__inputWrap{
+      display:flex; align-items:center;
+      gap:10px;
+      border-radius:16px;
+      background:var(--fieldBg);
+      border:1px solid var(--fieldStroke);
+      padding:12px 12px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .utk-login__inputWrap:focus-within{
+      border-color: rgba(90,170,255,.55);
+      background: var(--fieldBgFocus);
+      box-shadow: 0 0 0 4px var(--focusRing);
+      transform: translateY(-1px);
+      
+    }
+
+    .utk-login__icon{
+      width:20px; height:20px;
+      color:var(--muted);
+      flex:0 0 auto;
+    }
+    .utk-login__icon svg{ width:20px; height:20px; display:block; }
+
+    .utk-login__input{
+      width:100%;
+      border:0; outline:0;
+      background:transparent;
+      color:var(--text);
+      font-size:14px;
+      padding:0;
+      min-width:0;
+    }
+    .utk-login__input::placeholder{ color:rgba(255,255,255,.45); }
+    .utk-login[data-theme="light"] .utk-login__input::placeholder{ color: rgba(15,23,42,.40); }
+
+    
+    .utk-login__peek{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      width:34px; height:34px;
+      border-radius:12px;
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition: background .2s ease, transform .2s ease;
+      flex:0 0 auto;
+    }
+    .utk-login__peek:hover{
+      background:rgba(255,255,255,.10);
+      transform: translateY(-1px);
+    }
+    .utk-login__peek svg{ width:20px; height:20px; display:block; }
+
+    .utk-login__row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      margin:10px 2px 14px;
+      flex-wrap:wrap;
+    }
+
+    .utk-login__check{
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      user-select:none;
+    }
+    .utk-login__check input{
+      width:18px; height:18px;
+      accent-color: #3aa6ff;
+    }
+
+    .utk-login__link{
+      color:var(--link);
+      font-size:13px;
+      text-decoration:none;
+      border-bottom:1px dashed rgba(120,200,255,.35);
+      transition: color .2s ease, border-color .2s ease;
+    }
+    .utk-login__link:hover{
+      color:var(--text);
+      border-color: rgba(255,255,255,.35);
+    }
+
+    .utk-login__btn{
+      width:100%;
+      border:0;
+      border-radius:16px;
+      padding:13px 14px;
+      cursor:pointer;
+      color:var(--btnText);
+      font-weight:950;
+      letter-spacing:.01em;
+      display:flex; align-items:center; justify-content:center;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+      background: linear-gradient(90deg, var(--btnGradA) 0%, var(--btnGradB) 100%);
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      transform: translateY(0);
+      transition: transform .2s ease, filter .2s ease;
+    }
+    .utk-login__btn:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+    .utk-login__btn:active{ transform: translateY(0); }
+
+    .utk-login__btnGlow{
+      position:absolute; inset:-40%;
+      background: radial-gradient(circle at 30% 40%, rgba(255,255,255,.60), transparent 40%),
+                  radial-gradient(circle at 70% 60%, rgba(255,255,255,.35), transparent 45%);
+      opacity:.55;
+      animation: utkGlow 2.8s ease-in-out infinite;
+      pointer-events:none;
+      filter: blur(2px);
+    }
+    @keyframes utkGlow{
+      0%,100%{ transform: translate3d(-6%, -4%, 0) rotate(0deg); }
+      50%{ transform: translate3d(6%, 4%, 0) rotate(4deg); }
+    }
+
+    .utk-login__btnText{ position:relative; z-index:1; }
+    .utk-login__btnArrow{ position:relative; z-index:1; font-size:18px; }
+
+    .utk-login__foot{
+      margin-top:12px;
+      display:flex; align-items:center; gap:10px;
+      color:var(--muted2);
+      font-size:12px;
+      position:relative;
+    }
+    .utk-login__footDot{
+      width:8px; height:8px; border-radius:999px;
+      background: rgba(0,255,205,.85);
+      box-shadow: 0 0 0 6px rgba(0,255,205,.12);
+    }
+
+    /* Right side */
+    .utk-login__side{
+      display:flex;
+      align-items:stretch;
+    }
+    .utk-login__sideCard{
+      width:100%;
+      border-radius:22px;
+      padding:18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.30);
+      position:relative;
+      overflow:hidden;
+      color: var(--text);
+    }
+    .utk-login[data-theme="light"] .utk-login__sideCard{
+      background: rgba(255,255,255,.62);
+      border-color: rgba(2,6,23,.10);
+    }
+    .utk-login__sideCard::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(650px 280px at 30% 0%, rgba(40,140,255,.22), transparent 60%),
+        radial-gradient(520px 240px at 80% 60%, rgba(0,255,205,.12), transparent 60%);
+      filter: blur(10px);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .utk-login__sideTitle{
+      color:var(--text);
+      font-weight:950;
+      letter-spacing:-.01em;
+      font-size:24px;
+      position:relative;
+    }
+    .utk-login__sideText{
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.6;
+      margin-top:8px;
+      position:relative;
+    }
+    .utk-login__chips{
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin-top:14px;
+      position:relative;
+    }
+    .utk-chip{
+      font-size:14px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      transform: translateY(0);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .utk-login[data-theme="light"] .utk-chip{
+      background: rgba(255,255,255,.70);
+      border-color: rgba(2,6,23,.10);
+      color: rgba(15,23,42,.70);
+    }
+    .utk-chip:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.10);
+    }
+    .utk-login__meter{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      margin-top:16px;
+      overflow:hidden;
+      position:relative;
+    }
+    .utk-login__meterBar{
+      height:100%;
+      width:65%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(65,170,255,1), rgba(0,255,205,1));
+      animation: utkMeter 4s ease-in-out infinite;
+    }
+    @keyframes utkMeter{
+      0%,100%{ width:36%; }
+      50%{ width:78%; }
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .utk-login__bgGrid, .utk-login__btnGlow, .utk-login__meterBar,
+      .utk-login__bg::before, .utk-login__bg::after, .utk-login__bgOverlay{
+        animation:none !important;
+        transition:none !important;
+      }
+    }
+
+    .utk-login[data-theme="dark"] .utk-sideLogo img{
+        filter: grayscale(100%) invert(1);
+    }
+    .utk-login[data-theme="dark"] 
+    .utk-login__sideCard:hover .utk-sideLogo img{
+      filter: grayscale(0%) blur(0)
+              drop-shadow(0 0 40px rgba(0,255,200,.4));
+    }
+
+    /* Side card logo (center watermark) */
+    .utk-sideLogo{
+      margin-top: 50px;
+      margin-bottom: 60px;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;   /* bosilmaydi */
+      z-index:7;
+    }
+
+    /* Default: watermark */
+    .utk-sideLogo img{
+      width:220px;
+      opacity:0.22;
+      filter: grayscale(100%) blur(0.3px);
+      transform: scale(1);
+      transition: 
+        opacity .4s ease,
+        filter .4s ease,
+        transform .4s ease;
+    }
+
+    /* Hover: jonlanadi */
+    .utk-login__sideCard:hover .utk-sideLogo img{
+      opacity:1;
+      filter: grayscale(0%) blur(0)
+              drop-shadow(0 20px 40px rgba(0,0,0,.25));
+      transform: scale(1.1);
+    }
+
