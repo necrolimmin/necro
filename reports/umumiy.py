@@ -589,7 +589,6 @@ def kvartalniy_range_export_excel(request):
     fill_title = PatternFill("solid", fgColor="D9D9D9")
     fill_group_header = PatternFill("solid", fgColor="D9D9D9")
     fill_sub_header = PatternFill("solid", fgColor="E7E7E7")
-    fill_group_row = PatternFill("solid", fgColor="DDEBF7")
     fill_total = PatternFill("solid", fgColor="F2F2F2")
 
     green_font = Font(name="Times New Roman", size=11, bold=False, color="008000")
@@ -603,13 +602,22 @@ def kvartalniy_range_export_excel(request):
     purple_font = Font(name="Times New Roman", size=11, bold=True, color="800080")
     brown_font = Font(name="Times New Roman", size=11, bold=True, color="7C4A03")
 
-    # ===== helper =====
     def safe_percent(current, previous):
         current = current or 0
         previous = previous or 0
         if previous == 0:
             return 0 if current == 0 else 100
         return round(((current - previous) / previous) * 100)
+
+    def diff_font(value, bold=False):
+        if (value or 0) < 0:
+            return red_bold_font if bold else red_font
+        return font_bold if bold else font_normal
+
+    def percent_font(value, bold=False):
+        if (value or 0) < 0:
+            return red_bold_font if bold else red_font
+        return font_bold if bold else font_normal
 
     def set_cell(row, col, value, font=None, fill=None, border=None, alignment=None):
         c = ws.cell(row=row, column=col, value=value)
@@ -625,25 +633,24 @@ def kvartalniy_range_export_excel(request):
         "B": 10, "C": 10, "D": 10, "E": 10, "F": 10,
         "G": 10, "H": 10, "I": 10, "J": 10, "K": 10,
         "L": 10, "M": 10, "N": 10, "O": 10, "P": 10,
-        "Q": 10, "R": 10, "S": 10, "T": 10, "U": 10,
-        "V": 12, "W": 12, "X": 12, "Y": 12, "Z": 10,
+        "Q": 10, "R": 10, "S": 10, "T": 10,
+        "U": 12, "V": 12, "W": 12, "X": 10,
     }
     for col_letter, width in widths.items():
         ws.column_dimensions[col_letter].width = width
 
-    # ===== row heights =====
     ws.row_dimensions[1].height = 36
     ws.row_dimensions[2].height = 22
     ws.row_dimensions[3].height = 22
 
-    # ===== title row =====
+    # ===== title =====
     title = (
         "\"O'ztemiryo'lkonteyner\" AJ ga qarashli Logistika Markazlari va sektorlarida "
         "vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar\n"
         f"{from_date.strftime('%d.%m.%Y')} — {to_date.strftime('%d.%m.%Y')}  "
         f"taqqoslash: {context['prev_from_date'].strftime('%d.%m.%Y')} — {context['prev_to_date'].strftime('%d.%m.%Y')}"
     )
-    ws.merge_cells("A1:Z1")
+    ws.merge_cells("A1:X1")
     c = ws["A1"]
     c.value = title
     c.font = font_title
@@ -651,47 +658,41 @@ def kvartalniy_range_export_excel(request):
     c.fill = fill_title
     c.border = border_medium
 
-    # ===== grouped headers =====
+    # ===== headers =====
     ws.merge_cells("A2:A3")
     set_cell(2, 1, "LM nomlari", font=font_bold, fill=fill_group_header, border=border_thin, alignment=center)
     ws["A3"].border = border_thin
 
-    groups_header = [
+    headers_merged = [
         ("B2:F2", "Ortish vagonda (dona)"),
         ("G2:K2", "Tushirish vagonda (dona)"),
         ("L2:P2", "Ortish konteyner (dona)"),
-        ("Q2:U2", "Tushirish konteyner (dona)"),
-        ("V2:Z2", "Daromad"),
+        ("Q2:T2", "Tushirish konteyner (dona)"),
+        ("U2:X2", "Daromad"),
     ]
-    for merged_range, label in groups_header:
-        ws.merge_cells(merged_range)
-        cell = ws[merged_range.split(":")[0]]
+    for rng, label in headers_merged:
+        ws.merge_cells(rng)
+        cell = ws[rng.split(":")[0]]
         cell.value = label
         cell.font = font_bold
         cell.alignment = center
         cell.fill = fill_group_header
         cell.border = border_thin
 
-    subheaders = ["Reja", "Joriy", "Oldingi", "Farq", "%"] * 5
+    subheaders = [
+        "Reja", "Joriy", "Oldingi", "Farq", "%",
+        "Reja", "Joriy", "Oldingi", "Farq", "%",
+        "Reja", "Joriy", "Oldingi", "Farq", "%",
+        "Joriy", "Oldingi", "Farq", "%",
+        "Joriy", "Oldingi", "Farq", "%",
+    ]
     for col_idx, label in enumerate(subheaders, start=2):
         set_cell(3, col_idx, label, font=font_bold, fill=fill_sub_header, border=border_thin, alignment=center)
 
     row_num = 4
 
-    # ===== data rows =====
+    # ===== data rows, no group title rows =====
     for group in context["groups"]:
-        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=26)
-        c = ws.cell(row=row_num, column=1, value=group["title"])
-        c.font = font_bold
-        c.alignment = left
-        c.fill = fill_group_row
-        c.border = border_thin
-        for col in range(2, 27):
-            cc = ws.cell(row=row_num, column=col)
-            cc.fill = fill_group_row
-            cc.border = border_thin
-        row_num += 1
-
         for row in group["rows"]:
             name_font = purple_font
             if row.get("is_other"):
@@ -707,11 +708,14 @@ def kvartalniy_range_export_excel(request):
 
             values = [
                 row["station_name"],
+
                 row["pogr_plan"], row["pogr_this_year"], row["pogr_last_year"], row["pogr_diff"], f"{pogr_percent}%",
                 row["vygr_plan"], row["vygr_this_year"], row["vygr_last_year"], row["vygr_diff"], f"{vygr_percent}%",
                 row["pogr_kont_plan"], row["pogr_kont_this_year"], row["pogr_kont_last_year"], row["pogr_kont_diff"], f"{pogr_kont_percent}%",
-                row["vygr_kont_plan"], row["vygr_kont_this_year"], row["vygr_kont_last_year"], row["vygr_kont_diff"], f"{vygr_kont_percent}%",
-                row["income_plan"], row["income_this_year"], row["income_last_year"], row["income_diff"], f"{income_percent}%",
+
+                row["vygr_kont_this_year"], row["vygr_kont_last_year"], row["vygr_kont_diff"], f"{vygr_kont_percent}%",
+
+                row["income_this_year"], row["income_last_year"], row["income_diff"], f"{income_percent}%",
             ]
 
             for col_idx, value in enumerate(values, start=1):
@@ -721,12 +725,42 @@ def kvartalniy_range_export_excel(request):
                 if col_idx == 1:
                     font = name_font
                     align = left
-                elif col_idx in (3, 8, 13, 18, 23):
+
+                elif col_idx in (3, 8, 13, 17, 21):
                     font = green_font
-                elif col_idx in (4, 9, 14, 19, 24):
+
+                elif col_idx in (4, 9, 14, 18, 22):
                     font = blue_font
-                elif col_idx in (5, 10, 15, 20, 25):
-                    font = red_font
+
+                elif col_idx in (5, 10, 15, 19, 23):
+                    # diff columns: red only if minus
+                    diff_val = None
+                    if col_idx == 5:
+                        diff_val = row["pogr_diff"]
+                    elif col_idx == 10:
+                        diff_val = row["vygr_diff"]
+                    elif col_idx == 15:
+                        diff_val = row["pogr_kont_diff"]
+                    elif col_idx == 19:
+                        diff_val = row["vygr_kont_diff"]
+                    elif col_idx == 23:
+                        diff_val = row["income_diff"]
+                    font = diff_font(diff_val, bold=False)
+
+                elif col_idx in (6, 11, 16, 20, 24):
+                    # percent columns: red only if minus
+                    percent_val = None
+                    if col_idx == 6:
+                        percent_val = pogr_percent
+                    elif col_idx == 11:
+                        percent_val = vygr_percent
+                    elif col_idx == 16:
+                        percent_val = pogr_kont_percent
+                    elif col_idx == 20:
+                        percent_val = vygr_kont_percent
+                    elif col_idx == 24:
+                        percent_val = income_percent
+                    font = percent_font(percent_val, bold=False)
 
                 set_cell(row_num, col_idx, value, font=font, border=border_thin, alignment=align)
 
@@ -742,11 +776,14 @@ def kvartalniy_range_export_excel(request):
 
         subtotal_values = [
             subtotal["station_name"],
+
             subtotal["pogr_plan"], subtotal["pogr_this_year"], subtotal["pogr_last_year"], subtotal["pogr_diff"], f"{pogr_percent}%",
             subtotal["vygr_plan"], subtotal["vygr_this_year"], subtotal["vygr_last_year"], subtotal["vygr_diff"], f"{vygr_percent}%",
             subtotal["pogr_kont_plan"], subtotal["pogr_kont_this_year"], subtotal["pogr_kont_last_year"], subtotal["pogr_kont_diff"], f"{pogr_kont_percent}%",
-            subtotal["vygr_kont_plan"], subtotal["vygr_kont_this_year"], subtotal["vygr_kont_last_year"], subtotal["vygr_kont_diff"], f"{vygr_kont_percent}%",
-            subtotal["income_plan"], subtotal["income_this_year"], subtotal["income_last_year"], subtotal["income_diff"], f"{income_percent}%",
+
+            subtotal["vygr_kont_this_year"], subtotal["vygr_kont_last_year"], subtotal["vygr_kont_diff"], f"{vygr_kont_percent}%",
+
+            subtotal["income_this_year"], subtotal["income_last_year"], subtotal["income_diff"], f"{income_percent}%",
         ]
 
         for col_idx, value in enumerate(subtotal_values, start=1):
@@ -755,8 +792,34 @@ def kvartalniy_range_export_excel(request):
 
             if col_idx == 1:
                 align = left
-            elif col_idx in (4, 9, 14, 19, 24):
+            elif col_idx in (4, 9, 14, 18, 22):
                 font = green_bold_font
+            elif col_idx in (5, 10, 15, 19, 23):
+                diff_val = None
+                if col_idx == 5:
+                    diff_val = subtotal["pogr_diff"]
+                elif col_idx == 10:
+                    diff_val = subtotal["vygr_diff"]
+                elif col_idx == 15:
+                    diff_val = subtotal["pogr_kont_diff"]
+                elif col_idx == 19:
+                    diff_val = subtotal["vygr_kont_diff"]
+                elif col_idx == 23:
+                    diff_val = subtotal["income_diff"]
+                font = diff_font(diff_val, bold=True)
+            elif col_idx in (6, 11, 16, 20, 24):
+                percent_val = None
+                if col_idx == 6:
+                    percent_val = pogr_percent
+                elif col_idx == 11:
+                    percent_val = vygr_percent
+                elif col_idx == 16:
+                    percent_val = pogr_kont_percent
+                elif col_idx == 20:
+                    percent_val = vygr_kont_percent
+                elif col_idx == 24:
+                    percent_val = income_percent
+                font = percent_font(percent_val, bold=True)
 
             set_cell(row_num, col_idx, value, font=font, fill=fill_total, border=border_thin, alignment=align)
 
@@ -772,11 +835,14 @@ def kvartalniy_range_export_excel(request):
 
     grand_values = [
         "Всего",
+
         grand["pogr_plan"], grand["pogr_this_year"], grand["pogr_last_year"], grand["pogr_diff"], f"{pogr_percent}%",
         grand["vygr_plan"], grand["vygr_this_year"], grand["vygr_last_year"], grand["vygr_diff"], f"{vygr_percent}%",
         grand["pogr_kont_plan"], grand["pogr_kont_this_year"], grand["pogr_kont_last_year"], grand["pogr_kont_diff"], f"{pogr_kont_percent}%",
-        grand["vygr_kont_plan"], grand["vygr_kont_this_year"], grand["vygr_kont_last_year"], grand["vygr_kont_diff"], f"{vygr_kont_percent}%",
-        grand["income_plan"], grand["income_this_year"], grand["income_last_year"], grand["income_diff"], f"{income_percent}%",
+
+        grand["vygr_kont_this_year"], grand["vygr_kont_last_year"], grand["vygr_kont_diff"], f"{vygr_kont_percent}%",
+
+        grand["income_this_year"], grand["income_last_year"], grand["income_diff"], f"{income_percent}%",
     ]
 
     for col_idx, value in enumerate(grand_values, start=1):
@@ -785,16 +851,42 @@ def kvartalniy_range_export_excel(request):
 
         if col_idx == 1:
             align = left
-        elif col_idx in (4, 9, 14, 19, 24):
+        elif col_idx in (4, 9, 14, 18, 22):
             font = green_bold_font
+        elif col_idx in (5, 10, 15, 19, 23):
+            diff_val = None
+            if col_idx == 5:
+                diff_val = grand["pogr_diff"]
+            elif col_idx == 10:
+                diff_val = grand["vygr_diff"]
+            elif col_idx == 15:
+                diff_val = grand["pogr_kont_diff"]
+            elif col_idx == 19:
+                diff_val = grand["vygr_kont_diff"]
+            elif col_idx == 23:
+                diff_val = grand["income_diff"]
+            font = diff_font(diff_val, bold=True)
+        elif col_idx in (6, 11, 16, 20, 24):
+            percent_val = None
+            if col_idx == 6:
+                percent_val = pogr_percent
+            elif col_idx == 11:
+                percent_val = vygr_percent
+            elif col_idx == 16:
+                percent_val = pogr_kont_percent
+            elif col_idx == 20:
+                percent_val = vygr_kont_percent
+            elif col_idx == 24:
+                percent_val = income_percent
+            font = percent_font(percent_val, bold=True)
 
         set_cell(row_num, col_idx, value, font=font, fill=fill_total, border=border_thin, alignment=align)
 
-    # outline medium border around header row 1
-    for col in range(1, 27):
+    # medium border around title
+    for col in range(1, 25):
         ws.cell(1, col).border = Border(
             left=medium if col == 1 else thin,
-            right=medium if col == 26 else thin,
+            right=medium if col == 24 else thin,
             top=medium,
             bottom=medium,
         )
