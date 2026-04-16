@@ -6,6 +6,7 @@ from openpyxl.utils import get_column_letter
 
 from accounts.models import StationProfile
 from reports.forms import TABLE1_FIELDS
+from reports.kvartalniy import DISPLAY_GROUPS
 from reports.models import StationDailyTable1
 from reports.views import TERMINAL_NAME_KEY, _apply_itogo_rules, _parse_date, _station_display_name, _terminal_blocks_for_station_date, staff_required
 
