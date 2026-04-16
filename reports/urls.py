@@ -1,5 +1,6 @@
 from django.urls import path
 
+from reports.excel_view import admin_table1_report_excel_view
 from reports.kvartalniy import kvartalniy
 from reports.umumiy import kvartalniy_range, kvartalniy_range_export_excel
 from reports.user_kvartalniy import kvartalniy_station_detail
@@ -65,4 +66,10 @@ urlpatterns = [
     path("kvartalniy/station/", kvartalniy_station_detail, name="kvartalniy_station_detail"),
     path("kvartalniy/monthly/list/", kvartalniy_monthly_list, name="kvartalniy_monthly_list"),
     path("kvartalniy/monthly/list/json/", kvartalniy_monthly_list_json, name="kvartalniy_monthly_list_json"),
+
+    path(
+    "station/table1/<str:date_str>/excel/",
+    admin_table1_report_excel_view,
+    name="admin_table1_report_excel_view",
+),
 ]

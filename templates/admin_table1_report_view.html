@@ -26,7 +26,9 @@
         <span data-i18n="back_to_list">Ro‘yxatga qaytish</span>
       </a>
 
-      <a class="t1a-back t1a-excel" href="#" id="exportExcelBtn">📥 Excel</a>
+      <a class="t1-btn secondary" href="{% url 'admin_table1_report_excel_view' date|date:'Y-m-d' %}">
+        📥 Excel
+      </a>
     </div>
   </div>
 
