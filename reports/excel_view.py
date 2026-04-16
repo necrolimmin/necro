@@ -6,7 +6,6 @@ from openpyxl.utils import get_column_letter
 
 from accounts.models import StationProfile
 from reports.forms import TABLE1_FIELDS
-from reports.kvartalniy import DISPLAY_GROUPS
 from reports.models import StationDailyTable1
 from reports.views import TERMINAL_NAME_KEY, _apply_itogo_rules, _parse_date, _station_display_name, _terminal_blocks_for_station_date, staff_required
 
@@ -34,6 +33,76 @@ from django.contrib.auth import get_user_model
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+
+
+DISPLAY_GROUPS = [
+    {
+        "title": "group1",
+        "stations": [
+            "Chuqursoy LM",
+            "Toshkent LM",
+            "Sergeli LM",
+            "Ulug'bek LM",
+            "Marokand LM",
+            "Jaloir LM",
+            "Ohangaron LM",
+            "Nazarbek LM",
+            "Urtavul LM",
+            "Sirdaryo LM",
+            "Jizzax LM",
+            "Ablik LM",
+            "To'ytepa",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "group2",
+        "stations": [
+            "Qo'qon LM",
+            "Rovuston LM",
+            "Marg'ilon LM",
+            "Axtachi LM",
+            "Asaka LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "group3",
+        "stations": [
+            "Buxoro LM",
+            "Tinchlik LM",
+            "Karmana LM",
+            "Yangi-Zarafshon LM",
+            
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "group4",
+        "stations": [
+            "Qarshi LM",
+            "Dehqonobod LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "group5",
+        "stations": [
+            "Termiz LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "group6",
+        "stations": [
+            "Nukus LM",
+            "Kirkkiz LM",
+            "Urganch LM",
+            "Pitnyak LM",
+        ],
+        "has_veshoz": True,
+    },
+]
 
 
 @staff_required
