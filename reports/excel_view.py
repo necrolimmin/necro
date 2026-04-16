@@ -21,6 +21,13 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
 
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+
+
 @staff_required
 def admin_table1_report_excel_view(request, date_str):
     d = _parse_date(date_str)
@@ -48,9 +55,6 @@ def admin_table1_report_excel_view(request, date_str):
     def _sum_into(dst: dict, src: dict):
         for k in FIELDS:
             dst[k] = dst.get(k, 0) + _to_int(src.get(k, 0))
-
-    def _fmt_space(n):
-        return f"{_to_int(n):,}".replace(",", " ")
 
     station_list = []
 
@@ -87,12 +91,11 @@ def admin_table1_report_excel_view(request, date_str):
             day_data = _apply_itogo_rules(day_raw)
             night_data = _apply_itogo_rules(night_raw) if has_night else {}
 
-            total_data = {}
+            total_data = {k: 0 for k in FIELDS}
+            _sum_into(total_data, day_data)
             if has_night:
-                total_data = {k: 0 for k in FIELDS}
-                _sum_into(total_data, day_data)
                 _sum_into(total_data, night_data)
-                total_data = _apply_itogo_rules(total_data)
+            total_data = _apply_itogo_rules(total_data)
 
             term_name = (
                 (day_raw or {}).get(TERMINAL_NAME_KEY)
@@ -133,17 +136,17 @@ def admin_table1_report_excel_view(request, date_str):
 
     wb = Workbook()
     ws = wb.active
-    ws.title = f"Hisobot1_{d.strftime('%d_%m_%Y')}"
+    ws.title = f"Table1_{d.strftime('%d_%m_%Y')}"
 
-    thin = Side(style="thin", color="B8BDC7")
-    medium = Side(style="medium", color="8A8F99")
-    thick = Side(style="thick", color="5F6368")
+    thin = Side(style="thin", color="B7BDC7")
+    medium = Side(style="medium", color="7C8591")
+    thick = Side(style="thick", color="59606A")
 
     border_thin = Border(left=thin, right=thin, top=thin, bottom=thin)
     border_medium = Border(left=medium, right=medium, top=medium, bottom=medium)
 
     font_title = Font(name="Arial", size=13, bold=True)
-    font_header = Font(name="Arial", size=10, bold=True)
+    font_header = Font(name="Arial", size=9, bold=True)
     font_body = Font(name="Arial", size=9)
     font_total = Font(name="Arial", size=9, bold=True)
 
@@ -151,61 +154,63 @@ def admin_table1_report_excel_view(request, date_str):
     align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
 
     fill_header = PatternFill("solid", fgColor="E7E7E7")
-    fill_pink = PatternFill("solid", fgColor="EED9D9")
-    fill_green = PatternFill("solid", fgColor="D9EAD3")
-    fill_green_dark = PatternFill("solid", fgColor="C6D9BF")
-    fill_yellow = PatternFill("solid", fgColor="FCE5CD")
-    fill_blue = PatternFill("solid", fgColor="D9EAF7")
-    fill_blue_dark = PatternFill("solid", fgColor="B7DEE8")
-    fill_gray = PatternFill("solid", fgColor="D9D9D9")
-    fill_total = PatternFill("solid", fgColor="FFF2CC")
+    fill_pink = PatternFill("solid", fgColor="EEDFE3")
+    fill_green = PatternFill("solid", fgColor="DDEAD7")
+    fill_green_dark = PatternFill("solid", fgColor="C8DEBF")
+    fill_yellow = PatternFill("solid", fgColor="F5EFC8")
+    fill_blue = PatternFill("solid", fgColor="E4EFF3")
+    fill_blue_dark = PatternFill("solid", fgColor="C7E4EA")
+    fill_total = PatternFill("solid", fgColor="F3EBCB")
+    fill_white = PatternFill("solid", fgColor="FFFFFF")
 
     columns = [
-        ("station_name", "LM nomi", 20),
-        ("shift", "Smena", 10),
-        ("terminal_name", "Terminal", 18),
+        ("station_name", "LM nomi", 18),
+        ("shift", "Smena", 9),
+        ("terminal_name", "Terminal", 15),
 
-        ("podano_lc", "LMga berildi", 10),
-        ("k_podache_so_st", "St’dan berishga", 10),
+        ("podano_lc", "LMga berildi", 9),
+        ("k_podache_so_st", "St’dan berishga", 9),
 
-        ("vygr_ft", "ft", 7),
-        ("vygr_cont", "kont", 7),
-        ("vygr_kr", "kr", 7),
-        ("vygr_pv", "pv", 7),
-        ("vygr_proch", "boshqa", 8),
-        ("vygr_itogo", "jami", 8),
-        ("vygr_itogo_kon", "jami kont", 9),
+        ("vygr_ft", "ft", 6),
+        ("vygr_cont", "kont", 6),
+        ("vygr_kr", "kr", 6),
+        ("vygr_pv", "pv", 6),
+        ("vygr_proch", "boshqa", 7),
+        ("vygr_itogo", "jami", 6),
+        ("vygr_itogo_kon", "jami kont", 7),
 
-        ("pod_vygr_ft", "ft", 7),
-        ("pod_vygr_cont", "kont", 7),
-        ("pod_vygr_kr", "kr", 7),
-        ("pod_vygr_pv", "pv", 7),
-        ("pod_vygr_proch", "boshqa", 8),
-        ("pod_vygr_itogo", "jami", 8),
-        ("pod_vygr_itogo_kon", "jami kont", 9),
+        ("pod_vygr_ft", "ft", 6),
+        ("pod_vygr_cont", "kont", 6),
+        ("pod_vygr_kr", "kr", 6),
+        ("pod_vygr_pv", "pv", 6),
+        ("pod_vygr_proch", "boshqa", 7),
+        ("pod_vygr_itogo", "jami", 6),
+        ("pod_vygr_itogo_kon", "jami kont", 7),
 
-        ("uborka", "Yig‘ishtirish", 9),
+        ("uborka", "Yig‘ishtirish", 7),
 
-        ("pogr_ft", "ft", 7),
-        ("pogr_cont", "kont", 7),
-        ("pogr_kr", "kr", 7),
-        ("pogr_pv", "pv", 7),
-        ("pogr_proch", "boshqa", 8),
-        ("pogr_itogo", "jami", 8),
-        ("pogr_itogo_kon", "jami kont", 9),
+        ("pogr_ft", "ft", 6),
+        ("pogr_cont", "kont", 6),
+        ("pogr_kr", "kr", 6),
+        ("pogr_pv", "pv", 6),
+        ("pogr_proch", "boshqa", 7),
+        ("pogr_itogo", "jami", 6),
+        ("pogr_itogo_kon", "jami kont", 7),
 
-        ("pod_pogr_ft", "ft", 7),
-        ("pod_pogr_cont", "kont", 7),
-        ("pod_pogr_kr", "kr", 7),
-        ("pod_pogr_pv", "pv", 7),
-        ("pod_pogr_proch", "boshqa", 8),
-        ("pod_pogr_itogo", "jami", 8),
-        ("pod_pogr_itogo_kon", "jami kont", 9),
+        ("pod_pogr_ft", "ft", 6),
+        ("pod_pogr_cont", "kont", 6),
+        ("pod_pogr_kr", "kr", 6),
+        ("pod_pogr_pv", "pv", 6),
+        ("pod_pogr_proch", "boshqa", 7),
+        ("pod_pogr_itogo", "jami", 6),
+        ("pod_pogr_itogo_kon", "jami kont", 7),
 
-        ("spc_lc", "LM", 8),
-        ("spc_station", "Stansiya", 10),
-        ("income_daily", "sutkalik daromad", 14),
+        ("income_daily", "sutkalik daromad", 12),
     ]
+
+    # picture-like structure without spc columns
+    # 1 station, 2 shift, 3 terminal, 4 podano, 5 k_pod, 6-12 vygr, 13-19 pod_vygr,
+    # 20 uborka, 21-27 pogr, 28-34 pod_pogr, 35 income
 
     for idx, (_, _, width) in enumerate(columns, start=1):
         ws.column_dimensions[get_column_letter(idx)].width = width
@@ -224,18 +229,18 @@ def admin_table1_report_excel_view(request, date_str):
             c.number_format = '#,##0'
         return c
 
-    def set_row_border(row_num, border):
+    def apply_row_border(row_num, border):
         for col_num in range(1, len(columns) + 1):
             ws.cell(row=row_num, column=col_num).border = border
 
     def set_range_thick_outline(r1, c1, r2, c2):
         for r in range(r1, r2 + 1):
             for c in range(c1, c2 + 1):
-                current = ws.cell(r, c).border
-                left = current.left
-                right = current.right
-                top = current.top
-                bottom = current.bottom
+                cur = ws.cell(r, c).border
+                left = cur.left
+                right = cur.right
+                top = cur.top
+                bottom = cur.bottom
 
                 if c == c1:
                     left = thick
@@ -263,9 +268,9 @@ def admin_table1_report_excel_view(request, date_str):
             return fill_blue
         if key.startswith("pod_pogr_"):
             return fill_blue_dark
-        if key in ("spc_lc", "spc_station", "income_daily"):
-            return fill_gray
-        return None
+        if key == "income_daily":
+            return fill_white
+        return fill_white
 
     row = 1
     last_col = len(columns)
@@ -290,8 +295,7 @@ def admin_table1_report_excel_view(request, date_str):
     ws.merge_cells(start_row=header_row_1, start_column=20, end_row=header_row_2, end_column=20)
     ws.merge_cells(start_row=header_row_1, start_column=21, end_row=header_row_1, end_column=27)
     ws.merge_cells(start_row=header_row_1, start_column=28, end_row=header_row_1, end_column=34)
-    ws.merge_cells(start_row=header_row_1, start_column=35, end_row=header_row_1, end_column=36)
-    ws.merge_cells(start_row=header_row_1, start_column=37, end_row=header_row_2, end_column=37)
+    ws.merge_cells(start_row=header_row_1, start_column=35, end_row=header_row_2, end_column=35)
 
     cell(header_row_1, 1, "LM nomi", font=font_header, fill=fill_header, border=border_medium, align=align_center)
     cell(header_row_1, 2, "Smena", font=font_header, fill=fill_header, border=border_medium, align=align_center)
@@ -300,61 +304,49 @@ def admin_table1_report_excel_view(request, date_str):
     cell(header_row_1, 4, "LMga berildi", font=font_header, fill=fill_pink, border=border_medium, align=align_center)
     cell(header_row_1, 5, "St’dan berishga", font=font_header, fill=fill_pink, border=border_medium, align=align_center)
 
-    cell(header_row_1, 6, "Tushirish", font=font_header, fill=fill_green, border=border_medium, align=align_center)
-    cell(header_row_1, 13, "Tushirishda", font=font_header, fill=fill_green_dark, border=border_medium, align=align_center)
+    cell(header_row_1, 6, "Tushirish", font=font_header, fill=fill_header, border=border_medium, align=align_center)
+    cell(header_row_1, 13, "Tushirishda", font=font_header, fill=fill_header, border=border_medium, align=align_center)
     cell(header_row_1, 20, "Yig‘ishtirish", font=font_header, fill=fill_yellow, border=border_medium, align=align_center)
-    cell(header_row_1, 21, "Ortish", font=font_header, fill=fill_blue, border=border_medium, align=align_center)
-    cell(header_row_1, 28, "Ortishda", font=font_header, fill=fill_blue_dark, border=border_medium, align=align_center)
-    cell(header_row_1, 35, "Bo‘sh SPS", font=font_header, fill=fill_gray, border=border_medium, align=align_center)
-    cell(header_row_1, 37, "sutkalik daromad", font=font_header, fill=fill_gray, border=border_medium, align=align_center)
+    cell(header_row_1, 21, "Ortish", font=font_header, fill=fill_header, border=border_medium, align=align_center)
+    cell(header_row_1, 28, "Ortishda", font=font_header, fill=fill_header, border=border_medium, align=align_center)
+    cell(header_row_1, 35, "sutkalik daromad", font=font_header, fill=fill_header, border=border_medium, align=align_center)
 
     subheaders = [
-        (6,  "ft",        fill_green),
-        (7,  "kont",      fill_green),
-        (8,  "kr",        fill_green),
-        (9,  "pv",        fill_green),
-        (10, "boshqa",    fill_green),
-        (11, "jami",      fill_green),
-        (12, "jami kont", fill_green),
+        (6,  "ft",        fill_header),
+        (7,  "kont",      fill_header),
+        (8,  "kr",        fill_header),
+        (9,  "pv",        fill_header),
+        (10, "boshqa",    fill_header),
+        (11, "jami",      fill_header),
+        (12, "jami kont", fill_header),
 
-        (13, "ft",        fill_green_dark),
-        (14, "kont",      fill_green_dark),
-        (15, "kr",        fill_green_dark),
-        (16, "pv",        fill_green_dark),
-        (17, "boshqa",    fill_green_dark),
-        (18, "jami",      fill_green_dark),
-        (19, "jami kont", fill_green_dark),
+        (13, "ft",        fill_header),
+        (14, "kont",      fill_header),
+        (15, "kr",        fill_header),
+        (16, "pv",        fill_header),
+        (17, "boshqa",    fill_header),
+        (18, "jami",      fill_header),
+        (19, "jami kont", fill_header),
 
-        (21, "ft",        fill_blue),
-        (22, "kont",      fill_blue),
-        (23, "kr",        fill_blue),
-        (24, "pv",        fill_blue),
-        (25, "boshqa",    fill_blue),
-        (26, "jami",      fill_blue),
-        (27, "jami kont", fill_blue),
+        (21, "ft",        fill_header),
+        (22, "kont",      fill_header),
+        (23, "kr",        fill_header),
+        (24, "pv",        fill_header),
+        (25, "boshqa",    fill_header),
+        (26, "jami",      fill_header),
+        (27, "jami kont", fill_header),
 
-        (28, "ft",        fill_blue_dark),
-        (29, "kont",      fill_blue_dark),
-        (30, "kr",        fill_blue_dark),
-        (31, "pv",        fill_blue_dark),
-        (32, "boshqa",    fill_blue_dark),
-        (33, "jami",      fill_blue_dark),
-        (34, "jami kont", fill_blue_dark),
-
-        (35, "LM",        fill_gray),
-        (36, "Stansiya",  fill_gray),
+        (28, "ft",        fill_header),
+        (29, "kont",      fill_header),
+        (30, "kr",        fill_header),
+        (31, "pv",        fill_header),
+        (32, "boshqa",    fill_header),
+        (33, "jami",      fill_header),
+        (34, "jami kont", fill_header),
     ]
 
     for col_num, title, fill in subheaders:
-        cell(
-            header_row_2,
-            col_num,
-            title,
-            font=font_header,
-            fill=fill,
-            border=border_medium,
-            align=align_center
-        )
+        cell(header_row_2, col_num, title, font=font_header, fill=fill, border=border_medium, align=align_center)
 
     for r in range(header_row_1, header_row_2 + 1):
         for c in range(1, last_col + 1):
@@ -368,80 +360,25 @@ def admin_table1_report_excel_view(request, date_str):
     set_range_thick_outline(header_row_1, 28, header_row_2, 34)
 
     row = header_row_2 + 1
-    data_keys = [c[0] for c in columns]
 
-    def write_station_row(row_num, st_name, shift_name, terminals, row_key, is_total=False, merge_station=False, merge_rows=1):
-        if merge_station:
-            ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num + merge_rows - 1, end_column=1)
+    terminal_field_keys = [c[0] for c in columns[3:]]
+
+    def write_terminal_data_row(row_num, terminal_name, shift_label, source_data, is_total=False):
+        cell(row_num, 3, terminal_name or "-", font=font_body if not is_total else font_total,
+             fill=fill_total if is_total else fill_white, border=border_thin, align=align_left)
+
+        for col_idx, key in enumerate(terminal_field_keys, start=4):
+            num_value = _to_int(source_data.get(key, 0))
             cell(
-                row_num, 1, st_name,
+                row_num,
+                col_idx,
+                num_value,
                 font=font_total if is_total else font_body,
-                fill=fill_total if is_total else None,
+                fill=fill_for_key(key, is_total=is_total),
                 border=border_thin,
-                align=align_left
+                align=align_center,
+                is_number=True
             )
-
-        if shift_name is not None:
-            cell(
-                row_num, 2, shift_name,
-                font=font_total if is_total else font_body,
-                fill=fill_total if is_total else None,
-                border=border_thin,
-                align=align_center
-            )
-
-        terminal_lines = [str(t.get("terminal_name") or "-") for t in terminals]
-        cell(
-            row_num, 3,
-            "\n".join(terminal_lines) if terminal_lines else "",
-            font=font_total if is_total else font_body,
-            fill=fill_total if is_total else None,
-            border=border_thin,
-            align=align_left
-        )
-
-        for col_idx, key in enumerate(data_keys[3:], start=4):
-            if row_key == "sum_total":
-                num_value = _to_int(st.get("sum_total", {}).get(key, 0))
-                cell(
-                    row_num,
-                    col_idx,
-                    num_value,
-                    font=font_total if is_total else font_body,
-                    fill=fill_for_key(key, is_total=is_total),
-                    border=border_thin,
-                    align=align_center,
-                    is_number=True
-                )
-            elif row_key == "grand_total":
-                num_value = _to_int(grand_total.get(key, 0))
-                cell(
-                    row_num,
-                    col_idx,
-                    num_value,
-                    font=font_total if is_total else font_body,
-                    fill=fill_for_key(key, is_total=is_total),
-                    border=border_thin,
-                    align=align_center,
-                    is_number=True
-                )
-            else:
-                values = []
-                for t in terminals:
-                    source = t.get(row_key, {}) or {}
-                    values.append(_fmt_space(source.get(key, 0)))
-
-                text_value = "\n".join(values) if values else "0"
-
-                cell(
-                    row_num,
-                    col_idx,
-                    text_value,
-                    font=font_total if is_total else font_body,
-                    fill=fill_for_key(key, is_total=is_total),
-                    border=border_thin,
-                    align=align_center
-                )
 
     if not station_list:
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=last_col)
@@ -449,84 +386,92 @@ def admin_table1_report_excel_view(request, date_str):
         row += 1
     else:
         for st in station_list:
-            if st["status"]:
-                start_block_row = row
+            terms = st["terminals"]
+            has_night = bool(st["status"])
 
-                write_station_row(
-                    row_num=row,
-                    st_name=st["name"],
-                    shift_name="kun",
-                    terminals=st["terminals"],
-                    row_key="day_data",
-                    is_total=False,
-                    merge_station=True,
-                    merge_rows=3
+            night_rows = len(terms) if has_night else 0
+            day_rows = len(terms)
+            total_rows = 1
+            station_rows_total = night_rows + day_rows + total_rows
+
+            station_start_row = row
+
+            # merge station name across all rows
+            ws.merge_cells(start_row=station_start_row, start_column=1,
+                           end_row=station_start_row + station_rows_total - 1, end_column=1)
+            cell(station_start_row, 1, st["name"], font=font_total, border=border_thin, align=align_left)
+
+            # NIGHT block first
+            if has_night and night_rows:
+                ws.merge_cells(start_row=row, start_column=2, end_row=row + night_rows - 1, end_column=2)
+                cell(row, 2, "tun", font=font_total, border=border_thin, align=align_center)
+
+                for t in terms:
+                    write_terminal_data_row(
+                        row_num=row,
+                        terminal_name=t["terminal_name"],
+                        shift_label="tun",
+                        source_data=t["night_data"],
+                        is_total=False
+                    )
+                    row += 1
+
+            # DAY block second
+            if day_rows:
+                ws.merge_cells(start_row=row, start_column=2, end_row=row + day_rows - 1, end_column=2)
+                cell(row, 2, "kun", font=font_total, border=border_thin, align=align_center)
+
+                for t in terms:
+                    write_terminal_data_row(
+                        row_num=row,
+                        terminal_name=t["terminal_name"],
+                        shift_label="kun",
+                        source_data=t["day_data"],
+                        is_total=False
+                    )
+                    row += 1
+
+            # TOTAL row
+            cell(row, 2, "jami", font=font_total, fill=fill_total, border=border_medium, align=align_center)
+            cell(row, 3, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
+
+            for col_idx, key in enumerate(terminal_field_keys, start=4):
+                num_value = _to_int(st["sum_total"].get(key, 0))
+                cell(
+                    row,
+                    col_idx,
+                    num_value,
+                    font=font_total,
+                    fill=fill_total,
+                    border=border_medium,
+                    align=align_center,
+                    is_number=True
                 )
-                row += 1
 
-                write_station_row(
-                    row_num=row,
-                    st_name=st["name"],
-                    shift_name="tun",
-                    terminals=st["terminals"],
-                    row_key="night_data",
-                    is_total=False,
-                    merge_station=False
-                )
-                row += 1
+            # restore medium border for the station merged column on final row visually
+            apply_row_border(row, border_medium)
 
-                cell(row, 1, None, border=border_thin)
-                write_station_row(
-                    row_num=row,
-                    st_name=st["name"],
-                    shift_name="jami",
-                    terminals=st["terminals"],
-                    row_key="sum_total",
-                    is_total=True,
-                    merge_station=False
-                )
+            # thick grouped borders for the whole station block
+            set_range_thick_outline(station_start_row, 6, row, 12)
+            set_range_thick_outline(station_start_row, 13, row, 19)
+            set_range_thick_outline(station_start_row, 21, row, 27)
+            set_range_thick_outline(station_start_row, 28, row, 34)
 
-                set_row_border(row, border_medium)
-                set_range_thick_outline(start_block_row, 6, row, 12)
-                set_range_thick_outline(start_block_row, 13, row, 19)
-                set_range_thick_outline(start_block_row, 21, row, 27)
-                set_range_thick_outline(start_block_row, 28, row, 34)
+            row += 1
 
-                row += 1
-            else:
-                start_block_row = row
-
-                write_station_row(
-                    row_num=row,
-                    st_name=st["name"],
-                    shift_name="kun",
-                    terminals=st["terminals"],
-                    row_key="day_data",
-                    is_total=False,
-                    merge_station=True,
-                    merge_rows=1
-                )
-
-                set_row_border(row, border_medium)
-                set_range_thick_outline(start_block_row, 6, row, 12)
-                set_range_thick_outline(start_block_row, 13, row, 19)
-                set_range_thick_outline(start_block_row, 21, row, 27)
-                set_range_thick_outline(start_block_row, 28, row, 34)
-
-                row += 1
-
+        # grand total
         cell(row, 1, "Umumiy", font=font_total, fill=fill_total, border=border_medium, align=align_left)
         cell(row, 2, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
         cell(row, 3, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
 
-        for col_idx, key in enumerate(data_keys[3:], start=4):
+        for col_idx, key in enumerate(terminal_field_keys, start=4):
             num_value = _to_int(grand_total.get(key, 0))
             cell(
                 row,
                 col_idx,
                 num_value,
                 font=font_total,
-                fill=fill_for_key(key, is_total=True),
+                fill=fill_total,
                 border=border_medium,
                 align=align_center,
                 is_number=True
@@ -538,7 +483,17 @@ def admin_table1_report_excel_view(request, date_str):
         set_range_thick_outline(row, 28, row, 34)
         row += 1
 
-    ws.freeze_panes = "D5"
+    # row heights
+    ws.row_dimensions[1].height = 22
+    ws.row_dimensions[header_row_1].height = 24
+    ws.row_dimensions[header_row_2].height = 52
+    for r in range(header_row_2 + 1, row):
+        if ws.cell(r, 2).value == "jami" or ws.cell(r, 1).value == "Umumiy":
+            ws.row_dimensions[r].height = 20
+        else:
+            ws.row_dimensions[r].height = 19
+
+    ws.freeze_panes = "D4"
 
     filename = f'admin_table1_{d.strftime("%Y_%m_%d")}.xlsx'
     response = HttpResponse(
