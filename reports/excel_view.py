@@ -28,6 +28,13 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
 
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+
+
 @staff_required
 def admin_table1_report_excel_view(request, date_str):
     d = _parse_date(date_str)
@@ -55,6 +62,14 @@ def admin_table1_report_excel_view(request, date_str):
     def _sum_into(dst: dict, src: dict):
         for k in FIELDS:
             dst[k] = dst.get(k, 0) + _to_int(src.get(k, 0))
+
+    def _station_order_index(name):
+        for gi, group in enumerate(DISPLAY_GROUPS):
+            stations = group.get("stations", [])
+            for si, st_name in enumerate(stations):
+                if (st_name or "").strip().lower() == (name or "").strip().lower():
+                    return (gi, si)
+        return (999, (name or "").lower())
 
     station_list = []
 
@@ -118,16 +133,19 @@ def admin_table1_report_excel_view(request, date_str):
                 _sum_into(sum_total, t["night_data"])
         sum_total = _apply_itogo_rules(sum_total)
 
+        station_name = _station_display_name(u)
+
         station_list.append({
-            "name": _station_display_name(u),
+            "name": station_name,
             "login": getattr(u, "username", ""),
             "user_id": u.id,
             "status": has_night,
             "terminals": terminals,
             "sum_total": sum_total,
+            "_order": _station_order_index(station_name),
         })
 
-    station_list.sort(key=lambda x: (x["name"] or "").lower())
+    station_list.sort(key=lambda x: x["_order"])
 
     grand_total = {k: 0 for k in FIELDS}
     for st in station_list:
@@ -207,10 +225,6 @@ def admin_table1_report_excel_view(request, date_str):
 
         ("income_daily", "sutkalik daromad", 12),
     ]
-
-    # picture-like structure without spc columns
-    # 1 station, 2 shift, 3 terminal, 4 podano, 5 k_pod, 6-12 vygr, 13-19 pod_vygr,
-    # 20 uborka, 21-27 pogr, 28-34 pod_pogr, 35 income
 
     for idx, (_, _, width) in enumerate(columns, start=1):
         ws.column_dimensions[get_column_letter(idx)].width = width
@@ -360,12 +374,16 @@ def admin_table1_report_excel_view(request, date_str):
     set_range_thick_outline(header_row_1, 28, header_row_2, 34)
 
     row = header_row_2 + 1
-
     terminal_field_keys = [c[0] for c in columns[3:]]
 
-    def write_terminal_data_row(row_num, terminal_name, shift_label, source_data, is_total=False):
-        cell(row_num, 3, terminal_name or "-", font=font_body if not is_total else font_total,
-             fill=fill_total if is_total else fill_white, border=border_thin, align=align_left)
+    def write_terminal_data_row(row_num, terminal_name, source_data, is_total=False):
+        cell(
+            row_num, 3, terminal_name or "-",
+            font=font_body if not is_total else font_total,
+            fill=fill_total if is_total else fill_white,
+            border=border_thin,
+            align=align_left
+        )
 
         for col_idx, key in enumerate(terminal_field_keys, start=4):
             num_value = _to_int(source_data.get(key, 0))
@@ -391,17 +409,20 @@ def admin_table1_report_excel_view(request, date_str):
 
             night_rows = len(terms) if has_night else 0
             day_rows = len(terms)
-            total_rows = 1
+            show_total_row = has_night
+            total_rows = 1 if show_total_row else 0
             station_rows_total = night_rows + day_rows + total_rows
 
             station_start_row = row
 
-            # merge station name across all rows
-            ws.merge_cells(start_row=station_start_row, start_column=1,
-                           end_row=station_start_row + station_rows_total - 1, end_column=1)
+            ws.merge_cells(
+                start_row=station_start_row,
+                start_column=1,
+                end_row=station_start_row + station_rows_total - 1,
+                end_column=1
+            )
             cell(station_start_row, 1, st["name"], font=font_total, border=border_thin, align=align_left)
 
-            # NIGHT block first
             if has_night and night_rows:
                 ws.merge_cells(start_row=row, start_column=2, end_row=row + night_rows - 1, end_column=2)
                 cell(row, 2, "tun", font=font_total, border=border_thin, align=align_center)
@@ -410,13 +431,11 @@ def admin_table1_report_excel_view(request, date_str):
                     write_terminal_data_row(
                         row_num=row,
                         terminal_name=t["terminal_name"],
-                        shift_label="tun",
                         source_data=t["night_data"],
                         is_total=False
                     )
                     row += 1
 
-            # DAY block second
             if day_rows:
                 ws.merge_cells(start_row=row, start_column=2, end_row=row + day_rows - 1, end_column=2)
                 cell(row, 2, "kun", font=font_total, border=border_thin, align=align_center)
@@ -425,41 +444,39 @@ def admin_table1_report_excel_view(request, date_str):
                     write_terminal_data_row(
                         row_num=row,
                         terminal_name=t["terminal_name"],
-                        shift_label="kun",
                         source_data=t["day_data"],
                         is_total=False
                     )
                     row += 1
 
-            # TOTAL row
-            cell(row, 2, "jami", font=font_total, fill=fill_total, border=border_medium, align=align_center)
-            cell(row, 3, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
+            if show_total_row:
+                cell(row, 2, "jami", font=font_total, fill=fill_total, border=border_medium, align=align_center)
+                cell(row, 3, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
 
-            for col_idx, key in enumerate(terminal_field_keys, start=4):
-                num_value = _to_int(st["sum_total"].get(key, 0))
-                cell(
-                    row,
-                    col_idx,
-                    num_value,
-                    font=font_total,
-                    fill=fill_total,
-                    border=border_medium,
-                    align=align_center,
-                    is_number=True
-                )
+                for col_idx, key in enumerate(terminal_field_keys, start=4):
+                    num_value = _to_int(st["sum_total"].get(key, 0))
+                    cell(
+                        row,
+                        col_idx,
+                        num_value,
+                        font=font_total,
+                        fill=fill_total,
+                        border=border_medium,
+                        align=align_center,
+                        is_number=True
+                    )
 
-            # restore medium border for the station merged column on final row visually
-            apply_row_border(row, border_medium)
+                apply_row_border(row, border_medium)
+                end_outline_row = row
+                row += 1
+            else:
+                end_outline_row = row - 1
 
-            # thick grouped borders for the whole station block
-            set_range_thick_outline(station_start_row, 6, row, 12)
-            set_range_thick_outline(station_start_row, 13, row, 19)
-            set_range_thick_outline(station_start_row, 21, row, 27)
-            set_range_thick_outline(station_start_row, 28, row, 34)
+            set_range_thick_outline(station_start_row, 6, end_outline_row, 12)
+            set_range_thick_outline(station_start_row, 13, end_outline_row, 19)
+            set_range_thick_outline(station_start_row, 21, end_outline_row, 27)
+            set_range_thick_outline(station_start_row, 28, end_outline_row, 34)
 
-            row += 1
-
-        # grand total
         cell(row, 1, "Umumiy", font=font_total, fill=fill_total, border=border_medium, align=align_left)
         cell(row, 2, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
         cell(row, 3, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
@@ -483,10 +500,10 @@ def admin_table1_report_excel_view(request, date_str):
         set_range_thick_outline(row, 28, row, 34)
         row += 1
 
-    # row heights
     ws.row_dimensions[1].height = 22
     ws.row_dimensions[header_row_1].height = 24
     ws.row_dimensions[header_row_2].height = 52
+
     for r in range(header_row_2 + 1, row):
         if ws.cell(r, 2).value == "jami" or ws.cell(r, 1).value == "Umumiy":
             ws.row_dimensions[r].height = 20
