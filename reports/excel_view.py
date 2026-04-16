@@ -104,6 +104,12 @@ DISPLAY_GROUPS = [
     },
 ]
 
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+
 
 @staff_required
 def admin_table1_report_excel_view(request, date_str):
@@ -313,11 +319,7 @@ def admin_table1_report_excel_view(request, date_str):
             c.number_format = '#,##0'
         return c
 
-    def apply_row_border(row_num, border):
-        for col_num in range(1, len(columns) + 1):
-            ws.cell(row=row_num, column=col_num).border = border
-
-    def set_range_thick_outline(r1, c1, r2, c2):
+    def set_range_thick_columns_only(r1, c1, r2, c2):
         for r in range(r1, r2 + 1):
             for c in range(c1, c2 + 1):
                 cur = ws.cell(r, c).border
@@ -330,12 +332,13 @@ def admin_table1_report_excel_view(request, date_str):
                     left = thick
                 if c == c2:
                     right = thick
-                if r == r1:
-                    top = thick
-                if r == r2:
-                    bottom = thick
 
-                ws.cell(r, c).border = Border(left=left, right=right, top=top, bottom=bottom)
+                ws.cell(r, c).border = Border(
+                    left=left,
+                    right=right,
+                    top=top,
+                    bottom=bottom,
+                )
 
     def fill_for_key(key, is_total=False):
         if is_total:
@@ -438,10 +441,11 @@ def admin_table1_report_excel_view(request, date_str):
             if ws.cell(r, c).alignment is None:
                 ws.cell(r, c).alignment = align_center
 
-    set_range_thick_outline(header_row_1, 6, header_row_2, 12)
-    set_range_thick_outline(header_row_1, 13, header_row_2, 19)
-    set_range_thick_outline(header_row_1, 21, header_row_2, 27)
-    set_range_thick_outline(header_row_1, 28, header_row_2, 34)
+    set_range_thick_columns_only(header_row_1, 6, header_row_2, 12)
+    set_range_thick_columns_only(header_row_1, 13, header_row_2, 19)
+    set_range_thick_columns_only(header_row_1, 21, header_row_2, 27)
+    set_range_thick_columns_only(header_row_1, 28, header_row_2, 34)
+    set_range_thick_columns_only(header_row_1, 35, header_row_2, 35)
 
     row = header_row_2 + 1
     terminal_field_keys = [c[0] for c in columns[3:]]
@@ -451,7 +455,7 @@ def admin_table1_report_excel_view(request, date_str):
             row_num, 3, terminal_name or "-",
             font=font_body if not is_total else font_total,
             fill=fill_total if is_total else fill_white,
-            border=border_thin,
+            border=border_thin if not is_total else border_medium,
             align=align_left
         )
 
@@ -463,7 +467,7 @@ def admin_table1_report_excel_view(request, date_str):
                 num_value,
                 font=font_total if is_total else font_body,
                 fill=fill_for_key(key, is_total=is_total),
-                border=border_thin,
+                border=border_thin if not is_total else border_medium,
                 align=align_center,
                 is_number=True
             )
@@ -536,16 +540,16 @@ def admin_table1_report_excel_view(request, date_str):
                         is_number=True
                     )
 
-                apply_row_border(row, border_medium)
                 end_outline_row = row
                 row += 1
             else:
                 end_outline_row = row - 1
 
-            set_range_thick_outline(station_start_row, 6, end_outline_row, 12)
-            set_range_thick_outline(station_start_row, 13, end_outline_row, 19)
-            set_range_thick_outline(station_start_row, 21, end_outline_row, 27)
-            set_range_thick_outline(station_start_row, 28, end_outline_row, 34)
+            set_range_thick_columns_only(station_start_row, 6, end_outline_row, 12)
+            set_range_thick_columns_only(station_start_row, 13, end_outline_row, 19)
+            set_range_thick_columns_only(station_start_row, 21, end_outline_row, 27)
+            set_range_thick_columns_only(station_start_row, 28, end_outline_row, 34)
+            set_range_thick_columns_only(station_start_row, 35, end_outline_row, 35)
 
         cell(row, 1, "Umumiy", font=font_total, fill=fill_total, border=border_medium, align=align_left)
         cell(row, 2, "", font=font_total, fill=fill_total, border=border_medium, align=align_center)
@@ -564,10 +568,11 @@ def admin_table1_report_excel_view(request, date_str):
                 is_number=True
             )
 
-        set_range_thick_outline(row, 6, row, 12)
-        set_range_thick_outline(row, 13, row, 19)
-        set_range_thick_outline(row, 21, row, 27)
-        set_range_thick_outline(row, 28, row, 34)
+        set_range_thick_columns_only(row, 6, row, 12)
+        set_range_thick_columns_only(row, 13, row, 19)
+        set_range_thick_columns_only(row, 21, row, 27)
+        set_range_thick_columns_only(row, 28, row, 34)
+        set_range_thick_columns_only(row, 35, row, 35)
         row += 1
 
     ws.row_dimensions[1].height = 22
