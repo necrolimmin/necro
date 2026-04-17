@@ -172,10 +172,12 @@
     font-weight:950;font-size:12.5px;
     text-decoration:none;
     cursor:pointer;
+
   }
   .pgNum.active{
     border-color: rgba(99,102,241,.45);
     box-shadow: 0 10px 18px rgba(99,102,241,.18);
+
   }
   html[data-theme="dark"] .pgBtn,
   html[data-theme="dark"] .pgNum,
@@ -205,6 +207,12 @@
       <div class="muted">
         “Jo'natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
       </div>
+    </div>
+    <div class="controls" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;">
+      <input type="date" id="fromDate" class="pgSelect">
+      <input type="date" id="toDate" class="pgSelect">
+      <button type="button" class="pgBtn" id="applyDateFilter">Filtr</button>
+      <button type="button" class="pgBtn" id="resetDateFilter">Tozalash</button>
     </div>
   </div>
 

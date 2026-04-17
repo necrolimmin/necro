@@ -70,7 +70,7 @@
     display:inline-flex;align-items:center;justify-content:center;
     height:38px;padding:0 12px;border-radius:12px;
     border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.9);
+    cursor: pointer;
     text-decoration:none;color:inherit;
     font-weight:800;
     transition:.15s ease;
@@ -196,19 +196,12 @@
   </div>
 
   <div class="controls">
-    <div class="search">
-      <span style="font-weight:900;color:var(--muted,#64748b);">⌕</span>
-      <input id="q" type="text"
-             placeholder="Sana / yil / vaqt bo‘yicha qidirish…"
-             data-i18n-placeholder="search_placeholder">
-    </div>
-
     <form method="get" class="chip" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <input type="date" name="from_date" value="{{ from_date }}" style="height:36px;border-radius:10px;border:1px solid rgba(15,23,42,.12);padding:0 10px;background:transparent;">
       <input type="date" name="to_date" value="{{ to_date }}" style="height:36px;border-radius:10px;border:1px solid rgba(15,23,42,.12);padding:0 10px;background:transparent;">
       <input type="hidden" name="per_page" value="{{ per_page|default:10 }}">
-      <button type="submit" class="btn-soft">Фильтр</button>
-      <a href="{% url 'station_table_2_list' %}" class="btn-soft">Сброс</a>
+      <button type="submit" class="btn-soft">Filtr</button>
+      <a href="{% url 'station_table_2_list' %}" class="btn-soft">Tozalash</a>
     </form>
 
     <div class="chip">
