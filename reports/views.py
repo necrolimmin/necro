@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldError
 from django.core.paginator import Paginator
-from django.db.models import Sum, Max
+from django.db.models import Sum, Max, Count, Q
 from django.http import HttpResponseNotAllowed, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -159,9 +159,28 @@ def station_table_1_list(request):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table1_reports")
 
+    from_date_str = (request.GET.get("from_date") or "").strip()
+    to_date_str = (request.GET.get("to_date") or "").strip()
+
+    qs_dates = StationDailyTable1.objects.filter(
+        station_user=request.user,
+        shift="total",
+    )
+
+    if from_date_str:
+        try:
+            qs_dates = qs_dates.filter(date__gte=_parse_date(from_date_str))
+        except Exception:
+            from_date_str = ""
+
+    if to_date_str:
+        try:
+            qs_dates = qs_dates.filter(date__lte=_parse_date(to_date_str))
+        except Exception:
+            to_date_str = ""
+
     qs_dates = (
-        StationDailyTable1.objects
-        .filter(station_user=request.user, shift="total")
+        qs_dates
         .values("date")
         .annotate(last_submitted_at=Max("submitted_at"))
         .order_by("-date")
@@ -190,6 +209,8 @@ def station_table_1_list(request):
         "page_obj": page_obj,
         "paginator": paginator,
         "per_page": per_page,
+        "from_date": from_date_str,
+        "to_date": to_date_str,
     })
 
 
@@ -663,14 +684,31 @@ def station_table_2_list(request):
     if request.user.is_staff or request.user.is_superuser:
         return redirect("admin_table2_reports")
 
-    qs = (
-        StationDailyTable2.objects
-        .filter(station_user=request.user)
-        .order_by("-date")
-    )
+    from_date_str = (request.GET.get("from_date") or "").strip()
+    to_date_str = (request.GET.get("to_date") or "").strip()
+
+    qs = StationDailyTable2.objects.filter(station_user=request.user)
+
+    if from_date_str:
+        try:
+            qs = qs.filter(date__gte=_parse_date(from_date_str))
+        except Exception:
+            from_date_str = ""
+
+    if to_date_str:
+        try:
+            qs = qs.filter(date__lte=_parse_date(to_date_str))
+        except Exception:
+            to_date_str = ""
+
+    qs = qs.order_by("-date")
+
+    per_page = _read_int(request.GET.get("per_page")) or 10
+    if per_page not in (5, 10, 20, 50):
+        per_page = 10
 
     page_number = request.GET.get("page", 1)
-    paginator = Paginator(qs, 10)
+    paginator = Paginator(qs, per_page)
     page_obj = paginator.get_page(page_number)
 
     rows = [{
@@ -687,6 +725,9 @@ def station_table_2_list(request):
         "paginator": paginator,
         "today": dt_date.today().strftime("%Y-%m-%d"),
         "existing_dates": existing_dates,
+        "per_page": per_page,
+        "from_date": from_date_str,
+        "to_date": to_date_str,
     })
 
 
@@ -865,9 +906,28 @@ def admin_table1_reports_json(request):
     all_station_ids = [sid for sid, _ in all_stations]
     total_count = len(all_stations)
 
+    from_date_str = (request.GET.get("from_date") or "").strip()
+    to_date_str = (request.GET.get("to_date") or "").strip()
+
+    qs_dates = StationDailyTable1.objects.filter(
+        shift="total",
+        station_user_id__in=all_station_ids,
+    )
+
+    if from_date_str:
+        try:
+            qs_dates = qs_dates.filter(date__gte=_parse_date(from_date_str))
+        except Exception:
+            from_date_str = ""
+
+    if to_date_str:
+        try:
+            qs_dates = qs_dates.filter(date__lte=_parse_date(to_date_str))
+        except Exception:
+            to_date_str = ""
+
     qs_dates = (
-        StationDailyTable1.objects
-        .filter(shift="total", station_user_id__in=all_station_ids)
+        qs_dates
         .values("date")
         .annotate(
             submitted_count=Count(
@@ -909,6 +969,10 @@ def admin_table1_reports_json(request):
         "ok": True,
         "items": items,
         "today": dt_date.today().strftime("%Y-%m-%d"),
+        "filters": {
+            "from_date": from_date_str,
+            "to_date": to_date_str,
+        },
         "pagination": {
             "page": page_obj.number,
             "per_page": per_page,
@@ -1312,9 +1376,27 @@ def admin_table2_reports_json(request):
     all_station_ids = [sid for sid, _ in all_stations]
     total_count = len(all_stations)
 
+    from_date_str = (request.GET.get("from_date") or "").strip()
+    to_date_str = (request.GET.get("to_date") or "").strip()
+
+    qs_dates = StationDailyTable2.objects.filter(
+        station_user_id__in=all_station_ids
+    )
+
+    if from_date_str:
+        try:
+            qs_dates = qs_dates.filter(date__gte=_parse_date(from_date_str))
+        except Exception:
+            from_date_str = ""
+
+    if to_date_str:
+        try:
+            qs_dates = qs_dates.filter(date__lte=_parse_date(to_date_str))
+        except Exception:
+            to_date_str = ""
+
     qs_dates = (
-        StationDailyTable2.objects
-        .filter(station_user_id__in=all_station_ids)
+        qs_dates
         .values("date")
         .annotate(
             submitted_count=Count(
@@ -1356,6 +1438,10 @@ def admin_table2_reports_json(request):
         "ok": True,
         "items": items,
         "today": dt_date.today().strftime("%Y-%m-%d"),
+        "filters": {
+            "from_date": from_date_str,
+            "to_date": to_date_str,
+        },
         "pagination": {
             "page": page_obj.number,
             "per_page": per_page,
@@ -2150,5 +2236,4 @@ def notifications_send(request):
             "avatar_url": _safe_avatar_url(notif),
         }
     })
-
 

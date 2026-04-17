@@ -84,6 +84,9 @@
   .pager{
     margin-top:14px;
     display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:12px;
+    border-top:1px solid var(--stroke);
+    background:rgba(248,250,252,.75);
   }
   .pagerInfo{
     color:var(--muted);
@@ -92,21 +95,38 @@
   .pagerControls{
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;
   }
-  .pgBtn, .pgSelect{
-    padding:9px 12px;border-radius:14px;
+  .pagePack{
+    display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .pageNums{
+    display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;
+  }
+  .pgBtn, .pgNum, .pgSelect{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:36px;min-width:36px;padding:0 12px;border-radius:12px;
     border:1px solid var(--stroke);
     background:rgba(255,255,255,.55);
     color:var(--text);
     font-weight:950;font-size:12.5px;
     text-decoration:none;
+    cursor:pointer;
+  }
+  .pgNum.active{
+    border-color: rgba(99,102,241,.45);
+    box-shadow: 0 10px 18px rgba(99,102,241,.18);
   }
   html[data-theme="dark"] .pgBtn,
+  html[data-theme="dark"] .pgNum,
   html[data-theme="dark"] .pgSelect{
     background:rgba(255,255,255,.06);
   }
   .pgBtn.disabled{
     opacity:.5;
     pointer-events:none;
+  }
+  html[data-theme="dark"] .pager{
+    background:rgba(15,23,42,.45);
+    border-top-color: rgba(148,163,184,.16);
   }
 
   .modal{
@@ -185,11 +205,13 @@
     </div>
   </div>
 
-  <div class="controls" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;">
-    <input type="date" id="fromDate" class="pgSelect">
-    <input type="date" id="toDate" class="pgSelect">
-    <button type="button" class="pgBtn" id="applyDateFilter">Фильтр</button>
-    <button type="button" class="pgBtn" id="resetDateFilter">Сброс</button>
+  <div class="pagerControls" style="margin-top:14px;justify-content:flex-start;">
+    <div class="pagePack" style="gap:10px;flex-wrap:wrap;">
+      <input type="date" id="fromDate" class="pgSelect">
+      <input type="date" id="toDate" class="pgSelect">
+      <button type="button" class="pgBtn" id="applyDateFilter">Фильтр</button>
+      <button type="button" class="pgBtn" id="resetDateFilter">Сброс</button>
+    </div>
   </div>
 
   <div class="tableWrap">
@@ -212,20 +234,23 @@
   </div>
 
   <div class="pager">
-    <div class="pagerInfo" id="pagerInfo">
-      Yuklanmoqda...
-    </div>
+    <div class="pagerInfo" id="pagerInfo">Yuklanmoqda...</div>
 
     <div class="pagerControls">
-      <select id="perPageSelect" class="pgSelect">
+      <div class="pagePack">
+        <select id="perPageSelect" class="pgSelect">
         <option value="5">5</option>
         <option value="10" selected>10</option>
         <option value="20">20</option>
         <option value="50">50</option>
       </select>
 
-      <button type="button" class="pgBtn" id="prevBtn">‹ Oldingi</button>
-      <button type="button" class="pgBtn" id="nextBtn">Keyingi ›</button>
+        <button type="button" class="pgBtn" id="prevBtn">‹</button>
+
+        <div class="pageNums" id="pageNums"></div>
+
+        <button type="button" class="pgBtn" id="nextBtn">›</button>
+      </div>
     </div>
   </div>
 </div>
@@ -248,12 +273,13 @@
   const tbody = document.getElementById('t1Body');
   const pagerInfo = document.getElementById('pagerInfo');
   const perPageSelect = document.getElementById('perPageSelect');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageNums = document.getElementById('pageNums');
   const fromDateInput = document.getElementById('fromDate');
   const toDateInput = document.getElementById('toDate');
   const applyDateFilterBtn = document.getElementById('applyDateFilter');
   const resetDateFilterBtn = document.getElementById('resetDateFilter');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
 
   const modal = document.getElementById('statusModal');
   const modalTitle = document.getElementById('statusModalTitle');
@@ -357,23 +383,34 @@
   function renderPager(pagination){
     currentPagination = pagination;
 
-    pagerInfo.textContent =
-      `Sahifa ${pagination.page}/${pagination.num_pages} • Jami: ${pagination.total_items}`;
-
-    prevBtn.disabled = !pagination.has_previous;
-    nextBtn.disabled = !pagination.has_next;
+    pagerInfo.textContent = `${pagination.start_index || 0}–${pagination.end_index || 0} / ${pagination.total_items || 0}`;
 
     if (pagination.has_previous) {
       prevBtn.classList.remove('disabled');
+      prevBtn.disabled = false;
     } else {
       prevBtn.classList.add('disabled');
+      prevBtn.disabled = true;
     }
 
     if (pagination.has_next) {
       nextBtn.classList.remove('disabled');
+      nextBtn.disabled = false;
     } else {
       nextBtn.classList.add('disabled');
+      nextBtn.disabled = true;
     }
+
+    const totalPages = Number(pagination.num_pages || 1);
+    const currentPageNum = Number(pagination.page || 1);
+    const start = Math.max(1, currentPageNum - 3);
+    const end = Math.min(totalPages, currentPageNum + 3);
+
+    let html = '';
+    for(let n = start; n <= end; n++){
+      html += `<button type="button" class="pgNum ${n === currentPageNum ? 'active' : ''}" data-page="${n}">${n}</button>`;
+    }
+    pageNums.innerHTML = html;
   }
 
   async function loadTable(page = 1, perPage = 10){
@@ -394,8 +431,10 @@
         page: String(page),
         per_page: String(perPage),
       });
+
       if (currentFromDate) params.set('from_date', currentFromDate);
       if (currentToDate) params.set('to_date', currentToDate);
+
       const url = `{% url 'admin_table1_reports_json' %}?${params.toString()}`;
       const res = await fetch(url, {
         headers: {
@@ -429,6 +468,11 @@
         has_previous: false,
         has_next: false
       });
+
+      if (data.filters) {
+        if (fromDateInput && typeof data.filters.from_date === 'string') fromDateInput.value = data.filters.from_date;
+        if (toDateInput && typeof data.filters.to_date === 'string') toDateInput.value = data.filters.to_date;
+      }
     } catch (err) {
       tbody.innerHTML = `
         <tr>
@@ -490,16 +534,6 @@
     loadTable(1, Number(this.value));
   });
 
-  applyDateFilterBtn?.addEventListener('click', function(){
-    loadTable(1, currentPerPage);
-  });
-
-  resetDateFilterBtn?.addEventListener('click', function(){
-    if (fromDateInput) fromDateInput.value = '';
-    if (toDateInput) toDateInput.value = '';
-    loadTable(1, currentPerPage);
-  });
-
   prevBtn.addEventListener('click', function(){
     if(currentPagination && currentPagination.has_previous){
       loadTable(currentPagination.previous_page_number, currentPerPage);
@@ -510,6 +544,22 @@
     if(currentPagination && currentPagination.has_next){
       loadTable(currentPagination.next_page_number, currentPerPage);
     }
+  });
+
+  applyDateFilterBtn?.addEventListener('click', function(){
+    loadTable(1, currentPerPage);
+  });
+
+  resetDateFilterBtn?.addEventListener('click', function(){
+    if (fromDateInput) fromDateInput.value = '';
+    if (toDateInput) toDateInput.value = '';
+    loadTable(1, currentPerPage);
+  });
+
+  pageNums.addEventListener('click', function(e){
+    const btn = e.target.closest('.pgNum[data-page]');
+    if(!btn) return;
+    loadTable(Number(btn.getAttribute('data-page')), currentPerPage);
   });
 
   document.addEventListener('click', function(e){
