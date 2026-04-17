@@ -99,9 +99,9 @@
   :root{
     --t1a-grid: rgba(15,23,42,.22);
     --t1a-sticky-shadow: rgba(15,23,42,.12);
-    --t1a-col-name: 140px;
-    --t1a-col-shift: 70px;
-    --t1a-col-term: 120px;
+    --t1a-col-name: 120px;
+    --t1a-col-shift: 48px;
+    --t1a-col-term: 90px;
   }
   html[data-theme="dark"]{
     --t1a-grid: rgba(255,255,255,.22);
@@ -111,7 +111,7 @@
   table.t1a-table{
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 2520px; /* was 2360px; +2 колонка */
+    min-width: 100%; /* was 2360px; +2 колонка */
     width: max-content;
     table-layout: fixed;
   }

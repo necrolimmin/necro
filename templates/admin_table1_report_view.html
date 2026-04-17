@@ -41,20 +41,20 @@
     <div class="t1a-scroll">
       <table class="t1a-table" id="t1admin">
         <colgroup>
-          <col style="width:140px;">  {# 1: station #}
-          <col style="width:70px;">   {# 2: shift #}
-          <col style="width:120px;">  {# 3: terminal #}
+          <col style="width:120px;">  {# 1: station #}
+          <col style="width:48px;">   {# 2: shift #}
+          <col style="width:90px;">  {# 3: terminal #}
 
-          <col style="width:74px;">   {# 4: podano #}
-          <col style="width:74px;">   {# 5: kpod #}
+          <col style="width:40px;">   {# 4: podano #}
+          <col style="width:40px;">   {# 5: kpod #}
 
-          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %} {# 6..12 выгрузка #}
-          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %} {# 13..19 под выгрузкой #}
+          {% for _ in "1234567" %}<col style="width:35px;">{% endfor %} {# 6..12 выгрузка #}
+          {% for _ in "1234567" %}<col style="width:35px;">{% endfor %} {# 13..19 под выгрузкой #}
 
-          <col style="width:74px;">   {# 20 уборка #}
+          <col style="width:40px;">   {# 20 уборка #}
 
-          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %} {# 21..27 погрузка (7!) #}
-          {% for _ in "1234567" %}<col style="width:74px;">{% endfor %} {# 28..34 под погрузкой (7!) #}
+          {% for _ in "1234567" %}<col style="width:35px;">{% endfor %} {# 21..27 погрузка (7!) #}
+          {% for _ in "1234567" %}<col style="width:35px;">{% endfor %} {# 28..34 под погрузкой (7!) #}
 
           <col style="width:86px;">   {# 35 доходы #}
         </colgroup>
