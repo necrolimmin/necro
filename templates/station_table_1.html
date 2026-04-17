@@ -87,10 +87,11 @@
     display:inline-flex;align-items:center;justify-content:center;
     height:38px;padding:0 12px;border-radius:12px;
     border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.9);
+    
     text-decoration:none;color:inherit;
     font-weight:800;
     transition:.15s ease;
+    cursor: pointer;
   }
   .btn-soft:hover{transform:translateY(-1px);box-shadow:0 10px 18px rgba(15,23,42,.08)}
   .btn-danger{
@@ -198,12 +199,15 @@
   </div>
 
   <div class="controls">
-    <div class="search">
-      <span class="ico">⌕</span>
-      <input id="q" type="text"
-             placeholder="Sana / yil / vaqt bo‘yicha qidirish…"
-             data-i18n-placeholder="search_placeholder">
-    </div>
+    
+
+    <form method="get" class="chip" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input type="date" name="from_date" value="{{ from_date }}" style="height:36px;border-radius:10px;border:1px solid rgba(15,23,42,.12);padding:0 10px;background:transparent;">
+      <input type="date" name="to_date" value="{{ to_date }}" style="height:36px;border-radius:10px;border:1px solid rgba(15,23,42,.12);padding:0 10px;background:transparent;">
+      <input type="hidden" name="per_page" value="{{ per_page }}">
+      <button type="submit" class="btn-soft">Filtr</button>
+      <a href="{% url 'station_table_1_list' %}" class="btn-soft">Tozalash</a>
+    </form>
 
     <div class="chip">
       <span data-i18n="shown">Ko‘rsatilmoqda</span>:
@@ -282,7 +286,7 @@
         </form>
 
         {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">‹</a>
+          <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">‹</a>
         {% else %}
           <a class="disabled">‹</a>
         {% endif %}
@@ -291,13 +295,13 @@
           {% for n in page_obj.paginator.page_range %}
             {% if n >= page_obj.number|add:-3 and n <= page_obj.number|add:3 %}
               <a class="pnum {% if n == page_obj.number %}active{% endif %}"
-                 href="?page={{ n }}&per_page={{ per_page }}">{{ n }}</a>
+                 href="?page={{ n }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">{{ n }}</a>
             {% endif %}
           {% endfor %}
         </div>
 
         {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">›</a>
+          <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">›</a>
         {% else %}
           <a class="disabled">›</a>
         {% endif %}

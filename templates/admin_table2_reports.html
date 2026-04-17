@@ -161,6 +161,7 @@
     color:var(--text);
     font-weight:950;font-size:12.5px;
     text-decoration:none;
+    cursor:pointer;
   }
   html[data-theme="dark"] .pgBtn,
   html[data-theme="dark"] .pgSelect{
@@ -186,7 +187,15 @@
         “Jo'natgan X/Y” tugmasini bosing — kim jo‘natgan, kim jo‘natmagan ko‘rasiz.
       </div>
     </div>
+    <div class="controls" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;">
+      <input type="date" id="fromDate" class="pgSelect">
+      <input type="date" id="toDate" class="pgSelect">
+      <button type="button" class="pgBtn" id="applyDateFilter">Filtr</button>
+      <button type="button" class="pgBtn" id="resetDateFilter">Tozalash</button>
+    </div>
   </div>
+
+  
 
   <div class="tableWrap">
     <table>
@@ -242,6 +251,10 @@
   const prev = document.getElementById('t2Prev');
   const next = document.getElementById('t2Next');
   const perPageSelect = document.getElementById('t2PerPage');
+  const fromDateInput = document.getElementById('fromDate');
+  const toDateInput = document.getElementById('toDate');
+  const applyDateFilterBtn = document.getElementById('applyDateFilter');
+  const resetDateFilterBtn = document.getElementById('resetDateFilter');
 
   const modal = document.getElementById('t2StatusModal');
   const modalTitle = document.getElementById('t2StatusModalTitle');
@@ -251,6 +264,8 @@
   let currentPage = 1;
   let currentPerPage = 10;
   let currentPagination = null;
+  let currentFromDate = '';
+  let currentToDate = '';
 
   function escapeHtml(value){
     return String(value ?? '')
@@ -371,6 +386,8 @@
   async function loadTable(page = 1, perPage = 10){
     currentPage = page;
     currentPerPage = perPage;
+    currentFromDate = (fromDateInput?.value || '').trim();
+    currentToDate = (toDateInput?.value || '').trim();
 
     tbody.innerHTML = `
       <tr>
@@ -380,7 +397,13 @@
     info.textContent = 'Yuklanmoqda...';
 
     try {
-      const url = `{% url 'admin_table2_reports_json' %}?page=${page}&per_page=${perPage}`;
+      const params = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+      });
+      if (currentFromDate) params.set('from_date', currentFromDate);
+      if (currentToDate) params.set('to_date', currentToDate);
+      const url = `{% url 'admin_table2_reports_json' %}?${params.toString()}`;
       const res = await fetch(url, {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
@@ -472,6 +495,16 @@
 
   perPageSelect.addEventListener('change', function(){
     loadTable(1, Number(this.value));
+  });
+
+  applyDateFilterBtn?.addEventListener('click', function(){
+    loadTable(1, currentPerPage);
+  });
+
+  resetDateFilterBtn?.addEventListener('click', function(){
+    if (fromDateInput) fromDateInput.value = '';
+    if (toDateInput) toDateInput.value = '';
+    loadTable(1, currentPerPage);
   });
 
   prev.addEventListener('click', function(){
