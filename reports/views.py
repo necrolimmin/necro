@@ -371,7 +371,7 @@ def station_table_1_edit(request, date_str):
             # IMPORTANT:
             # "St’dan berishga" should belong only to DAY shift.
             day_data["k_podache_so_st"] = k_val
-            night_data["k_podache_so_st"] = 0
+            night_data["k_podache_so_st"] = k_val
 
             day_data[TERMINAL_NAME_KEY] = term_name
             if has_night:
@@ -1120,9 +1120,11 @@ def admin_table2_status_detail(request, date_str):
 
 
 
-def _apply_itogo_rules(data: dict) -> dict:
+def _apply_itogo_rules(data: dict, status=False) -> dict:
     d = dict(data or {})
-
+    if status:
+        d['k_podache_so_st'] = 0
+    print(d['k_podache_so_st'])
     blocks = [
         ("vygr",      "ft", "cont", "kr", "pv", "proch"),
         ("pod_vygr",  "ft", "cont", "kr", "pv", "proch"),
@@ -1293,7 +1295,7 @@ def admin_table1_report_view(request, date_str):
             day_raw = (day_obj.data or {}) if day_obj else {}
             night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
 
-            day_data = _apply_itogo_rules(day_raw)
+            day_data = _apply_itogo_rules(day_raw,  status=True)
             night_data = _apply_itogo_rules(night_raw) if has_night else {}
 
             total_data = {}
@@ -1807,7 +1809,7 @@ def admin_table1_export_excel(request, date_str):
         night_data_raw = _get_table1_shift_data_for_admin(u, d, "night") if has_night else {}
         total_data_raw = _get_table1_shift_data_for_admin(u, d, "total")
 
-        day_data = _apply_itogo_rules(day_data_raw or {})
+        day_data = _apply_itogo_rules(day_data_raw or {},  status=True)
         night_data = _apply_itogo_rules(night_data_raw or {})
         total_data = _apply_itogo_rules(total_data_raw or {})
 
