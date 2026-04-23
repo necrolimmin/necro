@@ -1294,9 +1294,10 @@ def admin_table1_report_view(request, date_str):
 
             day_raw = (day_obj.data or {}) if day_obj else {}
             night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
-
-            day_data = _apply_itogo_rules(day_raw,  status=True)
             night_data = _apply_itogo_rules(night_raw) if has_night else {}
+   
+            day_data = _apply_itogo_rules(day_raw,  status=has_night )
+            
 
             total_data = {}
             if has_night:
