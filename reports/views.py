@@ -360,15 +360,18 @@ def station_table_1_edit(request, date_str):
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
                     continue
+
                 day_data[key] = _read_int(request.POST.get(f"b{b}__day__{key}"))
+
                 if has_night:
                     night_data[key] = _read_int(request.POST.get(f"b{b}__night__{key}"))
                 else:
                     night_data[key] = 0
 
+            # IMPORTANT:
+            # "St’dan berishga" should belong only to DAY shift.
             day_data["k_podache_so_st"] = k_val
-            if has_night:
-                night_data["k_podache_so_st"] = k_val
+            night_data["k_podache_so_st"] = 0
 
             day_data[TERMINAL_NAME_KEY] = term_name
             if has_night:
@@ -376,11 +379,16 @@ def station_table_1_edit(request, date_str):
 
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
+                    # total must equal only the day value, not day + night
                     total_data[key] = k_val
                     continue
+
                 if key == "income_daily":
                     continue
-                total_data[key] = int(day_data.get(key, 0)) + (int(night_data.get(key, 0)) if has_night else 0)
+
+                total_data[key] = int(day_data.get(key, 0)) + (
+                    int(night_data.get(key, 0)) if has_night else 0
+                )
 
             total_data[TERMINAL_NAME_KEY] = term_name
 
@@ -401,21 +409,34 @@ def station_table_1_edit(request, date_str):
             total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
 
             StationDailyTable1.objects.update_or_create(
-                station_user=request.user, date=d_save, shift="day", block=b,
+                station_user=request.user,
+                date=d_save,
+                shift="day",
+                block=b,
                 defaults={"data": day_data}
             )
+
             if has_night:
                 StationDailyTable1.objects.update_or_create(
-                    station_user=request.user, date=d_save, shift="night", block=b,
+                    station_user=request.user,
+                    date=d_save,
+                    shift="night",
+                    block=b,
                     defaults={"data": night_data}
                 )
             else:
                 StationDailyTable1.objects.filter(
-                    station_user=request.user, date=d_save, shift="night", block=b
+                    station_user=request.user,
+                    date=d_save,
+                    shift="night",
+                    block=b
                 ).delete()
 
             StationDailyTable1.objects.update_or_create(
-                station_user=request.user, date=d_save, shift="total", block=b,
+                station_user=request.user,
+                date=d_save,
+                shift="total",
+                block=b,
                 defaults={"data": total_data}
             )
 
