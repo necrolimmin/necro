@@ -178,9 +178,8 @@ def admin_table1_report_excel_view(request, date_str):
 
             day_raw = (day_obj.data or {}) if day_obj else {}
             night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
-
             day_data = _apply_itogo_rules(day_raw)
-            night_data = _apply_itogo_rules(night_raw) if has_night else {}
+            night_data = _apply_itogo_rules(night_raw, status=True) if has_night else {}
 
             total_data = {k: 0 for k in FIELDS}
             _sum_into(total_data, day_data)

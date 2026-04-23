@@ -360,15 +360,18 @@ def station_table_1_edit(request, date_str):
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
                     continue
+
                 day_data[key] = _read_int(request.POST.get(f"b{b}__day__{key}"))
+
                 if has_night:
                     night_data[key] = _read_int(request.POST.get(f"b{b}__night__{key}"))
                 else:
                     night_data[key] = 0
 
+            # IMPORTANT:
+            # "St’dan berishga" should belong only to DAY shift.
             day_data["k_podache_so_st"] = k_val
-            if has_night:
-                night_data["k_podache_so_st"] = k_val
+            night_data["k_podache_so_st"] = k_val
 
             day_data[TERMINAL_NAME_KEY] = term_name
             if has_night:
@@ -376,11 +379,16 @@ def station_table_1_edit(request, date_str):
 
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
+                    # total must equal only the day value, not day + night
                     total_data[key] = k_val
                     continue
+
                 if key == "income_daily":
                     continue
-                total_data[key] = int(day_data.get(key, 0)) + (int(night_data.get(key, 0)) if has_night else 0)
+
+                total_data[key] = int(day_data.get(key, 0)) + (
+                    int(night_data.get(key, 0)) if has_night else 0
+                )
 
             total_data[TERMINAL_NAME_KEY] = term_name
 
@@ -401,21 +409,34 @@ def station_table_1_edit(request, date_str):
             total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
 
             StationDailyTable1.objects.update_or_create(
-                station_user=request.user, date=d_save, shift="day", block=b,
+                station_user=request.user,
+                date=d_save,
+                shift="day",
+                block=b,
                 defaults={"data": day_data}
             )
+
             if has_night:
                 StationDailyTable1.objects.update_or_create(
-                    station_user=request.user, date=d_save, shift="night", block=b,
+                    station_user=request.user,
+                    date=d_save,
+                    shift="night",
+                    block=b,
                     defaults={"data": night_data}
                 )
             else:
                 StationDailyTable1.objects.filter(
-                    station_user=request.user, date=d_save, shift="night", block=b
+                    station_user=request.user,
+                    date=d_save,
+                    shift="night",
+                    block=b
                 ).delete()
 
             StationDailyTable1.objects.update_or_create(
-                station_user=request.user, date=d_save, shift="total", block=b,
+                station_user=request.user,
+                date=d_save,
+                shift="total",
+                block=b,
                 defaults={"data": total_data}
             )
 
@@ -1099,9 +1120,11 @@ def admin_table2_status_detail(request, date_str):
 
 
 
-def _apply_itogo_rules(data: dict) -> dict:
+def _apply_itogo_rules(data: dict, status=False) -> dict:
     d = dict(data or {})
-
+    if status:
+        d['k_podache_so_st'] = 0
+    print(d['k_podache_so_st'])
     blocks = [
         ("vygr",      "ft", "cont", "kr", "pv", "proch"),
         ("pod_vygr",  "ft", "cont", "kr", "pv", "proch"),
@@ -1272,7 +1295,7 @@ def admin_table1_report_view(request, date_str):
             day_raw = (day_obj.data or {}) if day_obj else {}
             night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
 
-            day_data = _apply_itogo_rules(day_raw)
+            day_data = _apply_itogo_rules(day_raw,  status=True)
             night_data = _apply_itogo_rules(night_raw) if has_night else {}
 
             total_data = {}
@@ -1786,7 +1809,7 @@ def admin_table1_export_excel(request, date_str):
         night_data_raw = _get_table1_shift_data_for_admin(u, d, "night") if has_night else {}
         total_data_raw = _get_table1_shift_data_for_admin(u, d, "total")
 
-        day_data = _apply_itogo_rules(day_data_raw or {})
+        day_data = _apply_itogo_rules(day_data_raw or {},  status=True)
         night_data = _apply_itogo_rules(night_data_raw or {})
         total_data = _apply_itogo_rules(total_data_raw or {})
 
