@@ -767,8 +767,10 @@
 
     incomeInp.placeholder = incomeAuto;
 
-    // ✅ agar user manual kiritmagan bo'lsa — doim auto qiymatni yozamiz
-    if (incomeInp.dataset.manual !== "1"){
+    // ✅ Existing reports protection:
+    // If saved total income exists but day/night income are empty, do NOT overwrite it with 0.
+    // For new input or real day/night income changes, keep auto calculation working.
+    if (incomeInp.dataset.manual !== "1" && (incomeAuto > 0 || incomeInp.value.trim() === "")){
       incomeInp.value = incomeAuto;
     }
   }
@@ -875,7 +877,10 @@
 
         incomeInp.placeholder = incomeAuto;
 
-        if (incomeInp.dataset.manual !== '1'){
+        // Existing reports protection:
+        // If saved total income exists but day/night income are empty, do NOT overwrite it with 0.
+        // For cloned/new rows or real day/night income changes, keep auto calculation working.
+        if (incomeInp.dataset.manual !== '1' && (incomeAuto > 0 || incomeInp.value.trim() === '')){
           incomeInp.value = incomeAuto;
         }
       }
@@ -1171,7 +1176,9 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
       "pod_pogr_ft","pod_pogr_cont","pod_pogr_kr","pod_pogr_pv","pod_pogr_proch","pod_pogr_itogo","pod_pogr_itogo_kon",
 
       // Others
-      "podano_lc","uborka","spc_lc","spc_station","income_daily",
+      // income_daily is intentionally excluded here. It is handled separately so
+      // old saved reports are not overwritten with 0 when day/night income are empty.
+      "podano_lc","uborka","spc_lc","spc_station",
     ];
 
     function q(table, selector){ return table.querySelector(selector); }
@@ -1322,7 +1329,11 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
       totalRow.querySelectorAll("input[data-total-key]").forEach((tout) => {
         const key = tout.getAttribute("data-total-key");
 
-        const d = day ? num(day.querySelector(`input[data-key="${key}"]`)?.value) : 0;
+        // Do not recalculate sutkalik daromad here. It is protected separately
+        // to avoid overwriting saved total income with 0 on old reports.
+        if (key === "income_daily") return;
+
+        const d = day ? num(day.querySelector(`input[data-key=""]`)?.value) : 0;
         const n = night ? num(night.querySelector(`input[data-key="${key}"]`)?.value) : 0;
 
         setVal(tout, d + n);
