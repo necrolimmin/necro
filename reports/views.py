@@ -268,13 +268,28 @@ def station_table_1_edit(request, date_str):
 
     def get_obj(shift: str, block: int):
         return StationDailyTable1.objects.filter(
-            station_user=request.user, date=d_url, shift=shift, block=block
+            station_user=request.user,
+            date=d_url,
+            shift=shift,
+            block=block,
         ).first()
 
-    blocks = _terminal_blocks_for_station_date(request.user, d_url, force_new=force_new)
+    blocks = _terminal_blocks_for_station_date(
+        request.user,
+        d_url,
+        force_new=force_new,
+    )
 
     if force_new:
-        blocks_ctx = [{"b": b, "day_obj": None, "night_obj": None, "total_obj": None} for b in blocks]
+        blocks_ctx = [
+            {
+                "b": b,
+                "day_obj": None,
+                "night_obj": None,
+                "total_obj": None,
+            }
+            for b in blocks
+        ]
         is_new = True
     else:
         blocks_ctx = []
@@ -295,7 +310,7 @@ def station_table_1_edit(request, date_str):
                 "total_obj": total_obj,
             })
 
-        is_new = (not any_total)
+        is_new = not any_total
 
     if request.method == "POST":
         posted_date_str = (request.POST.get("date") or "").strip()
@@ -303,9 +318,15 @@ def station_table_1_edit(request, date_str):
         d_save = d_form if is_new else d_url
 
         if is_new and StationDailyTable1.objects.filter(
-            station_user=request.user, date=d_save, shift="total"
+            station_user=request.user,
+            date=d_save,
+            shift="total",
         ).exists():
-            error = f"Отчёт за {d_save.strftime('%d.%m.%Y')} уже существует. Выберите другую дату."
+            error = (
+                f"Отчёт за {d_save.strftime('%d.%m.%Y')} уже существует. "
+                f"Выберите другую дату."
+            )
+
             return render(request, "station_table_1_create.html", {
                 "date": d_save,
                 "blocks_ctx": blocks_ctx,
@@ -318,19 +339,25 @@ def station_table_1_edit(request, date_str):
             })
 
         posted_blocks = set()
+
         for k in request.POST.keys():
             if not k.startswith("b"):
                 continue
+
             try:
                 head = k.split("__", 1)[0]
+
                 if head.startswith("b"):
                     n = int(head[1:])
+
                     if n > 0:
                         posted_blocks.add(n)
+
             except Exception:
                 continue
 
         blocks_to_save = sorted(posted_blocks)
+
         if not blocks_to_save:
             blocks_to_save = [1]
 
@@ -340,7 +367,9 @@ def station_table_1_edit(request, date_str):
             .values_list("block", flat=True)
             .distinct()
         )
+
         blocks_to_delete = existing_blocks - set(blocks_to_save)
+
         if blocks_to_delete:
             StationDailyTable1.objects.filter(
                 station_user=request.user,
@@ -353,67 +382,116 @@ def station_table_1_edit(request, date_str):
             night_data = {}
             total_data = {}
 
-            term_name = (request.POST.get(f"b{b}__terminal__name") or "").strip()
+            term_name = (
+                request.POST.get(f"b{b}__terminal__name") or ""
+            ).strip()
+
             k_key = f"b{b}__common__k_podache_so_st"
             k_val = _read_int(request.POST.get(k_key))
 
+            # Read DAY and NIGHT data from POST
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
                     continue
 
-                day_data[key] = _read_int(request.POST.get(f"b{b}__day__{key}"))
+                day_data[key] = _read_int(
+                    request.POST.get(f"b{b}__day__{key}")
+                )
 
                 if has_night:
-                    night_data[key] = _read_int(request.POST.get(f"b{b}__night__{key}"))
+                    night_data[key] = _read_int(
+                        request.POST.get(f"b{b}__night__{key}")
+                    )
                 else:
                     night_data[key] = 0
 
             # IMPORTANT:
-            # "St’dan berishga" should belong only to DAY shift.
+            # "St’dan berishga" belongs only to DAY shift.
+            # Night must be 0.
             day_data["k_podache_so_st"] = k_val
-            night_data["k_podache_so_st"] = k_val
+            night_data["k_podache_so_st"] = 0
 
             day_data[TERMINAL_NAME_KEY] = term_name
+
             if has_night:
                 night_data[TERMINAL_NAME_KEY] = term_name
 
+            # Build TOTAL row from DAY + NIGHT
             for key, _label in TABLE1_FIELDS:
                 if key == "k_podache_so_st":
-                    # total must equal only the day value, not day + night
+                    # total must equal only the day/common value,
+                    # not day + night
                     total_data[key] = k_val
                     continue
 
                 if key == "income_daily":
                     continue
 
-                total_data[key] = int(day_data.get(key, 0)) + (
-                    int(night_data.get(key, 0)) if has_night else 0
-                )
+                day_value = int(day_data.get(key, 0) or 0)
+                night_value = int(night_data.get(key, 0) or 0) if has_night else 0
+
+                total_data[key] = day_value + night_value
 
             total_data[TERMINAL_NAME_KEY] = term_name
 
+            # Allow manual total overrides for normal fields,
+            # except k_podache_so_st and income_daily.
             for key, _label in TABLE1_FIELDS:
                 if key in ("k_podache_so_st", "income_daily"):
                     continue
-                manual_raw = (request.POST.get(f"b{b}__total__{key}") or "").strip()
+
+                manual_raw = (
+                    request.POST.get(f"b{b}__total__{key}") or ""
+                ).strip()
+
                 if manual_raw != "":
                     total_data[key] = _read_int(manual_raw)
 
-            income_auto = 0
-            for key, _label in TABLE1_FIELDS:
-                if key in ("income_daily", "k_podache_so_st"):
-                    continue
-                income_auto += int(total_data.get(key, 0) or 0)
+            # ==========================================================
+            # SAFE BACKEND LOGIC FOR "sutkalik daromad" / income_daily
+            # ==========================================================
+            #
+            # Problem before:
+            # JS could send readonly total income_daily as "0".
+            # Backend treated that "0" as a real manual value and saved it.
+            #
+            # New rule:
+            # 1. If day/night income exists, use day + night.
+            # 2. Else if total income from POST is positive, use it.
+            # 3. Else calculate income automatically from total_data.
+            #
+            # This prevents old reports from becoming 0 after opening/saving.
 
-            income_manual_raw = (request.POST.get(f"b{b}__total__income_daily") or "").strip()
-            total_data["income_daily"] = _read_int(income_manual_raw) if income_manual_raw != "" else income_auto
+            # ==========================================================
+            # SAFE BACKEND LOGIC FOR "sutkalik daromad" / income_daily
+            # ==========================================================
+            # Daromad hech qachon boshqa ustunlardan hisoblanmasin.
+            # Faqat user kiritgan day/night income_daily asosida saqlanadi.
+            # Agar total income eski hisobotdan kelgan bo‘lsa va day/night bo‘sh bo‘lsa,
+            # eski total qiymat saqlab qolinadi.
+            # Agar hammasi bo‘sh bo‘lsa — 0 saqlanadi.
+
+            income_day_raw = (
+            request.POST.get(f"b{b}__day__income_daily") or ""
+            ).strip()
+
+            income_night_raw = (
+                request.POST.get(f"b{b}__night__income_daily") or ""
+            ).strip()
+
+            day_income = _read_int(income_day_raw)
+            night_income = _read_int(income_night_raw) if has_night else 0
+
+            total_data["income_daily"] = day_income + night_income
 
             StationDailyTable1.objects.update_or_create(
                 station_user=request.user,
                 date=d_save,
                 shift="day",
                 block=b,
-                defaults={"data": day_data}
+                defaults={
+                    "data": day_data,
+                },
             )
 
             if has_night:
@@ -422,14 +500,16 @@ def station_table_1_edit(request, date_str):
                     date=d_save,
                     shift="night",
                     block=b,
-                    defaults={"data": night_data}
+                    defaults={
+                        "data": night_data,
+                    },
                 )
             else:
                 StationDailyTable1.objects.filter(
                     station_user=request.user,
                     date=d_save,
                     shift="night",
-                    block=b
+                    block=b,
                 ).delete()
 
             StationDailyTable1.objects.update_or_create(
@@ -437,11 +517,14 @@ def station_table_1_edit(request, date_str):
                 date=d_save,
                 shift="total",
                 block=b,
-                defaults={"data": total_data}
+                defaults={
+                    "data": total_data,
+                },
             )
 
         if request.POST.get("submit_report") == "1":
             now = timezone.now()
+
             StationDailyTable1.objects.filter(
                 station_user=request.user,
                 date=d_save,
