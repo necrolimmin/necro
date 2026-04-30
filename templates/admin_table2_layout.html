@@ -5,306 +5,203 @@
 
 {% block content %}
 <style>
-  /* =========================
-     Scope: ONLY this page
-     ========================= */
   .t2layout{
-    --r14:14px;
-    --r18:18px;
-    --r20:20px;
-    --line: var(--stroke, rgba(15,23,42,.12));
-    --soft: rgba(255,255,255,.55);
+    --line: rgba(15,23,42,.12);
+    --text: var(--text, #0f172a);
+    --muted: var(--muted, #64748b);
+    padding: 2px;
   }
 
   .t2layout .panel{
-    background: var(--surface, rgba(255,255,255,.78));
+    background: var(--surface, rgba(255,255,255,.82));
     border: 1px solid var(--line);
-    border-radius: 20px;
-    box-shadow: var(--shadow, 0 18px 60px rgba(15,23,42,.12));
-    padding: 14px;
-    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    box-shadow: 0 10px 35px rgba(15,23,42,.08);
+    padding: 12px;
   }
 
   .t2layout .hdr{
     display:flex;
-    align-items:flex-start;
     justify-content:space-between;
+    align-items:flex-start;
     gap:12px;
-    flex-wrap:wrap;
+    margin-bottom:10px;
   }
 
   .t2layout .hdr h2{
     margin:0;
-    font-size:19px;
-    font-weight:850;
+    font-size:18px;
+    font-weight:800;
+    color:var(--text);
     letter-spacing:-.02em;
-    color:var(--text, #0f172a);
   }
 
   .t2layout .sub{
     margin-top:6px;
-    color:var(--muted,#64748b);
-    font-size:13px;
-    line-height:1.45;
+    font-size:12px;
+    color:var(--muted);
   }
 
   .t2layout .btnBack{
     display:inline-flex;
     align-items:center;
-    gap:8px;
-    padding:10px 14px;
+    gap:7px;
+    padding:8px 14px;
     border-radius:999px;
     border:1px solid var(--line);
-    background: var(--soft);
-    color:var(--text,#0f172a);
+    background:rgba(255,255,255,.65);
+    color:var(--text);
+    font-weight:800;
     text-decoration:none;
-    font-weight:750;
     white-space:nowrap;
-    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
   }
 
   html[data-theme="dark"] .t2layout .btnBack{
     background:rgba(255,255,255,.06);
   }
 
-  .t2layout .btnBack:hover{
-    transform:translateY(-1px);
-    box-shadow:0 16px 44px rgba(15,23,42,.10);
-    filter:brightness(1.02);
-  }
-
-  /* =========================
-     Info cards
-     ========================= */
-  .t2layout .metaGrid{
-    display:grid;
-    grid-template-columns: repeat(3, minmax(160px, 1fr));
-    gap:10px;
-    margin-top:14px;
-  }
-
-  .t2layout .metaCard{
+  .t2layout .tableBox{
     border:1px solid var(--line);
     border-radius:16px;
-    background:rgba(255,255,255,.36);
-    padding:11px 12px;
-  }
-
-  html[data-theme="dark"] .t2layout .metaCard{
-    background:rgba(255,255,255,.05);
-  }
-
-  .t2layout .metaLabel{
-    color:var(--muted,#64748b);
-    font-size:12px;
-    font-weight:700;
-  }
-
-  .t2layout .metaValue{
-    margin-top:4px;
-    color:var(--text,#0f172a);
-    font-size:14px;
-    font-weight:850;
-  }
-
-  /* =========================
-     Table container
-     ========================= */
-  .t2layout .xwrap{
-    margin-top:12px;
-    border:1px solid var(--line);
-    border-radius:18px;
     overflow:auto;
-    background:rgba(255,255,255,.18);
-    position:relative;
+    background:rgba(255,255,255,.42);
   }
 
-  html[data-theme="dark"] .t2layout .xwrap{
+  html[data-theme="dark"] .t2layout .tableBox{
     background:rgba(255,255,255,.04);
   }
 
-  .t2layout .xhead{
-    padding:12px 14px;
-    border-bottom:1px solid var(--line);
-    background:rgba(255,255,255,.32);
-    color:var(--text,#0f172a);
-    position:sticky;
-    left:0;
-    z-index:35;
+  .t2layout .tableTitle{
+    padding:12px 12px 8px 12px;
+    border-bottom:1px solid rgba(15,23,42,.08);
   }
 
-  html[data-theme="dark"] .t2layout .xhead{
-    background:rgba(255,255,255,.06);
-  }
-
-  .t2layout .xhead .title{
+  .t2layout .tableTitle .main{
+    font-size:15px;
     font-weight:850;
+    color:var(--text);
   }
 
-  .t2layout .xhead .date{
-    color:var(--muted,#64748b);
-    font-size:12.5px;
-    margin-top:4px;
+  .t2layout .tableTitle .date{
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted);
   }
 
-  /* =========================
-     Table
-     ========================= */
   .t2layout table.t2tbl{
-    border-collapse:separate;
-    border-spacing:0;
-    width:max-content;
-    min-width:1040px;
+    border-collapse:collapse;
     table-layout:fixed;
+    width:max-content;
+    min-width:100%;
   }
 
   .t2layout .t2tbl th,
   .t2layout .t2tbl td{
-    border-right:1px solid rgba(15,23,42,.10);
-    border-bottom:1px solid rgba(15,23,42,.10);
-    padding:8px 8px;
-    font-size:12px;
-    line-height:1.2;
+    border:1px solid rgba(15,23,42,.10);
+    padding:8px 9px;
+    height:30px;
+    font-size:11px;
+    line-height:1.15;
     text-align:center;
     vertical-align:middle;
-    color:var(--text,#0f172a);
-    background:transparent;
+    color:var(--text);
+    background:rgba(255,255,255,.45);
     white-space:nowrap;
+    font-weight:750;
   }
 
   html[data-theme="dark"] .t2layout .t2tbl th,
   html[data-theme="dark"] .t2layout .t2tbl td{
-    border-right:1px solid rgba(255,255,255,.12);
-    border-bottom:1px solid rgba(255,255,255,.12);
+    border-color:rgba(255,255,255,.12);
+    background:rgba(255,255,255,.035);
   }
 
   .t2layout .t2tbl thead th{
     position:sticky;
     top:0;
-    z-index:25;
-    background: var(--surface, rgba(255,255,255,.92));
+    z-index:5;
+    background:rgba(248,250,252,.96);
     font-weight:850;
   }
 
   html[data-theme="dark"] .t2layout .t2tbl thead th{
-    background:rgba(15,23,42,.96);
+    background:rgba(15,23,42,.98);
   }
 
-  .t2layout .colMetric{
-    width:250px;
-    min-width:250px;
-    text-align:left;
+  .t2layout .metricCol{
+    width:230px;
+    min-width:230px;
     font-weight:850;
   }
 
-  .t2layout .colSub{
+  .t2layout .subCol{
     width:74px;
     min-width:74px;
-    text-align:center;
     font-weight:850;
-    color:var(--muted,#64748b);
   }
 
   .t2layout .groupCol{
-    width:118px;
-    min-width:118px;
+    width:100px;
+    min-width:100px;
   }
 
-  .t2layout .stickyA{
-    position:sticky;
-    left:0;
-    z-index:18;
-    background:var(--surface, rgba(255,255,255,.94)) !important;
+  .t2layout .metricCell{
+    font-weight:850;
+    background:rgba(248,250,252,.70) !important;
   }
 
-  .t2layout .stickyB{
-    position:sticky;
-    left:250px;
-    z-index:18;
-    background:var(--surface, rgba(255,255,255,.94)) !important;
+  .t2layout .subCell{
+    font-weight:850;
+    background:rgba(248,250,252,.55) !important;
   }
 
-  .t2layout thead .stickyA,
-  .t2layout thead .stickyB{
-    z-index:40;
-  }
-
-  html[data-theme="dark"] .t2layout .stickyA,
-  html[data-theme="dark"] .t2layout .stickyB{
-    background:rgba(15,23,42,.96) !important;
-  }
-
-  .t2layout .t2tbl tbody tr:nth-child(even) td{
-    background: rgba(255,255,255,.12);
-  }
-
-  html[data-theme="dark"] .t2layout .t2tbl tbody tr:nth-child(even) td{
-    background: rgba(255,255,255,.04);
-  }
-
-  .t2layout .t2tbl tbody tr:hover td{
-    background: rgba(79,70,229,.06);
-  }
-
-  html[data-theme="dark"] .t2layout .t2tbl tbody tr:hover td{
-    background: rgba(99,102,241,.10);
-  }
-
-  .t2layout .group td{
-    background:rgba(15,23,42,.025);
-    font-weight:800;
-  }
-
-  html[data-theme="dark"] .t2layout .group td{
-    background:rgba(255,255,255,.05);
-  }
-
-  .t2layout .roadHead,
-  .t2layout .roadCell{
-    background:rgba(245,158,11,.12) !important;
-    font-weight:900 !important;
-  }
-
-  html[data-theme="dark"] .t2layout .roadHead,
-  html[data-theme="dark"] .t2layout .roadCell{
-    background:rgba(245,158,11,.18) !important;
-  }
-
-  .t2layout .totalRow td{
-    background:rgba(34,197,94,.10) !important;
-    font-weight:900;
-  }
-
-  html[data-theme="dark"] .t2layout .totalRow td{
-    background:rgba(34,197,94,.16) !important;
+  html[data-theme="dark"] .t2layout .metricCell,
+  html[data-theme="dark"] .t2layout .subCell{
+    background:rgba(255,255,255,.045) !important;
   }
 
   .t2layout .num{
     font-variant-numeric: tabular-nums;
+    font-weight:850;
   }
 
-  @media (max-width: 760px){
-    .t2layout .metaGrid{
-      grid-template-columns:1fr;
+  .t2layout .roadHead,
+  .t2layout .roadCell{
+    font-weight:900 !important;
+  }
+
+  .t2layout tbody tr:nth-child(odd) td{
+    background:rgba(248,250,252,.55);
+  }
+
+  .t2layout tbody tr:nth-child(even) td{
+    background:rgba(255,255,255,.58);
+  }
+
+  html[data-theme="dark"] .t2layout tbody tr:nth-child(odd) td,
+  html[data-theme="dark"] .t2layout tbody tr:nth-child(even) td{
+    background:rgba(255,255,255,.035);
+  }
+
+  @media (max-width: 900px){
+    .t2layout .hdr{
+      flex-direction:column;
     }
 
-    .t2layout .hdr h2{
-      font-size:16px;
+    .t2layout .metricCol{
+      width:200px;
+      min-width:200px;
+    }
+
+    .t2layout .groupCol{
+      width:92px;
+      min-width:92px;
     }
 
     .t2layout .t2tbl th,
     .t2layout .t2tbl td{
-      font-size:11.5px;
       padding:7px 7px;
-    }
-
-    .t2layout .colMetric{
-      width:220px;
-      min-width:220px;
-    }
-
-    .t2layout .stickyB{
-      left:220px;
+      font-size:10.5px;
     }
   }
 </style>
@@ -314,48 +211,33 @@
     <div class="hdr">
       <div>
         <h2>
-          <span data-i18n="t2_layout_title">Макет</span> — {{ date|date:"d.m.Y" }}
+          <span data-i18n="t2_layout_title">Maket</span> — {{ date|date:"d.m.Y" }}
         </h2>
-        <div class="sub">
-          <span data-i18n="t2_layout_sub">Работа с контейнерами по группам</span>
+        <div class="sub" data-i18n="t2_layout_sub">
+          Konteynerlar bo‘yicha ishlar (operativ ma’lumotlar)
         </div>
       </div>
 
       <a class="btnBack" href="{% url 'admin_table2_reports' %}">
         <span aria-hidden="true">←</span>
-        <span data-i18n="back">Назад</span>
+        <span data-i18n="back">Orqaga</span>
       </a>
     </div>
 
-    <div class="metaGrid">
-      <div class="metaCard">
-        <div class="metaLabel" data-i18n="meta_date">Дата отчёта</div>
-        <div class="metaValue">{{ date|date:"d.m.Y" }}</div>
-      </div>
-
-      <div class="metaCard">
-        <div class="metaLabel" data-i18n="meta_grouping">Группировка</div>
-        <div class="metaValue" data-i18n="meta_grouping_value">6 групп + дорога</div>
-      </div>
-
-      <div class="metaCard">
-        <div class="metaLabel" data-i18n="meta_source">Источник</div>
-        <div class="metaValue" data-i18n="meta_source_value">Таблица 2</div>
-      </div>
-    </div>
-
-    <div class="xwrap">
-      <div class="xhead">
-        <div class="title" data-i18n="t2_layout_header">Работа с контейнерами по группам</div>
+    <div class="tableBox">
+      <div class="tableTitle">
+        <div class="main" data-i18n="t2_layout_header">
+          Konteynerlar bo‘yicha ishlar (operativ ma’lumotlar)
+        </div>
         <div class="date">
-          <span data-i18n="date">Дата</span>: {{ date|date:"d.m.Y" }}
+          <span data-i18n="date">Sana</span>: {{ date|date:"d.m.Y" }}
         </div>
       </div>
 
       <table class="t2tbl">
         <colgroup>
-          <col class="colMetric">
-          <col class="colSub">
+          <col class="metricCol">
+          <col class="subCol">
           {% for c in cols %}
             <col class="groupCol">
           {% endfor %}
@@ -363,8 +245,8 @@
 
         <thead>
           <tr>
-            <th class="colMetric stickyA" data-i18n="col_metrics">Показатели</th>
-            <th class="colSub stickyB"></th>
+            <th class="metricCol" data-i18n="col_metrics">Ko‘rsatkichlar</th>
+            <th class="subCol"></th>
             {% for c in cols %}
               <th class="{% if c.key == 'road' %}roadHead{% endif %}">
                 {{ c.title }}
@@ -374,166 +256,156 @@
         </thead>
 
         <tbody>
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_workpark">Рабочий парк</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_workpark">Ishchi park</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"work_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"work_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"work_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"work_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_load">Погрузка контейнеров</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_load">Konteynerlarni yuklash</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"pogr_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"pogr_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"pogr_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"pogr_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_unload">Выгрузка контейнеров</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_unload">Konteynerlarni tushirish</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"vygr_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"vygr_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"vygr_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"vygr_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td class="colMetric stickyA" data-i18n="row_tuk">Выгрузка ТУК</td>
-            <td class="colSub stickyB"></td>
+          <tr>
+            <td class="metricCell" data-i18n="row_tuk">TUK tushirish</td>
+            <td class="subCell"></td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"vygr_tuk"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"vygr_tuk"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_site">Парк на площадке</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_site">Maydondagi park</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"site_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"site_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"site_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"site_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_to_export">К вывозу</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_to_export">Olib chiqishga</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"to_export_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"to_export_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"to_export_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"to_export_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_ready">Готовые к отправлению</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_ready">Jo‘natishga tayyor</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"ready_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"ready_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"ready_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"ready_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_empty">Порожние</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_empty">Bo‘sh</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"empty_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"empty_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"empty_kr"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"empty_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
 
-          <tr class="group">
-            <td rowspan="2" class="colMetric stickyA" data-i18n="row_sort">Под сортировку</td>
-            <td class="colSub stickyB" data-i18n="sub_cont">Конт</td>
+          <tr>
+            <td rowspan="2" class="metricCell" data-i18n="row_sort">Saralashga</td>
+            <td class="subCell" data-i18n="sub_cont">Kont</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"sort_cont"|default:0 }}</b>
+                {{ buckets|get_item:c.key|get_item:"sort_cont"|default:0 }}
               </td>
             {% endfor %}
           </tr>
           <tr>
-            <td class="colSub stickyB" data-i18n="sub_kr">КР</td>
+            <td class="subCell" data-i18n="sub_kr">KR</td>
             {% for c in cols %}
               <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                <b>{{ buckets|get_item:c.key|get_item:"sort_kr"|default:0 }}</b>
-              </td>
-            {% endfor %}
-          </tr>
-
-          <tr class="totalRow">
-            <td class="colMetric stickyA" data-i18n="row_total_hint">Итого по колонкам</td>
-            <td class="colSub stickyB">—</td>
-            {% for c in cols %}
-              <td class="{% if c.key == 'road' %}roadCell{% endif %}">
-                <span data-i18n="total_ready">Готово</span>
+                {{ buckets|get_item:c.key|get_item:"sort_kr"|default:0 }}
               </td>
             {% endfor %}
           </tr>
@@ -544,24 +416,14 @@
 </div>
 
 <script>
-/* =========================
-   Page i18n
-   ========================= */
 (function(){
   const dict = {
     uz: {
       t2_layout_title: "Maket",
-      t2_layout_sub: "Konteynerlar bo‘yicha ishlar guruhlar kesimida",
-      t2_layout_header: "Konteynerlar bo‘yicha ishlar guruhlar kesimida",
+      t2_layout_sub: "Konteynerlar bo‘yicha ishlar (operativ ma’lumotlar)",
+      t2_layout_header: "Konteynerlar bo‘yicha ishlar (operativ ma’lumotlar)",
       back: "Orqaga",
       date: "Sana",
-
-      meta_date: "Hisobot sanasi",
-      meta_grouping: "Guruhlash",
-      meta_grouping_value: "6 guruh + yo‘l bo‘yicha jami",
-      meta_source: "Manba",
-      meta_source_value: "2-jadval",
-
       col_metrics: "Ko‘rsatkichlar",
 
       row_workpark: "Ishchi park",
@@ -573,25 +435,16 @@
       row_ready: "Jo‘natishga tayyor",
       row_empty: "Bo‘sh",
       row_sort: "Saralashga",
-      row_total_hint: "Ustunlar bo‘yicha jami",
 
       sub_cont: "Kont",
       sub_kr: "KR",
-      total_ready: "Hisoblandi",
     },
     ru: {
       t2_layout_title: "Макет",
-      t2_layout_sub: "Работа с контейнерами по группам",
-      t2_layout_header: "Работа с контейнерами по группам",
+      t2_layout_sub: "Работа с контейнерами (по оперативным данным)",
+      t2_layout_header: "Работа с контейнерами (по оперативным данным)",
       back: "Назад",
       date: "Дата",
-
-      meta_date: "Дата отчёта",
-      meta_grouping: "Группировка",
-      meta_grouping_value: "6 групп + дорога",
-      meta_source: "Источник",
-      meta_source_value: "Таблица 2",
-
       col_metrics: "Показатели",
 
       row_workpark: "Рабочий парк",
@@ -603,11 +456,9 @@
       row_ready: "Готовые к отправлению",
       row_empty: "Порожние",
       row_sort: "Под сортировку",
-      row_total_hint: "Итого по колонкам",
 
       sub_cont: "Конт",
       sub_kr: "КР",
-      total_ready: "Рассчитано",
     }
   };
 
@@ -618,11 +469,10 @@
 
   function applyLang(lang){
     const t = dict[lang] || dict.uz;
-
     document.querySelectorAll('[data-i18n]').forEach(el => {
-      const k = el.getAttribute('data-i18n');
-      if(t[k] != null){
-        el.textContent = t[k];
+      const key = el.getAttribute('data-i18n');
+      if(t[key] !== undefined){
+        el.textContent = t[key];
       }
     });
   }
