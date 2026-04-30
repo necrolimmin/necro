@@ -1693,6 +1693,124 @@ def admin_table2_graph(request, date_str):
     })
 
 
+
+# =========================
+# ADMIN: TABLE 2 LAYOUT GROUPS
+# =========================
+
+DISPLAY_GROUPS = [
+    {
+        "title": "1",
+        "stations": [
+            "Chuqursoy LM",
+            "Toshkent LM",
+            "Sergeli LM",
+            "Jaloir LM",
+            "Ohangaron LM",
+            "Nazarbek LM",
+            "Urtavul LM",
+            "Sirdaryo LM",
+            "Jizzax LM",
+            "Ablik LM",
+            "To'ytepa",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "2",
+        "stations": [
+            "Qo'qon LM",
+            "Rovuston LM",
+            "Marg'ilon LM",
+            "Axtachi LM",
+            "Asaka LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "3",
+        "stations": [
+            "Buxoro LM",
+            "Tinchlik LM",
+            "Karmana LM",
+            "Yangi-Zarafshon LM",
+            "Ulug'bek LM",
+            "Marokand LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "4",
+        "stations": [
+            "Qarshi LM",
+            "Dehqonobod LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "5",
+        "stations": [
+            "Termiz LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "6",
+        "stations": [
+            "Nukus LM",
+            "Kirkkiz LM",
+            "Urganch LM",
+            "Pitnyak LM",
+        ],
+        "has_veshoz": True,
+    },
+]
+
+
+def _normalize_station_name(value):
+    """
+    Station nomlarini solishtirish uchun normal holatga keltiradi.
+    Masalan: Qo'qon / Qo‘qon, bo'sh joylar, katta-kichik harflar farq qilmaydi.
+    """
+    s = str(value or "").strip().lower()
+
+    replacements = {
+        "‘": "'",
+        "’": "'",
+        "`": "'",
+        "ʼ": "'",
+        "ʻ": "'",
+        "ё": "е",
+        "–": "-",
+        "—": "-",
+    }
+
+    for old, new in replacements.items():
+        s = s.replace(old, new)
+
+    s = " ".join(s.split())
+    return s
+
+
+def _find_display_group_for_station(station_name):
+    """
+    Station nomi qaysi DISPLAY_GROUPS ichida bo'lsa, shu group qaytadi.
+    Topilmasa None qaytadi.
+    """
+    station_norm = _normalize_station_name(station_name)
+
+    for idx, group in enumerate(DISPLAY_GROUPS, start=1):
+        for st_name in group.get("stations", []):
+            if _normalize_station_name(st_name) == station_norm:
+                return {
+                    "key": f"group{idx}",
+                    "title": group.get("title") or f"group{idx}",
+                    "has_veshoz": bool(group.get("has_veshoz", False)),
+                }
+
+    return None
+
+
 @staff_required
 def admin_table2_layout(request, date_str):
     d = _parse_date(date_str)
@@ -1721,34 +1839,77 @@ def admin_table2_layout(request, date_str):
 
     KEY = {
         "arr_total": "r01_total",
-        "work_total": "r24_total", "work_ktk": "r24_ktk",
-        "pogr_total": "r12_total", "pogr_ktk": "r12_ktk",
-        "vygr_total": "r23_total", "vygr_ktk": "r23_ktk",
-        "site_total": "r25_total", "site_ktk": "r25_ktk",
-        "to_export_total": "r29_total", "to_export_ktk": "r29_ktk",
-        "ready_total": "r28_total", "ready_ktk": "r28_ktk",
-        "empty_total": "r30_total", "empty_ktk": "r30_ktk",
-        "sort_total": "r27_total", "sort_ktk": "r27_ktk",
+
+        "work_total": "r24_total",
+        "work_ktk": "r24_ktk",
+
+        "pogr_total": "r12_total",
+        "pogr_ktk": "r12_ktk",
+
+        "vygr_total": "r23_total",
+        "vygr_ktk": "r23_ktk",
+
+        "site_total": "r25_total",
+        "site_ktk": "r25_ktk",
+
+        "to_export_total": "r29_total",
+        "to_export_ktk": "r29_ktk",
+
+        "ready_total": "r28_total",
+        "ready_ktk": "r28_ktk",
+
+        "empty_total": "r30_total",
+        "empty_ktk": "r30_ktk",
+
+        "sort_total": "r27_total",
+        "sort_ktk": "r27_ktk",
     }
 
     def add_pair(bucket, data, total_key, ktk_key, out_total, out_ktk):
         bucket[out_total] += _dget(data, total_key, 0)
-        bucket[out_ktk]   += _dget(data, ktk_key, 0)
+        bucket[out_ktk] += _dget(data, ktk_key, 0)
 
+    # Oldin station bo‘yicha edi.
+    # Endi faqat 6 ta group bo‘yicha chiqadi.
     cols = []
     buckets = {}
 
+    for idx, group in enumerate(DISPLAY_GROUPS, start=1):
+        group_key = f"group{idx}"
+        group_title = group.get("title") or group_key
+
+        cols.append({
+            "key": group_key,
+            "title": group_title,
+        })
+
+        buckets[group_key] = empty_bucket()
+
+    # Agar station DISPLAY_GROUPS ichida topilmasa,
+    # xatolik bo‘lmasin deb alohida bucketga yig‘amiz.
+    other_key = "other"
+    other_has_data = False
+    buckets[other_key] = empty_bucket()
+
     for o in objs:
         u = o.station_user
-        col_key = f"u{u.id}"
-        col_title =get_object_or_404(StationProfile, user__username=_station_name(u)).station_name 
 
-        if col_key not in buckets:
-            cols.append({"key": col_key, "title": col_title})
-            buckets[col_key] = empty_bucket()
+        try:
+            station_profile = StationProfile.objects.get(user=u)
+            station_name = station_profile.station_name or getattr(u, "username", "")
+        except StationProfile.DoesNotExist:
+            station_name = getattr(u, "username", "")
+
+        group_info = _find_display_group_for_station(station_name)
+
+        if group_info:
+            bucket_key = group_info["key"]
+        else:
+            bucket_key = other_key
+            other_has_data = True
 
         data = o.data or {}
-        b = buckets[col_key]
+        b = buckets[bucket_key]
 
         add_pair(b, data, KEY["work_total"], KEY["work_ktk"], "work_cont", "work_kr")
         add_pair(b, data, KEY["pogr_total"], KEY["pogr_ktk"], "pogr_cont", "pogr_kr")
@@ -1759,29 +1920,46 @@ def admin_table2_layout(request, date_str):
         add_pair(b, data, KEY["empty_total"], KEY["empty_ktk"], "empty_cont", "empty_kr")
         add_pair(b, data, KEY["sort_total"], KEY["sort_ktk"], "sort_cont", "sort_kr")
 
+        # TUK tushirish / kelgan umumiy qiymat.
+        # Oldingi kodda bu alohida for orqali Дорога ga qo‘shilgan edi.
+        # Endi har bir groupga ham qo‘shamiz.
+        b["vygr_tuk"] += _dget(data, KEY["arr_total"], 0)
+
+    if other_has_data:
+        cols.append({
+            "key": other_key,
+            "title": "Boshqa",
+        })
+    else:
+        buckets.pop(other_key, None)
+
+    # Umumiy Дорога
     road_key = "road"
     buckets[road_key] = empty_bucket()
 
+    road_sum_keys = (
+        "work_cont", "work_kr",
+        "pogr_cont", "pogr_kr",
+        "vygr_cont", "vygr_kr",
+        "vygr_tuk",
+        "site_cont", "site_kr",
+        "to_export_cont", "to_export_kr",
+        "ready_cont", "ready_kr",
+        "empty_cont", "empty_kr",
+        "sort_cont", "sort_kr",
+    )
+
     for c in cols:
-        b = buckets[c["key"]]
+        b = buckets.get(c["key"]) or {}
         road = buckets[road_key]
-        for k in (
-            "work_cont","work_kr",
-            "pogr_cont","pogr_kr",
-            "vygr_cont","vygr_kr",
-            "site_cont","site_kr",
-            "to_export_cont","to_export_kr",
-            "ready_cont","ready_kr",
-            "empty_cont","empty_kr",
-            "sort_cont","sort_kr",
-        ):
+
+        for k in road_sum_keys:
             road[k] += int(b.get(k, 0) or 0)
 
-    for o in objs:
-        data = o.data or {}
-        buckets[road_key]["vygr_tuk"] += _dget(data, KEY["arr_total"], 0)
-
-    cols.append({"key": road_key, "title": "Дорога"})
+    cols.append({
+        "key": road_key,
+        "title": "Дорога",
+    })
 
     return render(request, "admin_table2_layout.html", {
         "date": d,
