@@ -1,578 +1,251 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Kvartalniy — {{ station.station_name }}{% endblock %}
 
 {% block content %}
-<style>
-  .kv-page{
-    --kv-bg: linear-gradient(135deg, #eef6ff 0%, #eefaf3 100%);
-    --kv-surface: rgba(255,255,255,.80);
-    --kv-surface-2: rgba(255,255,255,.92);
-    --kv-text: #0f172a;
-    --kv-muted: #64748b;
-    --kv-stroke: rgba(15,23,42,.10);
-    --kv-stroke-strong: rgba(15,23,42,.18);
-    --kv-shadow: 0 20px 60px rgba(15,23,42,.08);
-    --kv-primary: #4f46e5;
-    --kv-primary-2: #10b981;
-    --kv-red: #dc2626;
-    --kv-green: #059669;
-    --kv-blue: #1d4ed8;
-    --kv-warning-bg: #f8edd2;
-    --kv-warning-border: #ead29a;
-    --kv-warning-text: #b45309;
-    --kv-table-border: #2b2b2b;
-    --kv-head-bg: #e5e7eb;
-    --kv-subhead-bg: #f8fafc;
-    --kv-radius: 24px;
-  }
+<link rel="stylesheet" href="{% static 'css/kvartalniy_user.css' %}">
 
-  html[data-theme="dark"] .kv-page{
-    --kv-bg: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-    --kv-surface: rgba(17,24,39,.78);
-    --kv-surface-2: rgba(17,24,39,.92);
-    --kv-text: #e5e7eb;
-    --kv-muted: #94a3b8;
-    --kv-stroke: rgba(255,255,255,.10);
-    --kv-stroke-strong: rgba(255,255,255,.16);
-    --kv-shadow: 0 22px 70px rgba(0,0,0,.35);
-    --kv-red: #f87171;
-    --kv-green: #34d399;
-    --kv-blue: #93c5fd;
-    --kv-warning-bg: rgba(180,83,9,.14);
-    --kv-warning-border: rgba(234,210,154,.18);
-    --kv-warning-text: #fbbf24;
-    --kv-table-border: rgba(255,255,255,.22);
-    --kv-head-bg: rgba(255,255,255,.07);
-    --kv-subhead-bg: rgba(255,255,255,.04);
-  }
-
-  .kv-page{
-    max-width: 1840px;
-    margin: 12px auto 28px;
-    padding: 0 14px;
-    color: var(--kv-text);
-  }
-
-  .kv-shell{
-    
-    border: 1px solid var(--kv-stroke);
-    border-radius: 28px;
-    box-shadow: var(--kv-shadow);
-    padding: 20px;
-    overflow: hidden;
-  }
-
-  .kv-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:18px;
-    flex-wrap:wrap;
-    margin-bottom:16px;
-  }
-
-  .kv-titlebox{
-    flex: 1 1 420px;
-    min-width: 280px;
-  }
-
-  .kv-title{
-    margin:0;
-    font-size: clamp(28px, 3vw, 42px);
-    line-height:1.05;
-    letter-spacing:-.03em;
-    font-weight:850;
-    color: var(--kv-text);
-  }
-
-  .kv-subtitle{
-    margin-top:10px;
-    color: var(--kv-muted);
-    font-size:15px;
-    line-height:1.55;
-    max-width: 860px;
-  }
-
-  .kv-subtitle b{
-    color: var(--kv-text);
-  }
-
-  .kv-form{
-    display:flex;
-    gap:12px;
-    align-items:end;
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    flex: 0 1 auto;
-  }
-
-  .kv-field{
-    min-width: 190px;
-  }
-
-  .kv-label{
-    display:block;
-    margin-bottom:8px;
-    font-size:14px;
-    color: var(--kv-muted);
-    font-weight:700;
-  }
-
-  .kv-input{
-    width:100%;
-    height:48px;
-    padding:0 14px;
-    border-radius:16px;
-    border:1px solid var(--kv-stroke-strong);
-    background: var(--kv-surface-2);
-    color: var(--kv-text);
-    font-size:15px;
-    font-weight:700;
-    outline:none;
-    box-sizing:border-box;
-  }
-
-  .kv-input:focus{
-    border-color: rgba(79,70,229,.45);
-    box-shadow: 0 0 0 4px rgba(79,70,229,.12);
-  }
-
-  .kv-btn{
-    height:48px;
-    border:none;
-    border-radius:16px;
-    padding:0 22px;
-    color:#fff;
-    font-size:15px;
-    font-weight:800;
-    cursor:pointer;
-    text-decoration:none;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    white-space:nowrap;
-    transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
-    box-shadow: 0 16px 34px rgba(79,70,229,.18);
-  }
-
-  .kv-btn:hover{
-    transform: translateY(-1px);
-    filter: saturate(1.04);
-  }
-
-  .kv-btn:active{
-    transform: translateY(0);
-  }
-
-  .kv-btn-primary{
-    background: linear-gradient(135deg, #5b5cf0 0%, #20b486 100%);
-  }
-
-  .kv-btn-secondary{
-    background: linear-gradient(135deg, #635bff 0%, #2bc07f 100%);
-  }
-
-  .kv-warning{
-    margin: 14px 0 16px;
-    background: var(--kv-warning-bg);
-    border:1px solid var(--kv-warning-border);
-    color: var(--kv-warning-text);
-    border-radius:18px;
-    padding:14px 16px;
-    font-size:15px;
-    font-weight:700;
-  }
-
-  .kv-table-card{
-    
-    border:1px solid var(--kv-stroke);
-    
-    overflow: hidden;
-  }
-
-  .kv-table-wrap{
-    overflow:auto;
-    max-width:100%;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  .kv-table-wrap::-webkit-scrollbar{
-    height:10px;
-    width:10px;
-  }
-
-  .kv-table-wrap::-webkit-scrollbar-thumb{
-    
-    border-radius:999px;
-  }
-
-  html[data-theme="dark"] .kv-table-wrap::-webkit-scrollbar-thumb{
-    background: rgba(255,255,255,.16);
-  }
-
-  .kv-table{
-    width:100%;
-    
-    border-collapse: collapse;
-    table-layout: fixed;
-    
-  }
-
-  html[data-theme="dark"] .kv-table{
-    background: rgba(17,24,39,.96);
-  }
-
-  .kv-table th,
-  .kv-table td{
-    border:1px solid var(--kv-table-border);
-    padding:8px 8px;
-    text-align:center;
-    vertical-align:middle;
-    font-size:14px;
-    color: var(--kv-text);
-  }
-
-  .kv-table thead th{
-    font-family: "Times New Roman", serif;
-    font-weight:800;
-  }
-
-  .kv-super-title th{
-    
-    color:#000;
-    font-size:17px;
-    line-height:1.35;
-    padding:12px 10px 10px;
-    border-top:2px solid var(--kv-table-border) !important;
-    border-left:2px solid var(--kv-table-border) !important;
-    border-right:2px solid var(--kv-table-border) !important;
-  }
-
-  html[data-theme="dark"] .kv-super-title th{
-    color: var(--kv-text);
-    background: rgba(255,255,255,.05);
-  }
-
-  .kv-head-1 th{
-    
-    color:#000;
-    font-size:14px;
-    border-top:2px solid var(--kv-table-border) !important;
-    border-bottom:2px solid var(--kv-table-border) !important;
-  }
-
-  .kv-head-2 th{
-    background: var(--kv-subhead-bg);
-    color:#000;
-    font-size:13px;
-    font-weight:800;
-    padding-top:5px;
-    padding-bottom:5px;
-  }
-
-  html[data-theme="dark"] .kv-head-1 th,
-  html[data-theme="dark"] .kv-head-2 th{
-    color: var(--kv-text);
-  }
-
-  /* KENGAYTIRILGAN USTUNLAR */
-  .kv-station-col{
-    width: 160px;
-    min-width: 160px;
-    max-width: 230px;
-  }
-
-  .kv-col-normal{
-    width: 80px;
-    min-width: 80px;
-    max-width: 110px;
-  }
-
-  .kv-col-mid{
-    width: 80px;
-    min-width: 80px;
-    max-width: 110px;
-  }
-
-  .kv-col-income{
-    width: 110px;
-    min-width: 110px;
-    max-width: 140px;
-  }
-
-  .kv-group-left{
-    border-left:2px solid var(--kv-table-border) !important;
-  }
-
-  .kv-group-sep{
-    border-right:2px solid var(--kv-table-border) !important;
-  }
-
-  .kv-row-title{
-    font-weight:800;
-    text-align:left !important;
-    padding-left:14px !important;
-    white-space:normal;
-    word-break:break-word;
-    line-height:1.25;
-  }
-
-  .kv-row-title a{
-    color:#4338ca;
-    text-decoration:underline;
-    text-underline-offset: 2px;
-  }
-
-  html[data-theme="dark"] .kv-row-title a{
-    color:#a5b4fc;
-  }
-
-  .kv-green-head{ color:#059669 !important; }
-  .kv-blue-head{ color:#1d4ed8 !important; }
-  .kv-red-head{ color:#ef4444 !important; }
-
-  html[data-theme="dark"] .kv-green-head{ color:#34d399 !important; }
-  html[data-theme="dark"] .kv-blue-head{ color:#93c5fd !important; }
-
-  .kv-income-note{
-    display:block;
-    font-size:11px;
-    margin-top:2px;
-    color:#0891b2;
-    font-weight:800;
-  }
-
-  .kv-number{
-    font-variant-numeric: tabular-nums;
-  }
-
-  .kv-farq-negative{
-    color: var(--kv-red) !important;
-    font-weight:800;
-  }
-
-  .kv-farq-normal{
-    color: var(--kv-text) !important;
-    font-weight:800;
-  }
-
-  .kv-table tbody tr:hover td{
-    background: rgba(99,102,241,.035);
-  }
-
-  .kv-sticky thead th{
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
-
-  @media (max-width: 1200px){
-    .kv-form{
-      width:100%;
-      justify-content:flex-start;
-    }
-  }
-
-  @media (max-width: 768px){
-    .kv-shell{
-      padding:14px;
-      border-radius:20px;
-    }
-
-    .kv-field{
-      min-width:100%;
-    }
-
-    .kv-form{
-      width:100%;
-    }
-
-    .kv-btn{
-      width:100%;
-    }
-
-    .kv-title{
-      font-size: 28px;
-    }
-
-    .kv-subtitle{
-      font-size:14px;
-    }
-
-    .kv-table{
-      min-width: 1860px;
-    }
-
-    .kv-station-col{
-      width: 150px;
-      min-width: 150px;
-      max-width: 200px;
-    }
-
-    .kv-col-income{
-      width: 100px;
-      min-width: 100px;
-      max-width: 132px;
-    }
-  }
-</style>
 
 <div class="kv-page">
-  <div class="kv-shell">
+  <div class="kv-glow-frame">
+    <div class="kv-shell">
 
-    <div class="kv-top">
-      <div class="kv-titlebox">
-        <h1 class="kv-title">Umumlashgan hisobot</h1>
-        <div class="kv-subtitle">
-          Tanlangan davr bo‘yicha faktlar ko‘rsatiladi. Reja har oy uchun alohida:
-          <b>oy reja / oy kunlari × shu oyda tanlangan kunlar</b>.
+      <div class="kv-hero">
+        <div class="kv-titlebox">
+          <div class="kv-title-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16v16H4z"></path>
+              <path d="M8 8h8"></path>
+              <path d="M8 12h8"></path>
+              <path d="M8 16h5"></path>
+            </svg>
+          </div>
+
+          <div>
+            <h1 class="kv-title">Umumlashgan hisobot</h1>
+            <div class="kv-subtitle">
+              Tanlangan davr bo‘yicha faktlar ko‘rsatiladi. Reja har oy uchun alohida:
+              <b>oy reja / oy kunlari × shu oyda tanlangan kunlar</b>.
+            </div>
+          </div>
+        </div>
+
+        <form method="get" class="kv-form" id="kvFilterForm">
+          <div class="kv-field">
+            <label class="kv-label">Boshlanish sanasi</label>
+            <input
+              type="date"
+              name="from_date"
+              class="kv-input"
+              value="{{ from_date|date:'Y-m-d' }}"
+            >
+          </div>
+
+          <div class="kv-field">
+            <label class="kv-label">Tugash sanasi</label>
+            <input
+              type="date"
+              name="to_date"
+              class="kv-input"
+              value="{{ to_date|date:'Y-m-d' }}"
+            >
+          </div>
+
+          <button type="submit" class="kv-btn kv-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5h18"></path>
+              <path d="M6 12h12"></path>
+              <path d="M10 19h4"></path>
+            </svg>
+            Ko‘rsatish
+          </button>
+
+          <button type="button" class="kv-btn kv-btn-secondary" id="exportExcelBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v12"></path>
+              <path d="M7 10l5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+            Yuklab olish
+          </button>
+        </form>
+      </div>
+
+      <div class="kv-summary-grid">
+        <div class="kv-stat">
+          <div class="kv-stat-top">
+            <div class="kv-stat-label">Ortish vagon</div>
+            <div class="kv-stat-icon green">↑</div>
+          </div>
+          <div class="kv-stat-value" id="statPogr">0</div>
+          <div class="kv-stat-sub">Joriy davr ko‘rsatkichi</div>
+        </div>
+
+        <div class="kv-stat">
+          <div class="kv-stat-top">
+            <div class="kv-stat-label">Tushirish vagon</div>
+            <div class="kv-stat-icon blue">↓</div>
+          </div>
+          <div class="kv-stat-value" id="statVygr">0</div>
+          <div class="kv-stat-sub">Joriy davr ko‘rsatkichi</div>
+        </div>
+
+        <div class="kv-stat">
+          <div class="kv-stat-top">
+            <div class="kv-stat-label">Konteyner ortish</div>
+            <div class="kv-stat-icon orange">▦</div>
+          </div>
+          <div class="kv-stat-value" id="statKont">0</div>
+          <div class="kv-stat-sub">Joriy davr ko‘rsatkichi</div>
+        </div>
+
+        <div class="kv-stat">
+          <div class="kv-stat-top">
+            <div class="kv-stat-label">Daromad</div>
+            <div class="kv-stat-icon">₽</div>
+          </div>
+          <div class="kv-stat-value" id="statIncome">0</div>
+          <div class="kv-stat-sub">1000 so‘mda</div>
         </div>
       </div>
 
-      <form method="get" class="kv-form" id="kvFilterForm">
-        <div class="kv-field">
-          <label class="kv-label">Boshlanish sanasi</label>
-          <input
-            type="date"
-            name="from_date"
-            class="kv-input"
-            value="{{ from_date|date:'Y-m-d' }}"
-          >
-        </div>
-
-        <div class="kv-field">
-          <label class="kv-label">Tugash sanasi</label>
-          <input
-            type="date"
-            name="to_date"
-            class="kv-input"
-            value="{{ to_date|date:'Y-m-d' }}"
-          >
-        </div>
-
-        <button type="submit" class="kv-btn kv-btn-primary">Ko‘rsatish</button>
-        <button type="button" class="kv-btn kv-btn-secondary" id="exportExcelBtn">Yuklab olish</button>
-      </form>
-    </div>
-
-    <div class="kv-warning">
-      <!-- Reja tahriri faqat to‘liq bitta oy tanlanganda ishlaydi. Hozir ko‘rsatilayotgan reja proporsional hisoblangan. -->
-    </div>
-
-    <div class="kv-table-card">
-      <div class="kv-table-wrap kv-sticky">
-        <table class="kv-table" id="kvartalTable">
-
-          <colgroup>
-            <col class="kv-station-col">
-
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-            <col class="kv-col-normal">
-
-            <col class="kv-col-mid">
-            <col class="kv-col-mid">
-            <col class="kv-col-mid">
-
-            <col class="kv-col-income">
-            <col class="kv-col-income">
-            <col class="kv-col-income">
-          </colgroup>
-
-          <thead>
-            <tr class="kv-super-title">
-              <th colspan="19">
-                "O'ztemiryo'lkonteyner" AJ ga qarashli {{ station.station_name }} va sektorlarida,
-                vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar
-                <br>
-                {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }} / taqqoslash: {{ prev_from_date|date:"d.m.Y" }} — {{ prev_to_date|date:"d.m.Y" }}
-              </th>
-            </tr>
-
-            <tr class="kv-head-1">
-              <th rowspan="2" class="kv-station-col kv-group-left kv-group-sep">Filial nomi</th>
-
-              <th colspan="4" class="kv-group-left">Ortish (vagon)</th>
-              <th colspan="4" class="kv-group-left">Tushirish (vagon)</th>
-              <th colspan="4" class="kv-group-left">Ortish (konteyner)</th>
-              <th colspan="3" class="kv-group-left">Tushirish (konteyner)</th>
-              <th colspan="3" class="kv-group-left kv-group-sep">
-                Daromad
-                <span class="kv-income-note">1000 so‘mda ko‘rsatiladi</span>
-              </th>
-            </tr>
-
-            <tr class="kv-head-2">
-              <th>Reja</th>
-              <th class="kv-green-head">Joriy</th>
-              <th class="kv-blue-head">Oldingi</th>
-              <th class="kv-red-head kv-group-sep">Farq</th>
-
-              <th>Reja</th>
-              <th class="kv-green-head">Joriy</th>
-              <th class="kv-blue-head">Oldingi</th>
-              <th class="kv-red-head kv-group-sep">Farq</th>
-
-              <th>Reja</th>
-              <th class="kv-green-head">Joriy</th>
-              <th class="kv-blue-head">Oldingi</th>
-              <th class="kv-red-head kv-group-sep">Farq</th>
-
-              <th class="kv-green-head">Joriy</th>
-              <th class="kv-blue-head">Oldingi</th>
-              <th class="kv-red-head kv-group-sep">Farq</th>
-
-              <th class="kv-green-head">Joriy</th>
-              <th class="kv-blue-head">Oldingi</th>
-              <th class="kv-red-head kv-group-sep">Farq</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr>
-              <td class="kv-row-title kv-number kv-group-sep kv-group-left">
-                {{ row.station_name }}
-              </td>
-
-              <td class="kv-number" data-format="number">{{ row.pogr_plan|default_if_none:"0" }}</td>
-              <td class="kv-number kv-joriy" data-format="number">{{ row.pogr_this_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-oldingi" data-format="number">{{ row.pogr_last_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-farq kv-group-sep"></td>
-
-              <td class="kv-number" data-format="number">{{ row.vygr_plan|default_if_none:"0" }}</td>
-              <td class="kv-number kv-joriy" data-format="number">{{ row.vygr_this_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-oldingi" data-format="number">{{ row.vygr_last_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-farq kv-group-sep"></td>
-
-              <td class="kv-number" data-format="number">{{ row.pogr_kont_plan|default_if_none:"0" }}</td>
-              <td class="kv-number kv-joriy" data-format="number">{{ row.pogr_kont_this_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-oldingi" data-format="number">{{ row.pogr_kont_last_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-farq kv-group-sep"></td>
-
-              <td class="kv-number kv-joriy" data-format="number">{{ row.vygr_kont_this_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-oldingi" data-format="number">{{ row.vygr_kont_last_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-farq kv-group-sep"></td>
-
-              <td class="kv-number kv-joriy" data-format="income">{{ row.income_this_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-oldingi" data-format="income">{{ row.income_last_year|default_if_none:"0" }}</td>
-              <td class="kv-number kv-farq kv-group-sep" data-income-diff="1"></td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="kv-info-strip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 8v5"></path>
+          <path d="M12 16h.01"></path>
+        </svg>
+        <span>Daromad ustunlari jadvalda 1000 so‘m ko‘rinishida chiqariladi. Jadvalni gorizontal scroll orqali to‘liq ko‘rish mumkin.</span>
       </div>
-    </div>
 
+      <div class="kv-table-card">
+        <div class="kv-table-toolbar">
+          <div>
+            <b>{{ station.station_name }} — tezkor ma’lumotlar</b>
+            <span> {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }}</span>
+          </div>
+
+          <div class="kv-scroll-note">
+            <span>↔</span>
+            <span>Jadval keng: chap-o‘ngga suring</span>
+          </div>
+        </div>
+
+        <div class="kv-table-wrap kv-sticky">
+          <table class="kv-table" id="kvartalTable">
+
+            <colgroup>
+              <col class="kv-station-col">
+
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+              <col class="kv-col-normal">
+
+              <col class="kv-col-mid">
+              <col class="kv-col-mid">
+              <col class="kv-col-mid">
+
+              <col class="kv-col-income">
+              <col class="kv-col-income">
+              <col class="kv-col-income">
+            </colgroup>
+
+            <thead>
+              <tr class="kv-super-title">
+                <th colspan="19">
+                  "O'ztemiryo'lkonteyner" AJ ga qarashli {{ station.station_name }} va sektorlarida,
+                  vagon va konteynerlarni ortib tushirish ishlari va daromad tushumlari to'g'risida tezkor ma'lumotlar
+                  <br>
+                  {{ from_date|date:"d.m.Y" }} — {{ to_date|date:"d.m.Y" }} /
+                  taqqoslash: {{ prev_from_date|date:"d.m.Y" }} — {{ prev_to_date|date:"d.m.Y" }}
+                </th>
+              </tr>
+
+              <tr class="kv-head-1">
+                <th rowspan="2" class="kv-station-col kv-group-left kv-group-sep">Filial nomi</th>
+
+                <th colspan="4" class="kv-group-left">Ortish (vagon)</th>
+                <th colspan="4" class="kv-group-left">Tushirish (vagon)</th>
+                <th colspan="4" class="kv-group-left">Ortish (konteyner)</th>
+                <th colspan="3" class="kv-group-left">Tushirish (konteyner)</th>
+                <th colspan="3" class="kv-group-left kv-group-sep">
+                  Daromad
+                  <span class="kv-income-note">1000 so‘mda ko‘rsatiladi</span>
+                </th>
+              </tr>
+
+              <tr class="kv-head-2">
+                <th>Reja</th>
+                <th class="kv-green-head">Joriy</th>
+                <th class="kv-blue-head">Oldingi</th>
+                <th class="kv-red-head kv-group-sep">Farq</th>
+
+                <th>Reja</th>
+                <th class="kv-green-head">Joriy</th>
+                <th class="kv-blue-head">Oldingi</th>
+                <th class="kv-red-head kv-group-sep">Farq</th>
+
+                <th>Reja</th>
+                <th class="kv-green-head">Joriy</th>
+                <th class="kv-blue-head">Oldingi</th>
+                <th class="kv-red-head kv-group-sep">Farq</th>
+
+                <th class="kv-green-head">Joriy</th>
+                <th class="kv-blue-head">Oldingi</th>
+                <th class="kv-red-head kv-group-sep">Farq</th>
+
+                <th class="kv-green-head">Joriy</th>
+                <th class="kv-blue-head">Oldingi</th>
+                <th class="kv-red-head kv-group-sep">Farq</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td class="kv-row-title kv-number kv-group-sep kv-group-left">
+                  {{ row.station_name }}
+                </td>
+
+                <td class="kv-number" data-format="number">{{ row.pogr_plan|default_if_none:"0" }}</td>
+                <td class="kv-number kv-joriy" data-format="number">{{ row.pogr_this_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-oldingi" data-format="number">{{ row.pogr_last_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-farq kv-group-sep"></td>
+
+                <td class="kv-number" data-format="number">{{ row.vygr_plan|default_if_none:"0" }}</td>
+                <td class="kv-number kv-joriy" data-format="number">{{ row.vygr_this_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-oldingi" data-format="number">{{ row.vygr_last_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-farq kv-group-sep"></td>
+
+                <td class="kv-number" data-format="number">{{ row.pogr_kont_plan|default_if_none:"0" }}</td>
+                <td class="kv-number kv-joriy" data-format="number">{{ row.pogr_kont_this_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-oldingi" data-format="number">{{ row.pogr_kont_last_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-farq kv-group-sep"></td>
+
+                <td class="kv-number kv-joriy" data-format="number">{{ row.vygr_kont_this_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-oldingi" data-format="number">{{ row.vygr_kont_last_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-farq kv-group-sep"></td>
+
+                <td class="kv-number kv-joriy" data-format="income">{{ row.income_this_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-oldingi" data-format="income">{{ row.income_last_year|default_if_none:"0" }}</td>
+                <td class="kv-number kv-farq kv-group-sep" data-income-diff="1"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -602,6 +275,11 @@
     return sign + abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   }
 
+  function setText(id, value){
+    const el = document.getElementById(id);
+    if(el) el.textContent = value;
+  }
+
   function formatCellValue(td) {
     const raw = parseUzNumber(td.textContent);
     const type = td.dataset.format || 'number';
@@ -611,11 +289,11 @@
       td.dataset.rawValue = String(shortened);
       td.textContent = formatWithSpaces(shortened);
       return shortened;
-    } else {
-      td.dataset.rawValue = String(raw);
-      td.textContent = formatWithSpaces(raw);
-      return raw;
     }
+
+    td.dataset.rawValue = String(raw);
+    td.textContent = formatWithSpaces(raw);
+    return raw;
   }
 
   function computeDiffs() {
@@ -659,6 +337,23 @@
     numericCells.forEach(formatCellValue);
   }
 
+  function renderSummary(){
+    const row = table.querySelector('tbody tr');
+    if(!row) return;
+
+    const cells = Array.from(row.children);
+
+    const pogr = parseUzNumber(cells[2]?.dataset.rawValue ?? cells[2]?.textContent);
+    const vygr = parseUzNumber(cells[6]?.dataset.rawValue ?? cells[6]?.textContent);
+    const kont = parseUzNumber(cells[10]?.dataset.rawValue ?? cells[10]?.textContent);
+    const income = parseUzNumber(cells[16]?.dataset.rawValue ?? cells[16]?.textContent);
+
+    setText('statPogr', formatWithSpaces(pogr));
+    setText('statVygr', formatWithSpaces(vygr));
+    setText('statKont', formatWithSpaces(kont));
+    setText('statIncome', formatWithSpaces(income));
+  }
+
   function exportTableToExcel() {
     const rows = Array.from(table.querySelectorAll('tr'));
     let html = `
@@ -674,7 +369,7 @@
             padding: 6px 8px;
             text-align: center;
           }
-          th { font-weight: bold; }
+          th { font-weight: bold; background: #e5e7eb; }
         </style>
       </head>
       <body>
@@ -720,8 +415,11 @@
 
   formatAllNumbers();
   computeDiffs();
+  renderSummary();
 
-  exportBtn.addEventListener('click', exportTableToExcel);
+  if(exportBtn){
+    exportBtn.addEventListener('click', exportTableToExcel);
+  }
 })();
 </script>
 {% endblock %}
