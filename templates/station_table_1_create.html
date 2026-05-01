@@ -210,7 +210,7 @@
   .xshift.xbig{ text-align:center; font-weight: 950; font-size: 14px; }
 
   .xinput input{
-    width: 76px;
+    width: 46px;
     height: 34px;
     padding: 6px 8px;
     border:1px solid rgba(15,23,42,.18);
@@ -234,7 +234,7 @@
   }
   html[data-theme="dark"] .xinput input:focus{ background: rgba(255,255,255,.10); }
 
-  .kcell input{ width: 90px; }
+  .kcell input{ width: 120px; }
 
   /* ✅ терминал input в первой ячейке: визуально как было, но редактируемо */
   .termcell{
@@ -401,11 +401,11 @@
           <div class="xscroll">
             <table class="xtable t1-table" data-block="{{ b }}">
               <colgroup>
-                <col style="width:170px;">
-                <col style="width:84px;">
-                <col style="width:64px;">
+                <col style="width:120px;">
+                <col style="width:46px;">
+                <col style="width:46px;">
                 {% for _ in "1234567890123456789012345678901234567890" %}
-                  <col style="width:84px;">
+                  <col style="width:46px;">
                 {% endfor %}
               </colgroup>
 
@@ -487,7 +487,7 @@
                            data-key="podano_lc" inputmode="numeric">
                   </td>
 
-                  <td rowspan="{% if status %}3{% else %}2{% endif %}" class="xinput kcell">
+                  <td rowspan="{% if status %}3{% else %}2{% endif %}" class="xinput ">
                     <input {% if mode == "view" %}disabled{% endif %}
                            name="b{{ b }}__common__k_podache_so_st"
                            value="{{ k_val }}"
@@ -555,7 +555,7 @@
                   <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__spc_lc" value="{{ day_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
                   <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__day__spc_station" value="{{ day_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-                  <td class="xinput g-gray">
+                  <td class="xinput g-gray kcell">
                     <input {% if mode == "view" %}disabled{% endif %}
                            name="b{{ b }}__day__income_daily"
                            value="{{ day_obj|data_val:'income_daily' }}"
@@ -635,7 +635,7 @@
                   <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__spc_lc" value="{{ night_obj|data_val:'spc_lc' }}" data-key="spc_lc" inputmode="numeric"></td>
                   <td class="xinput g-gray"><input {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__night__spc_station" value="{{ night_obj|data_val:'spc_station' }}" data-key="spc_station" inputmode="numeric"></td>
 
-                  <td class="xinput g-gray">
+                  <td class="xinput g-gray kcell">
                     <input {% if mode == "view" %}disabled{% endif %}
                            name="b{{ b }}__night__income_daily"
                            value="{{ night_obj|data_val:'income_daily' }}"
@@ -706,7 +706,7 @@
                   <td class="xinput g-gray"><input readonly {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__spc_lc" value="{{ total_obj|data_val:'spc_lc' }}" data-total-key="spc_lc" inputmode="numeric"></td>
                   <td class="xinput g-gray"><input readonly {% if mode == "view" %}disabled{% endif %} name="b{{ b }}__total__spc_station" value="{{ total_obj|data_val:'spc_station' }}" data-total-key="spc_station" inputmode="numeric"></td>
 
-                  <td class="xinput g-gray">
+                  <td class="xinput g-gray kcell">
                     <input readonly {% if mode == "view" %}disabled{% endif %}
                            name="b{{ b }}__total__income_daily"
                            value="{{ total_obj|data_val:'income_daily' }}"
@@ -784,10 +784,10 @@
       t1_blk_vygr: "Tushirish",
       t1_blk_pod_vygr: "Tushirishda",
       t1_col_uborka: "Yig‘ishtirish",
-      t1_blk_pogr: "Yuklash",
-      t1_blk_pod_pogr: "Yuklashda",
+      t1_blk_pogr: "Ortish",
+      t1_blk_pod_pogr: "Ortishda",
       t1_blk_sps: "Bo‘sh SPS",
-      t1_col_income: "sutkalik daromad",
+      t1_col_income: "Sutkalik daromad",
       t1_misc: "boshqa",
       t1_auto: "jami",
       t1_station2: "STANSIYA",
