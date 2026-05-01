@@ -1967,6 +1967,362 @@ def admin_table2_layout(request, date_str):
         "buckets": buckets,
     })
 
+
+@staff_required
+def admin_table2_layout_export_excel(request, date_str):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+    from openpyxl.utils import get_column_letter
+    from django.http import HttpResponse
+
+    d = _parse_date(date_str)
+
+    objs = (
+        StationDailyTable2.objects
+        .filter(date=d, submitted_at__isnull=False)
+        .select_related("station_user")
+        .exclude(station_user__is_staff=True)
+        .exclude(station_user__is_superuser=True)
+        .order_by("station_user__username")
+    )
+
+    def empty_bucket():
+        return {
+            "work_cont": 0, "work_kr": 0,
+            "pogr_cont": 0, "pogr_kr": 0,
+            "vygr_cont": 0, "vygr_kr": 0,
+            "vygr_tuk": 0,
+            "site_cont": 0, "site_kr": 0,
+            "to_export_cont": 0, "to_export_kr": 0,
+            "ready_cont": 0, "ready_kr": 0,
+            "empty_cont": 0, "empty_kr": 0,
+            "sort_cont": 0, "sort_kr": 0,
+        }
+
+    KEY = {
+        "arr_total": "r01_total",
+
+        "work_total": "r24_total",
+        "work_ktk": "r24_ktk",
+
+        "pogr_total": "r12_total",
+        "pogr_ktk": "r12_ktk",
+
+        "vygr_total": "r23_total",
+        "vygr_ktk": "r23_ktk",
+
+        "site_total": "r25_total",
+        "site_ktk": "r25_ktk",
+
+        "to_export_total": "r29_total",
+        "to_export_ktk": "r29_ktk",
+
+        "ready_total": "r28_total",
+        "ready_ktk": "r28_ktk",
+
+        "empty_total": "r30_total",
+        "empty_ktk": "r30_ktk",
+
+        "sort_total": "r27_total",
+        "sort_ktk": "r27_ktk",
+    }
+
+    def add_pair(bucket, data, total_key, ktk_key, out_total, out_ktk):
+        bucket[out_total] += _dget(data, total_key, 0)
+        bucket[out_ktk] += _dget(data, ktk_key, 0)
+
+    cols = []
+    buckets = {}
+
+    for idx, group in enumerate(DISPLAY_GROUPS, start=1):
+        group_key = f"group{idx}"
+        cols.append({
+            "key": group_key,
+            "title": str(idx),
+        })
+        buckets[group_key] = empty_bucket()
+
+    road_tuk_total = 0
+
+    for o in objs:
+        u = o.station_user
+
+        try:
+            station_profile = StationProfile.objects.get(user=u)
+            station_name = station_profile.station_name or getattr(u, "username", "")
+        except StationProfile.DoesNotExist:
+            station_name = getattr(u, "username", "")
+
+        group_info = _find_display_group_for_station(station_name)
+        data = o.data or {}
+
+        road_tuk_total += _dget(data, KEY["arr_total"], 0)
+
+        if not group_info:
+            continue
+
+        bucket_key = group_info["key"]
+        b = buckets[bucket_key]
+
+        add_pair(b, data, KEY["work_total"], KEY["work_ktk"], "work_cont", "work_kr")
+        add_pair(b, data, KEY["pogr_total"], KEY["pogr_ktk"], "pogr_cont", "pogr_kr")
+        add_pair(b, data, KEY["vygr_total"], KEY["vygr_ktk"], "vygr_cont", "vygr_kr")
+        add_pair(b, data, KEY["site_total"], KEY["site_ktk"], "site_cont", "site_kr")
+        add_pair(b, data, KEY["to_export_total"], KEY["to_export_ktk"], "to_export_cont", "to_export_kr")
+        add_pair(b, data, KEY["ready_total"], KEY["ready_ktk"], "ready_cont", "ready_kr")
+        add_pair(b, data, KEY["empty_total"], KEY["empty_ktk"], "empty_cont", "empty_kr")
+        add_pair(b, data, KEY["sort_total"], KEY["sort_ktk"], "sort_cont", "sort_kr")
+
+    road_key = "road"
+    buckets[road_key] = empty_bucket()
+
+    road_sum_keys = (
+        "work_cont", "work_kr",
+        "pogr_cont", "pogr_kr",
+        "vygr_cont", "vygr_kr",
+        "site_cont", "site_kr",
+        "to_export_cont", "to_export_kr",
+        "ready_cont", "ready_kr",
+        "empty_cont", "empty_kr",
+        "sort_cont", "sort_kr",
+    )
+
+    for c in cols:
+        b = buckets.get(c["key"]) or {}
+        for k in road_sum_keys:
+            buckets[road_key][k] += int(b.get(k, 0) or 0)
+
+    buckets[road_key]["vygr_tuk"] = road_tuk_total
+
+    cols.append({
+        "key": road_key,
+        "title": "Дорога",
+    })
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Макет"
+
+    thin = Side(style="thin", color="000000")
+    medium = Side(style="medium", color="000000")
+
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    border_medium = Border(left=medium, right=medium, top=medium, bottom=medium)
+
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+    font_title = Font(name="Times New Roman", size=14, bold=True)
+    font_header = Font(name="Times New Roman", size=12, bold=True)
+    font_body = Font(name="Times New Roman", size=11)
+    font_body_bold = Font(name="Times New Roman", size=11, bold=True)
+    font_road = Font(name="Times New Roman", size=11, bold=True)
+
+    fill_header = PatternFill("solid", fgColor="FFFFFF")
+    fill_body = PatternFill("solid", fgColor="FFFFFF")
+
+    last_col = 2 + len(cols)
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=2, end_column=last_col)
+    c = ws.cell(row=1, column=1)
+    c.value = "Работа с контейнерами\n(по оперативным данным)"
+    c.font = font_title
+    c.alignment = center
+
+    ws.merge_cells(start_row=4, start_column=1, end_row=4, end_column=last_col)
+    c = ws.cell(row=4, column=1)
+    c.value = "Код дороги"
+    c.font = font_header
+    c.alignment = center
+    c.border = border_medium
+
+    ws.merge_cells(start_row=5, start_column=1, end_row=5, end_column=last_col)
+    c = ws.cell(row=5, column=1)
+    c.value = f"Дата {d.strftime('%d.%m.%Y')} г."
+    c.font = font_header
+    c.alignment = center
+    c.border = border_medium
+
+    ws.merge_cells(start_row=6, start_column=1, end_row=6, end_column=last_col)
+    c = ws.cell(row=6, column=1)
+    c.value = "Отделения"
+    c.font = font_header
+    c.alignment = center
+    c.border = border_medium
+
+    header_row = 7
+
+    ws.merge_cells(start_row=header_row, start_column=1, end_row=header_row, end_column=2)
+    c = ws.cell(row=header_row, column=1)
+    c.value = "Показатели"
+    c.font = font_header
+    c.alignment = center
+    c.border = border
+
+    for idx, col in enumerate(cols, start=3):
+        cell = ws.cell(row=header_row, column=idx)
+        cell.value = col["title"]
+        cell.font = font_header
+        cell.alignment = center
+        cell.border = border
+        cell.fill = fill_header
+
+    rows = [
+        {
+            "label": "Рабочий парк",
+            "items": [
+                ("Конт  1", "work_cont"),
+                ("КР    2", "work_kr"),
+            ],
+        },
+        {
+            "label": "Погрузка\nконтейнеров",
+            "items": [
+                ("Конт  3", "pogr_cont"),
+                ("КР    4", "pogr_kr"),
+            ],
+        },
+        {
+            "label": "Выгрузка\nконтейнеров",
+            "items": [
+                ("Конт  5", "vygr_cont"),
+                ("КР    6", "vygr_kr"),
+            ],
+        },
+        {
+            "label": "Выгрузка ТУК",
+            "items": [
+                ("7", "vygr_tuk"),
+            ],
+            "tuk": True,
+        },
+        {
+            "label": "Парк на\nплощадке",
+            "items": [
+                ("Конт  8", "site_cont"),
+                ("КР    9", "site_kr"),
+            ],
+        },
+        {
+            "label": "К вывозу",
+            "items": [
+                ("Конт 10", "to_export_cont"),
+                ("КР   11", "to_export_kr"),
+            ],
+        },
+        {
+            "label": "Готовые к\nотправлению",
+            "items": [
+                ("Конт 12", "ready_cont"),
+                ("КР   13", "ready_kr"),
+            ],
+        },
+        {
+            "label": "Порожние",
+            "items": [
+                ("Конт 14", "empty_cont"),
+                ("КР   15", "empty_kr"),
+            ],
+        },
+        {
+            "label": "Под сортировку",
+            "items": [
+                ("Конт 16", "sort_cont"),
+                ("КР   17", "sort_kr"),
+            ],
+        },
+    ]
+
+    r = header_row + 1
+
+    for block in rows:
+        label = block["label"]
+        items = block["items"]
+        is_tuk = bool(block.get("tuk"))
+
+        start_r = r
+        end_r = r + len(items) - 1
+
+        if len(items) > 1:
+            ws.merge_cells(start_row=start_r, start_column=1, end_row=end_r, end_column=1)
+
+        label_cell = ws.cell(row=start_r, column=1)
+        label_cell.value = label
+        label_cell.font = font_body_bold
+        label_cell.alignment = center
+        label_cell.border = border
+        label_cell.fill = fill_body
+
+        for item_label, key in items:
+            item_cell = ws.cell(row=r, column=2)
+            item_cell.value = item_label
+            item_cell.font = font_body_bold
+            item_cell.alignment = center
+            item_cell.border = border
+            item_cell.fill = fill_body
+
+            for col_idx, col in enumerate(cols, start=3):
+                cell = ws.cell(row=r, column=col_idx)
+
+                if is_tuk and col["key"] != "road":
+                    cell.value = ""
+                else:
+                    cell.value = int((buckets.get(col["key"]) or {}).get(key, 0) or 0)
+
+                cell.font = font_road if col["key"] == "road" else font_body
+                cell.alignment = center
+                cell.border = border
+                cell.fill = fill_body
+
+            r += 1
+
+        for rr in range(start_r, end_r + 1):
+            ws.cell(row=rr, column=1).border = border
+
+    for row in ws.iter_rows(min_row=4, max_row=r - 1, min_col=1, max_col=last_col):
+        for cell in row:
+            cell.border = border
+            cell.alignment = center
+
+    for col in range(1, last_col + 1):
+        ws.cell(row=header_row, column=col).font = font_header
+        ws.cell(row=header_row, column=col).border = border_medium
+
+    for row in range(4, r):
+        ws.row_dimensions[row].height = 24
+
+    ws.row_dimensions[1].height = 36
+    ws.row_dimensions[6].height = 24
+    ws.row_dimensions[7].height = 24
+
+    ws.column_dimensions["A"].width = 22
+    ws.column_dimensions["B"].width = 10
+
+    for col in range(3, last_col + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 11
+
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 1
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_margins.left = 0.25
+    ws.page_margins.right = 0.25
+    ws.page_margins.top = 0.35
+    ws.page_margins.bottom = 0.35
+
+    ws.freeze_panes = "C8"
+
+    filename = f"maket_table2_{d.strftime('%Y_%m_%d')}.xlsx"
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+    return response
+
 @login_required(login_url='login')
 def admin_table2_station_pick(request, date_str):
     d = _parse_date(date_str)

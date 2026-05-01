@@ -42,9 +42,18 @@
     color:var(--muted);
   }
 
-  .t2layout .btnBack{
+  .t2layout .topActions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .t2layout .btnBack,
+  .t2layout .btnExcel{
     display:inline-flex;
     align-items:center;
+    justify-content:center;
     gap:7px;
     padding:8px 14px;
     border-radius:999px;
@@ -54,13 +63,22 @@
     font-weight:800;
     text-decoration:none;
     white-space:nowrap;
+    cursor:pointer;
   }
 
-  html[data-theme="dark"] .t2layout .btnBack{
+  html[data-theme="dark"] .t2layout .btnBack,
+  html[data-theme="dark"] .t2layout .btnExcel{
     background:rgba(255,255,255,.06);
   }
 
+  .t2layout .btnBack:hover,
+  .t2layout .btnExcel:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 25px rgba(15,23,42,.08);
+  }
+
   .t2layout .tableBox{
+    width:100%;
     border:1px solid var(--line);
     border-radius:16px;
     overflow:auto;
@@ -91,8 +109,8 @@
   .t2layout table.t2tbl{
     border-collapse:collapse;
     table-layout:fixed;
-    width:max-content;
-    min-width:100%;
+    width:100%;
+    min-width:980px;
   }
 
   .t2layout .t2tbl th,
@@ -188,6 +206,11 @@
       flex-direction:column;
     }
 
+    .t2layout .topActions{
+      width:100%;
+      justify-content:flex-start;
+    }
+
     .t2layout .metricCol{
       width:200px;
       min-width:200px;
@@ -208,6 +231,7 @@
 
 <div class="t2layout">
   <div class="panel">
+
     <div class="hdr">
       <div>
         <h2>
@@ -218,10 +242,16 @@
         </div>
       </div>
 
-      <a class="btnBack" href="{% url 'admin_table2_reports' %}">
-        <span aria-hidden="true">←</span>
-        <span data-i18n="back">Orqaga</span>
-      </a>
+      <div class="topActions">
+        <a class="btnExcel" href="{% url 'admin_table2_layout_export_excel' date|date:'Y-m-d' %}">
+          Excel
+        </a>
+
+        <a class="btnBack" href="{% url 'admin_table2_reports' %}">
+          <span aria-hidden="true">←</span>
+          <span data-i18n="back">Orqaga</span>
+        </a>
+      </div>
     </div>
 
     <div class="tableBox">
@@ -238,8 +268,11 @@
         <colgroup>
           <col class="metricCol">
           <col class="subCol">
+
           {% for c in cols %}
-            <col class="groupCol">
+            {% if c.key != 'other' %}
+              <col class="groupCol">
+            {% endif %}
           {% endfor %}
         </colgroup>
 
@@ -247,10 +280,13 @@
           <tr>
             <th class="metricCol" data-i18n="col_metrics">Ko‘rsatkichlar</th>
             <th class="subCol"></th>
+
             {% for c in cols %}
-              <th class="{% if c.key == 'road' %}roadHead{% endif %}">
-                {{ c.title }}
-              </th>
+              {% if c.key != 'other' %}
+                <th class="{% if c.key == 'road' %}roadHead{% endif %}">
+                  {{ c.title }}
+                </th>
+              {% endif %}
             {% endfor %}
           </tr>
         </thead>
@@ -259,159 +295,223 @@
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_workpark">Ishchi park</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"work_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"work_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"work_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"work_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_load">Konteynerlarni yuklash</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"pogr_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"pogr_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"pogr_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"pogr_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_unload">Konteynerlarni tushirish</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"vygr_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"vygr_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"vygr_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"vygr_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td class="metricCell" data-i18n="row_tuk">TUK tushirish</td>
             <td class="subCell"></td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"vygr_tuk"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {% if c.key == 'road' %}
+                    {{ buckets|get_item:c.key|get_item:"vygr_tuk"|default:0 }}
+                  {% else %}
+                    0
+                  {% endif %}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_site">Maydondagi park</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"site_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"site_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"site_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"site_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_to_export">Olib chiqishga</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"to_export_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"to_export_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"to_export_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"to_export_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_ready">Jo‘natishga tayyor</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"ready_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"ready_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"ready_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"ready_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_empty">Bo‘sh</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"empty_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"empty_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"empty_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"empty_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_sort">Saralashga</td>
             <td class="subCell" data-i18n="sub_cont">Kont</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"sort_cont"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"sort_cont"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
+
           <tr>
             <td class="subCell" data-i18n="sub_kr">KR</td>
+
             {% for c in cols %}
-              <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
-                {{ buckets|get_item:c.key|get_item:"sort_kr"|default:0 }}
-              </td>
+              {% if c.key != 'other' %}
+                <td class="num {% if c.key == 'road' %}roadCell{% endif %}">
+                  {{ buckets|get_item:c.key|get_item:"sort_kr"|default:0 }}
+                </td>
+              {% endif %}
             {% endfor %}
           </tr>
         </tbody>
       </table>
     </div>
+
   </div>
 </div>
 
@@ -469,8 +569,10 @@
 
   function applyLang(lang){
     const t = dict[lang] || dict.uz;
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
+
       if(t[key] !== undefined){
         el.textContent = t[key];
       }
@@ -482,6 +584,7 @@
 
   setInterval(() => {
     const cur = getLang();
+
     if(cur !== last){
       last = cur;
       applyLang(cur);
