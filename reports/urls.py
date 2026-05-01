@@ -37,6 +37,7 @@ urlpatterns = [
     path("admin-panel/table-2/<str:date_str>/view/", admin_table2_view, name="admin_table2_view"),
     path("admin-panel/table-2/<str:date_str>/graph/", admin_table2_graph, name="admin_table2_graph"),
     path("admin-panel/table-2/<str:date_str>/layout/", admin_table2_layout, name="admin_table2_layout"),
+    path("admin/table2/<str:date_str>/layout/export-excel/", admin_table2_layout_export_excel ,name="admin_table2_layout_export_excel"),
     path("admin/table2/<str:date_str>/stations/", admin_table2_station_pick, name="admin_table2_station_pick"),
     path("admin/table2/<str:date_str>/stations/<int:user_id>/", admin_table2_station_view, name="admin_table2_station_view"),
 
