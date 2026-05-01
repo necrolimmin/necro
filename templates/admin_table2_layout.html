@@ -294,7 +294,7 @@
         <tbody>
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_workpark">Ishchi park</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell"> <span data-i18n="sub_cont">Kont</span> 1 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -306,7 +306,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 2</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -319,7 +319,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_load">Konteynerlarni yuklash</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 3 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -331,7 +331,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 4</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -344,7 +344,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_unload">Konteynerlarni tushirish</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 5 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -356,7 +356,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 6</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -367,9 +367,11 @@
             {% endfor %}
           </tr>
 
+          <!-- FAQAT SHU QATORDA 1-6 GURUHLAR 0 KO'RSATADI.
+               Дорога esa haqiqiy umumiy qiymatni ko'rsatadi. -->
           <tr>
             <td class="metricCell" data-i18n="row_tuk">TUK tushirish</td>
-            <td class="subCell"></td>
+            <td class="subCell">7</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -386,7 +388,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_site">Maydondagi park</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 8 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -398,7 +400,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 9</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -411,7 +413,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_to_export">Olib chiqishga</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 10 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -423,7 +425,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 11</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -436,7 +438,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_ready">Jo‘natishga tayyor</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 12 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -448,7 +450,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 13</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -461,7 +463,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_empty">Bo‘sh</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 14 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -473,7 +475,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 15</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -486,7 +488,7 @@
 
           <tr>
             <td rowspan="2" class="metricCell" data-i18n="row_sort">Saralashga</td>
-            <td class="subCell" data-i18n="sub_cont">Kont</td>
+            <td class="subCell" > <span data-i18n="sub_cont">Kont</span> 16 </td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -498,7 +500,7 @@
           </tr>
 
           <tr>
-            <td class="subCell" data-i18n="sub_kr">KR</td>
+            <td class="subCell" > <span data-i18n="sub_kr">KR</span> 17</td>
 
             {% for c in cols %}
               {% if c.key != 'other' %}
@@ -529,7 +531,7 @@
       row_workpark: "Ishchi park",
       row_load: "Konteynerlarni yuklash",
       row_unload: "Konteynerlarni tushirish",
-      row_tuk: "TUK tushirish",
+      row_tuk: "TUK Tushirish",
       row_site: "Maydondagi park",
       row_to_export: "Olib chiqishga",
       row_ready: "Jo‘natishga tayyor",
