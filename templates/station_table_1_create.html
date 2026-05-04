@@ -128,21 +128,22 @@
     border-collapse: separate;
     border-spacing: 0;
     width: max-content;
-    min-width: 1600px;
-    table-layout: fixed;
+    min-width: 100%;
+    table-layout: auto;
   }
 
   .xtable th,
   .xtable td{
     border-right: 1px solid rgba(15,23,42,.18);
     border-bottom: 1px solid rgba(15,23,42,.18);
-    padding: 6px 6px;
-    font-size: 12px;
+    padding: 4px 4px;
+    font-size: 11px;
     text-align: center;
     vertical-align: middle;
-    overflow: hidden;
+    overflow: visible;
     color: var(--text);
     background: transparent;
+    white-space: nowrap;
   }
   html[data-theme="dark"] .xtable th,
   html[data-theme="dark"] .xtable td{
@@ -210,17 +211,21 @@
   .xshift.xbig{ text-align:center; font-weight: 950; font-size: 14px; }
 
   .xinput input{
-    width: 46px;
-    height: 34px;
-    padding: 6px 8px;
+    width: 38px;
+    min-width: 38px;
+    max-width: 110px;
+    height: 30px;
+    padding: 4px 5px;
     border:1px solid rgba(15,23,42,.18);
-    border-radius: 12px;
+    border-radius: 9px;
     text-align:center;
     box-sizing:border-box;
     background: rgba(255,255,255,.55);
     color: var(--text);
     outline: none;
-    transition: box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    font-size: 11px;
+    font-weight: 800;
+    transition: width .08s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
   }
   html[data-theme="dark"] .xinput input{
     background: rgba(255,255,255,.06);
@@ -234,7 +239,11 @@
   }
   html[data-theme="dark"] .xinput input:focus{ background: rgba(255,255,255,.10); }
 
-  .kcell input{ width: 120px; }
+  .kcell input{
+    width: 64px;
+    min-width: 64px;
+    max-width: 150px;
+  }
 
   /* ✅ терминал input в первой ячейке: визуально как было, но редактируемо */
   .termcell{
@@ -401,11 +410,11 @@
           <div class="xscroll">
             <table class="xtable t1-table" data-block="{{ b }}">
               <colgroup>
-                <col style="width:120px;">
-                <col style="width:46px;">
-                <col style="width:46px;">
+                <col style="width:96px;">
+                <col style="width:38px;">
+                <col style="width:38px;">
                 {% for _ in "1234567890123456789012345678901234567890" %}
-                  <col style="width:46px;">
+                  <col style="width:38px;">
                 {% endfor %}
               </colgroup>
 
@@ -848,6 +857,7 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
     const btnAdd = document.getElementById("btnAddTerminal");
     const mode = "{{ mode|default:'edit' }}";
     const canEdit = mode !== "view";
+    const form = document.getElementById("t1Form");
 
     if (!container) return;
 
@@ -910,17 +920,57 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
       const cleaned = String(value)
         .trim()
         .replace(/\s+/g, "")
-        .replace(",", ".");
+        .replace(/,/g, ".")
+        .replace(/[^\d.-]/g, "");
 
-      if (cleaned === "") return 0;
+      if (cleaned === "" || cleaned === "-" || cleaned === ".") return 0;
 
       const n = parseFloat(cleaned);
       return Number.isFinite(n) ? n : 0;
     }
 
     function formatNumber(value) {
-      const n = Math.round(toNumber(value));
-      return String(n);
+      const raw = String(value ?? "").trim();
+      if (raw === "") return "";
+
+      const n = Math.round(toNumber(raw));
+      if (!Number.isFinite(n)) return "";
+
+      return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    function autoFitInput(input) {
+      if (!input) return;
+      if (input.classList.contains("termcell")) return;
+
+      const valueLength = String(input.value || "").length;
+      const isIncome = !!input.closest(".kcell");
+      const minWidth = isIncome ? 64 : 38;
+      const maxWidth = isIncome ? 150 : 110;
+      const charWidth = isIncome ? 9 : 8;
+      const extra = isIncome ? 22 : 18;
+
+      const width = Math.max(minWidth, Math.min(maxWidth, valueLength * charWidth + extra));
+      input.style.width = width + "px";
+    }
+
+    function formatNumberLive(input) {
+      if (!input) return;
+      if (input.classList.contains("termcell")) return;
+
+      const raw = String(input.value || "");
+      const cleaned = raw.replace(/\s+/g, "").replace(/[^\d-]/g, "");
+
+      if (cleaned === "" || cleaned === "-") {
+        input.value = cleaned;
+        autoFitInput(input);
+        return;
+      }
+
+      const formatted = cleaned.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      if (input.value !== formatted) input.value = formatted;
+
+      autoFitInput(input);
     }
 
     function setValue(input, value) {
@@ -930,6 +980,7 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
       if (input.value !== newValue) {
         input.value = newValue;
       }
+      autoFitInput(input);
     }
 
     function inputByKey(row, key) {
@@ -1000,6 +1051,13 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 
     function recalcAllTables() {
       document.querySelectorAll("table.t1-table").forEach(recalcTable);
+
+      document.querySelectorAll("table.t1-table input").forEach((input) => {
+        if (input instanceof HTMLInputElement && !input.classList.contains("termcell")) {
+          formatNumberLive(input);
+          autoFitInput(input);
+        }
+      });
     }
 
     function getNextBlockNumber() {
@@ -1131,6 +1189,10 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
       const table = input.closest("table.t1-table");
       if (!table) return;
 
+      if (!input.classList.contains("termcell")) {
+        formatNumberLive(input);
+      }
+
       recalcTable(table);
     }, true);
 
@@ -1138,6 +1200,19 @@ setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 
     if (btnAdd) {
       btnAdd.addEventListener("click", addTerminalBlock);
+    }
+
+    if (form) {
+      form.addEventListener("submit", function () {
+        form.querySelectorAll("table.t1-table .xinput input").forEach((input) => {
+          if (!(input instanceof HTMLInputElement)) return;
+
+          // readonly bo‘lsa ham total qiymatlar backendga toza son bo‘lib ketadi
+          input.value = String(input.value || "")
+            .replace(/\s+/g, "")
+            .replace(/[^\d.-]/g, "");
+        });
+      });
     }
 
     window.addEventListener("DOMContentLoaded", function () {
