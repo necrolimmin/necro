@@ -389,7 +389,7 @@ def _build_kvartalniy_range_context(from_date, to_date):
                     result[group_key]["vygr_plan_raw"] = getattr(extra_obj, "vygr_plan", 0) or 0
                     result[group_key]["pogr_kont_plan_raw"] = getattr(extra_obj, "pogr_kont_plan", 0) or 0
                     result[group_key]["vygr_kont_plan_raw"] = getattr(extra_obj, "vygr_kont_plan", 0) or 0
-                    result[group_key]["income_plan_raw"] = getattr(extra_obj, "income_plan", 0) or 0
+                    result[group_key]["income_plan_raw"] = getattr(extra_obj, "income_plan", 0) /1000 or 0
 
                     result[group_key]["pogr_this_year_raw"] = getattr(extra_obj, "pogr_this_year", 0) or 0
                     result[group_key]["pogr_last_year_raw"] = getattr(extra_obj, "pogr_last_year", 0) or 0
@@ -399,14 +399,14 @@ def _build_kvartalniy_range_context(from_date, to_date):
                     result[group_key]["pogr_kont_last_year_raw"] = getattr(extra_obj, "pogr_kont_last_year", 0) or 0
                     result[group_key]["vygr_kont_this_year_raw"] = getattr(extra_obj, "vygr_kont_this_year", 0) or 0
                     result[group_key]["vygr_kont_last_year_raw"] = getattr(extra_obj, "vygr_kont_last_year", 0) or 0
-                    result[group_key]["income_this_year_raw"] = getattr(extra_obj, "income_this_year", 0) or 0
-                    result[group_key]["income_last_year_raw"] = getattr(extra_obj, "income_last_year", 0) or 0
+                    result[group_key]["income_this_year_raw"] = getattr(extra_obj, "income_this_year", 0) / 1000 or 0
+                    result[group_key]["income_last_year_raw"] = getattr(extra_obj, "income_last_year", 0) / 1000 or 0
 
                 result[group_key]["pogr_plan"] += round((getattr(extra_obj, "pogr_plan", 0) or 0) / days_in_month * selected_days)
                 result[group_key]["vygr_plan"] += round((getattr(extra_obj, "vygr_plan", 0) or 0) / days_in_month * selected_days)
                 result[group_key]["pogr_kont_plan"] += round((getattr(extra_obj, "pogr_kont_plan", 0) or 0) / days_in_month * selected_days)
                 result[group_key]["vygr_kont_plan"] += round((getattr(extra_obj, "vygr_kont_plan", 0) or 0) / days_in_month * selected_days)
-                result[group_key]["income_plan"] += round((getattr(extra_obj, "income_plan", 0) or 0) / days_in_month * selected_days)
+                result[group_key]["income_plan"] += round((getattr(extra_obj, "income_plan", 0) or 0) / days_in_month * selected_days) / 1000
 
                 result[group_key]["pogr_this_year"] += round((getattr(extra_obj, "pogr_this_year", 0) or 0) / days_in_month * selected_days)
                 result[group_key]["pogr_last_year"] += round((getattr(extra_obj, "pogr_last_year", 0) or 0) / days_in_month * selected_days)
@@ -417,13 +417,13 @@ def _build_kvartalniy_range_context(from_date, to_date):
                 result[group_key]["vygr_kont_this_year"] += round((getattr(extra_obj, "vygr_kont_this_year", 0) or 0) / days_in_month * selected_days)
                 result[group_key]["vygr_kont_last_year"] += round((getattr(extra_obj, "vygr_kont_last_year", 0) or 0) / days_in_month * selected_days)
                 result[group_key]["income_this_year"] += round((getattr(extra_obj, "income_this_year", 0) or 0) / days_in_month * selected_days)
-                result[group_key]["income_last_year"] += round((getattr(extra_obj, "income_last_year", 0) or 0) / days_in_month * selected_days)
+                result[group_key]["income_last_year"] += round((getattr(extra_obj, "income_last_year", 0) or 0) / days_in_month * selected_days) / 1000
 
                 result[group_key]["pogr_diff"] = result[group_key]["pogr_this_year"] - result[group_key]["pogr_last_year"]
                 result[group_key]["vygr_diff"] = result[group_key]["vygr_this_year"] - result[group_key]["vygr_last_year"]
                 result[group_key]["pogr_kont_diff"] = result[group_key]["pogr_kont_this_year"] - result[group_key]["pogr_kont_last_year"]
                 result[group_key]["vygr_kont_diff"] = result[group_key]["vygr_kont_this_year"] - result[group_key]["vygr_kont_last_year"]
-                result[group_key]["income_diff"] = result[group_key]["income_this_year"] - result[group_key]["income_last_year"]
+                result[group_key]["income_diff"] = (result[group_key]["income_this_year"] - result[group_key]["income_last_year"]) /1000
 
         return result
 
