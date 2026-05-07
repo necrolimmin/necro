@@ -30,9 +30,10 @@
         📥 Excel
       </a>
 
-      <button type="button" class="t1a-back t1a-pdf-btn" id="t1DownloadPdfBtn">
-    📄 PDF
-  </button>
+      <a class="t1a-back t1a-pdf-btn"
+        href="{% url 'admin_table1_report_pdf_view' date|date:'Y-m-d' %}">
+        📄 PDF
+      </a>
     </div>
   </div>
 

@@ -1203,28 +1203,102 @@ def admin_table2_status_detail(request, date_str):
 
 
 
-def _apply_itogo_rules(data: dict, status=False) -> dict:
-    d = dict(data or {})
-    if status:
-        d['k_podache_so_st'] = 0
-    print(d['k_podache_so_st'])
-    blocks = [
-        ("vygr",      "ft", "cont", "kr", "pv", "proch"),
-        ("pod_vygr",  "ft", "cont", "kr", "pv", "proch"),
-        ("pogr",      "ft", "cont", "kr", "pv", "proch"),
-        ("pod_pogr",  "ft", "cont", "kr", "pv", "proch"),
-    ]
+# =========================
+# ADMIN: TABLE 1 DETAIL + PDF HELPERS
+# =========================
 
-    for prefix, k_ft, k_cont, k_kr, k_pv, k_proch in blocks:
-        ft = _int0(d.get(f"{prefix}_{k_ft}"))
-        kr = _int0(d.get(f"{prefix}_{k_kr}"))
-        pv = _int0(d.get(f"{prefix}_{k_pv}"))
-        proch = _int0(d.get(f"{prefix}_{k_proch}"))
-        cont = _int0(d.get(f"{prefix}_{k_cont}"))
+TABLE1_ADMIN_FIELDS = [
+    "podano_lc",
+    "k_podache_so_st",
+
+    "vygr_ft",
+    "vygr_cont",
+    "vygr_kr",
+    "vygr_pv",
+    "vygr_proch",
+    "vygr_itogo",
+    "vygr_itogo_kon",
+
+    "pod_vygr_ft",
+    "pod_vygr_cont",
+    "pod_vygr_kr",
+    "pod_vygr_pv",
+    "pod_vygr_proch",
+    "pod_vygr_itogo",
+    "pod_vygr_itogo_kon",
+
+    "uborka",
+
+    "pogr_ft",
+    "pogr_cont",
+    "pogr_kr",
+    "pogr_pv",
+    "pogr_proch",
+    "pogr_itogo",
+    "pogr_itogo_kon",
+
+    "pod_pogr_ft",
+    "pod_pogr_cont",
+    "pod_pogr_kr",
+    "pod_pogr_pv",
+    "pod_pogr_proch",
+    "pod_pogr_itogo",
+    "pod_pogr_itogo_kon",
+
+    "income_daily",
+]
+
+
+def _safe_int(v):
+    if v in (None, "", "—", "-", "–"):
+        return 0
+
+    if isinstance(v, str):
+        v = (
+            v.replace("\xa0", "")
+             .replace(" ", "")
+             .replace(",", "")
+             .strip()
+        )
+
+    try:
+        return int(float(v))
+    except Exception:
+        return 0
+
+
+def _format_pdf_num(v):
+    n = _safe_int(v)
+    if n == 0:
+        return "0"
+    return f"{n:,}".replace(",", " ")
+
+
+def _apply_itogo_rules(data: dict, status=False) -> dict:
+    """
+    Safely recalculates all itogo columns.
+    status=True is used for night rows: k_podache_so_st must be 0.
+    """
+    d = dict(data or {})
+
+    for k in TABLE1_ADMIN_FIELDS:
+        if k not in d:
+            d[k] = 0
+
+    if status:
+        d["k_podache_so_st"] = 0
+
+    for prefix in ("vygr", "pod_vygr", "pogr", "pod_pogr"):
+        ft = _safe_int(d.get(f"{prefix}_ft"))
+        kr = _safe_int(d.get(f"{prefix}_kr"))
+        pv = _safe_int(d.get(f"{prefix}_pv"))
+        proch = _safe_int(d.get(f"{prefix}_proch"))
+        cont = _safe_int(d.get(f"{prefix}_cont"))
 
         d[f"{prefix}_itogo"] = ft + kr + pv + proch
         d[f"{prefix}_itogo_kon"] = cont
 
+    d["income_daily"] = _safe_int(d.get("income_daily"))
     return d
 
 
@@ -1236,18 +1310,21 @@ def _table1_part_field_name():
 
     candidates = [
         "part", "table_part", "table_no", "table_num",
-        "table_index", "table_idx",
-        "block", "block_no", "group", "group_no",
-        "pack", "pack_no", "set_no", "form_no",
+        "table_index", "table_idx", "block", "block_no",
+        "group", "group_no", "pack", "pack_no",
+        "set_no", "form_no",
     ]
+
     for nm in candidates:
         if nm in field_names:
             return nm
+
     return None
 
 
 def _sum_dicts(dicts):
     out = {}
+
     if not dicts:
         return out
 
@@ -1256,7 +1333,7 @@ def _sum_dicts(dicts):
         keys |= set((d or {}).keys())
 
     for k in keys:
-        if k in ("k_podache_so_st", TERMINAL_NAME_KEY):
+        if k == TERMINAL_NAME_KEY:
             val = ""
             for d in dicts:
                 v = (d or {}).get(k, "")
@@ -1268,7 +1345,7 @@ def _sum_dicts(dicts):
 
         s = 0
         for d in dicts:
-            s += _int0((d or {}).get(k))
+            s += _safe_int((d or {}).get(k))
         out[k] = s
 
     return out
@@ -1276,7 +1353,12 @@ def _sum_dicts(dicts):
 
 def _get_table1_shift_data_for_admin(user, d, shift: str):
     part_field = _table1_part_field_name()
-    qs = StationDailyTable1.objects.filter(station_user=user, date=d, shift=shift)
+
+    qs = StationDailyTable1.objects.filter(
+        station_user=user,
+        date=d,
+        shift=shift,
+    )
 
     if part_field:
         objs = list(qs.order_by(part_field))
@@ -1297,6 +1379,7 @@ def _station_display_name(user):
         "station_name", "name", "title", "display_name", "short_name",
         "lc_name", "center_name", "department_name",
     ]
+
     for f in candidates:
         v = getattr(sp, f, None)
         if v:
@@ -1305,50 +1388,35 @@ def _station_display_name(user):
     for rel in ["station", "lc", "center", "department", "branch"]:
         obj = getattr(sp, rel, None)
         if obj:
-            for f in ["station_name", "title", "short_name"]:
+            for f in ["station_name", "title", "short_name", "name"]:
                 v = getattr(obj, f, None)
                 if v:
                     return str(v)
             return str(obj)
 
-    return getattr(user, "profilestation", str(user.profilestation.station_name))
+    return getattr(user, "username", str(user))
 
 
-@staff_required
-def admin_table1_report_view(request, date_str):
-    d = _parse_date(date_str)
+def _sum_into(dst: dict, src: dict):
+    src = src or {}
+    for k in TABLE1_ADMIN_FIELDS:
+        dst[k] = _safe_int(dst.get(k)) + _safe_int(src.get(k))
 
+
+def _build_admin_table1_context(d):
+    """
+    One source of truth for admin Table 1 page and PDF export.
+    The HTML page still receives terminals/day/night/jami.
+    PDF also receives station.total_data for compact one-row-per-station output.
+    """
     User = get_user_model()
+
     users = (
         User.objects
         .exclude(is_staff=True)
         .exclude(is_superuser=True)
         .order_by("username")
     )
-
-    FIELDS = [
-        "podano_lc", "k_podache_so_st",
-        "vygr_ft", "vygr_cont", "vygr_kr", "vygr_pv", "vygr_proch", "vygr_itogo", "vygr_itogo_kon",
-        "pod_vygr_ft", "pod_vygr_cont", "pod_vygr_kr", "pod_vygr_pv", "pod_vygr_proch", "pod_vygr_itogo", "pod_vygr_itogo_kon",
-        "uborka",
-        "pogr_ft", "pogr_cont", "pogr_kr", "pogr_pv", "pogr_proch", "pogr_itogo_kon",
-        "pod_pogr_ft", "pod_pogr_cont", "pod_pogr_kr", "pod_pogr_pv", "pod_pogr_proch", "pod_pogr_itogo_kon",
-        "income_daily",
-    ]
-
-    def _to_int(v):
-        if v in (None, "", "—", "-", "–"):
-            return 0
-        if isinstance(v, str):
-            v = v.replace("\xa0", "").replace(" ", "").replace(",", "")
-        try:
-            return int(float(v))
-        except Exception:
-            return 0
-
-    def _sum_into(dst: dict, src: dict):
-        for k in FIELDS:
-            dst[k] = dst.get(k, 0) + _to_int(src.get(k, 0))
 
     station_list = []
 
@@ -1365,33 +1433,61 @@ def admin_table1_report_view(request, date_str):
             date=d,
             submitted_at__isnull=False,
         ).exists()
+
         if not sent:
             continue
 
         blocks = _terminal_blocks_for_station_date(u, d, force_new=False)
-
         terminals = []
+
         for b in blocks:
-            day_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="day", block=b).first()
-            night_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="night", block=b).first()
+            day_obj = StationDailyTable1.objects.filter(
+                station_user=u,
+                date=d,
+                shift="day",
+                block=b,
+            ).first()
+
+            night_obj = StationDailyTable1.objects.filter(
+                station_user=u,
+                date=d,
+                shift="night",
+                block=b,
+            ).first()
+
+            total_obj = StationDailyTable1.objects.filter(
+                station_user=u,
+                date=d,
+                shift="total",
+                block=b,
+            ).first()
 
             day_raw = (day_obj.data or {}) if day_obj else {}
             night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
-            night_data = _apply_itogo_rules(night_raw, status=True) if has_night else {}
-   
-            day_data = _apply_itogo_rules(day_raw )
-            
+            total_raw = (total_obj.data or {}) if total_obj else {}
 
-            total_data = {}
-            if has_night:
-                total_data = {k: 0 for k in FIELDS}
+            day_data = _apply_itogo_rules(day_raw)
+            night_data = _apply_itogo_rules(night_raw, status=True) if has_night else {}
+            total_data = _apply_itogo_rules(total_raw)
+
+            if not total_obj:
+                total_data = {k: 0 for k in TABLE1_ADMIN_FIELDS}
                 _sum_into(total_data, day_data)
-                _sum_into(total_data, night_data)
+                if has_night:
+                    _sum_into(total_data, night_data)
                 total_data = _apply_itogo_rules(total_data)
+
+            total_income = _safe_int(total_data.get("income_daily"))
+            if total_income == 0:
+                total_income = _safe_int(day_data.get("income_daily"))
+                if has_night:
+                    total_income += _safe_int(night_data.get("income_daily"))
+                total_data["income_daily"] = total_income
 
             term_name = (
                 (day_raw or {}).get(TERMINAL_NAME_KEY)
                 or (night_raw or {}).get(TERMINAL_NAME_KEY)
+                or (total_raw or {}).get(TERMINAL_NAME_KEY)
                 or ""
             )
 
@@ -1403,19 +1499,24 @@ def admin_table1_report_view(request, date_str):
                 "total_data": total_data,
             })
 
-        sum_total = {k: 0 for k in FIELDS}
+        sum_total = {k: 0 for k in TABLE1_ADMIN_FIELDS}
         for t in terminals:
-            _sum_into(sum_total, t["day_data"])
-            if has_night:
-                _sum_into(sum_total, t["night_data"])
+            _sum_into(sum_total, t["total_data"])
+
         sum_total = _apply_itogo_rules(sum_total)
 
         blocks_url = ""
         if has_night:
-            blocks_url = reverse(
-                "admin_table1_station_blocks",
-                kwargs={"date_str": d.strftime("%Y-%m-%d"), "user_id": u.id},
-            )
+            try:
+                blocks_url = reverse(
+                    "admin_table1_station_blocks",
+                    kwargs={
+                        "date_str": d.strftime("%Y-%m-%d"),
+                        "user_id": u.id,
+                    },
+                )
+            except Exception:
+                blocks_url = ""
 
         station_list.append({
             "name": _station_display_name(u),
@@ -1425,23 +1526,562 @@ def admin_table1_report_view(request, date_str):
             "blocks_url": blocks_url,
             "terminals": terminals,
             "sum_total": sum_total,
+            "total_data": sum_total,
         })
 
-    station_list.sort(key=lambda x: (x["name"] or "").lower())
-    grand_total = {k: 0 for k in FIELDS}
+    station_list.sort(key=_table1_station_sort_key)
 
+    grand_total = {k: 0 for k in TABLE1_ADMIN_FIELDS}
     for st in station_list:
         _sum_into(grand_total, st.get("sum_total") or {})
 
     grand_total = _apply_itogo_rules(grand_total)
 
-    return render(request, "admin_table1_report_view.html", {
+
+    PDF_COLUMNS_ALL = [
+        ("podano_lc", "LM", "pink"),
+        ("k_podache_so_st", "St", "pink"),
+
+        ("vygr_ft", "ft", "green"),
+        ("vygr_cont", "kon", "green"),
+        ("vygr_kr", "kr", "green"),
+        ("vygr_pv", "pv", "green"),
+        ("vygr_proch", "b", "green"),
+        ("vygr_itogo", "j", "green"),
+        ("vygr_itogo_kon", "jk", "green"),
+
+        ("pod_vygr_ft", "ft", "green2"),
+        ("pod_vygr_cont", "kon", "green2"),
+        ("pod_vygr_kr", "kr", "green2"),
+        ("pod_vygr_pv", "pv", "green2"),
+        ("pod_vygr_proch", "b", "green2"),
+        ("pod_vygr_itogo", "j", "green2"),
+        ("pod_vygr_itogo_kon", "jk", "green2"),
+
+        ("uborka", "Yig.", "yellow"),
+
+        ("pogr_ft", "ft", "blue"),
+        ("pogr_cont", "kon", "blue"),
+        ("pogr_kr", "kr", "blue"),
+        ("pogr_pv", "pv", "blue"),
+        ("pogr_proch", "b", "blue"),
+        ("pogr_itogo", "j", "blue"),
+        ("pogr_itogo_kon", "jk", "blue"),
+
+        ("pod_pogr_ft", "ft", "blue2"),
+        ("pod_pogr_cont", "kon", "blue2"),
+        ("pod_pogr_kr", "kr", "blue2"),
+        ("pod_pogr_pv", "pv", "blue2"),
+        ("pod_pogr_proch", "b", "blue2"),
+        ("pod_pogr_itogo", "j", "blue2"),
+        ("pod_pogr_itogo_kon", "jk", "blue2"),
+
+        ("income_daily", "Daromad", "gray"),
+    ]
+
+    always_show = {
+        "podano_lc",
+        "k_podache_so_st",
+        "vygr_itogo",
+        "vygr_itogo_kon",
+        "pod_vygr_itogo",
+        "pod_vygr_itogo_kon",
+        "uborka",
+        "pogr_itogo",
+        "pogr_itogo_kon",
+        "pod_pogr_itogo",
+        "pod_pogr_itogo_kon",
+        "income_daily",
+    }
+
+    pdf_columns = []
+
+    for key, label, group in PDF_COLUMNS_ALL:
+        total_value = _safe_int(grand_total.get(key))
+
+        if key in always_show or total_value != 0:
+            pdf_columns.append({
+                "key": key,
+                "label": label,
+                "group": group,
+            })
+
+    return {
         "date": d,
         "stations": station_list,
         "fields": TABLE1_FIELDS,
         "grand_total": grand_total,
-    })
+        "pdf_columns": pdf_columns,
+    }
 
+TABLE1_STATION_ORDER = [
+    "Chuqursoy LM",
+    "Toshkent LM",
+    "Sergeli LM",
+    "Ulug'bek LM",
+    "Marokand LM",
+    "Jaloir LM",
+    "Ohangaron LM",
+    "Nazarbek LM",
+    "Urtavul LM",
+    "Sirdaryo LM",
+    "Jizzax LM",
+    "Ablik LM",
+    "To'ytepa",
+    "Qo'qon LM",
+    "Rovuston LM",
+    "Marg'ilon LM",
+    "Axtachi LM",
+    "Asaka LM",
+    "Buxoro LM",
+    "Tinchlik LM",
+    "Karmana LM",
+    "Yangi-Zarafshon LM",
+    "Qarshi LM",
+    "Dehqonobod LM",
+    "Termiz LM",
+    "Nukus LM",
+    "Kirkkiz LM",
+    "Urganch LM",
+    "Pitnyak LM",
+]
+
+
+def _norm_lm_name(value):
+    s = str(value or "").strip().lower()
+
+    replacements = {
+        "‘": "'",
+        "’": "'",
+        "`": "'",
+        "ʼ": "'",
+        "ʻ": "'",
+        "ё": "е",
+        "–": "-",
+        "—": "-",
+    }
+
+    for old, new in replacements.items():
+        s = s.replace(old, new)
+
+    return " ".join(s.split())
+
+
+def _table1_station_sort_key(station_row):
+    name = _norm_lm_name(station_row.get("name"))
+
+    order_map = {
+        _norm_lm_name(st_name): idx
+        for idx, st_name in enumerate(TABLE1_STATION_ORDER)
+    }
+
+    if name in order_map:
+        return (0, order_map[name])
+
+    return (1, name)
+
+
+@staff_required
+def admin_table1_report_view(request, date_str):
+    d = _parse_date(date_str)
+    context = _build_admin_table1_context(d)
+    return render(request, "admin_table1_report_view.html", context)
+
+
+@staff_required
+def admin_table1_report_pdf(request, date_str):
+    """
+    PDF 1:1 как текущая HTML admin table.
+    Открывает настоящую admin_table1_report_view страницу,
+    берёт таблицу #t1admin и растягивает её на весь A4 landscape.
+    """
+    from django.http import HttpResponse
+    from django.urls import reverse
+    from playwright.sync_api import sync_playwright
+    from urllib.parse import urlparse
+    import tempfile
+    import os
+
+    pdf_path = None
+
+    try:
+        page_url = request.build_absolute_uri(
+            reverse("admin_table1_report_view", kwargs={"date_str": date_str})
+        )
+    except Exception:
+        page_url = request.build_absolute_uri(f"/admin/table1/{date_str}/")
+
+    parsed = urlparse(page_url)
+    cookie_domain = parsed.hostname
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            pdf_path = tmp.name
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                ],
+            )
+
+            context = browser.new_context(
+                viewport={
+                    "width": 2400,
+                    "height": 1400,
+                },
+                device_scale_factor=1,
+            )
+
+            try:
+                cookies = []
+
+                for name, value in request.COOKIES.items():
+                    cookies.append({
+                        "name": name,
+                        "value": value,
+                        "domain": cookie_domain,
+                        "path": "/",
+                        "httpOnly": False,
+                        "secure": parsed.scheme == "https",
+                        "sameSite": "Lax",
+                    })
+
+                if cookies:
+                    context.add_cookies(cookies)
+
+                page = context.new_page()
+
+                page.goto(
+                    page_url,
+                    wait_until="networkidle",
+                    timeout=60000,
+                )
+
+                page.evaluate("""
+                    () => {
+                        const table = document.querySelector("#t1admin");
+
+                        if (!table) {
+                            throw new Error("PDF export: table #t1admin not found");
+                        }
+
+                        const title =
+                            document.querySelector(".t1a-hdr") ||
+                            document.querySelector(".t1a-titlebox h2");
+
+                        document.querySelectorAll("*").forEach(el => {
+                            const st = window.getComputedStyle(el);
+
+                            if (st.position === "sticky") {
+                                el.style.position = "static";
+                                el.style.left = "auto";
+                                el.style.right = "auto";
+                                el.style.top = "auto";
+                                el.style.zIndex = "auto";
+                            }
+                        });
+
+                        const titleClone = title ? title.cloneNode(true) : null;
+                        const tableClone = table.cloneNode(true);
+                        
+                        // PDF uchun colgroup ranglarini majburan saqlaymiz.
+                        // HTML viewdagi kabi rangli ustunlar pastga davom etadi.
+                        const colColors = {
+                            4:  "#f7e6e6", // LMga berildi
+                            5:  "#f7e6e6", // St’dan berishga
+
+                            11: "#dff0d8", // Tushirish jami
+                            12: "#dff0d8", // Tushirish jami kont
+
+                            18: "#d4ebd0", // Tushirishda jami
+                            19: "#d4ebd0", // Tushirishda jami kont
+
+                            20: "#fff3c4", // Yig‘ishtirish
+
+                            26: "#dff4f9", // Ortish jami
+                            27: "#dff4f9", // Ortish jami kont
+
+                            33: "#bfeef4", // Ortishda jami
+                            34: "#bfeef4", // Ortishda jami kont
+
+                            35: "#f2f2f2"  // sutkalik daromad
+                        };
+
+                        const cols = tableClone.querySelectorAll("colgroup col");
+
+                        cols.forEach((col, index) => {
+                            const colNo = index + 1;
+                            if (colColors[colNo]) {
+                                col.style.backgroundColor = colColors[colNo];
+                            }
+                        });
+
+                        document.body.innerHTML = "";
+
+                        const pageBox = document.createElement("div");
+                        pageBox.id = "pdf-page-box";
+
+                        const fitBox = document.createElement("div");
+                        fitBox.id = "pdf-fit-box";
+
+                        if (titleClone) {
+                            titleClone.id = "pdf-title";
+                            fitBox.appendChild(titleClone);
+                        }
+
+                        const tableWrap = document.createElement("div");
+                        tableWrap.id = "pdf-table-wrap";
+                        tableWrap.appendChild(tableClone);
+                        fitBox.appendChild(tableWrap);
+
+                        pageBox.appendChild(fitBox);
+                        document.body.appendChild(pageBox);
+
+                        const style = document.createElement("style");
+
+                        style.textContent = `
+                            @page {
+                                size: A4 landscape;
+                                margin: 1mm;
+                            }
+
+                            html,
+                            body {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 100% !important;
+                                height: 100% !important;
+                                overflow: hidden !important;
+                                background: white !important;
+                            }
+
+                            * {
+                                box-sizing: border-box !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+
+                            #pdf-page-box {
+                                width: 297mm;
+                                height: 210mm;
+                                overflow: hidden;
+                                background: white;
+                                position: relative;
+                            }
+
+                            #pdf-fit-box {
+                                transform-origin: top left;
+                                display: inline-block;
+                                background: white;
+                            }
+
+                            #pdf-title,
+                            .t1a-hdr {
+                                text-align: center !important;
+                                font-weight: 800 !important;
+                                font-size: 8px !important;
+                                line-height: 1.05 !important;
+                                margin: 0 0 2px 0 !important;
+                                padding: 0 !important;
+                                white-space: nowrap !important;
+                                color: #111827 !important;
+                                background: white !important;
+                                border: none !important;
+                            }
+
+                            #pdf-table-wrap {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                overflow: visible !important;
+                            }
+
+                            table#t1admin,
+                            #pdf-table-wrap table {
+                                border-collapse: collapse !important;
+                                table-layout: fixed !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: auto !important;
+                                min-width: 0 !important;
+                                max-width: none !important;
+                                background: white !important;
+                            }
+
+                            #pdf-table-wrap th,
+                            #pdf-table-wrap td {
+                                border: 0.45px solid #7b8794 !important;
+                                padding: 1px 2px !important;
+                                vertical-align: middle !important;
+                                overflow: hidden !important;
+                                color: #111827 !important;
+                                font-size: 6.2px !important;
+                                line-height: 1.04 !important;
+                            }
+
+                            #pdf-table-wrap th {
+                                font-weight: 800 !important;
+                                text-align: center !important;
+                            }
+
+                            #pdf-table-wrap td {
+                                text-align: right !important;
+                                font-weight: 500 !important;
+                            }
+
+                            #pdf-table-wrap td.t1a-name,
+                            #pdf-table-wrap th.t1a-name {
+                                text-align: left !important;
+                                font-weight: 800 !important;
+                                white-space: nowrap !important;
+                            }
+
+                            #pdf-table-wrap td.t1a-shift,
+                            #pdf-table-wrap th.t1a-shift,
+                            #pdf-table-wrap td.t1a-term,
+                            #pdf-table-wrap th.t1a-term {
+                                text-align: center !important;
+                                white-space: nowrap !important;
+                            }
+
+                            #pdf-table-wrap a {
+                                color: #111827 !important;
+                                text-decoration: none !important;
+                            }
+
+                            #pdf-table-wrap .t1a-vtxt {
+                                writing-mode: vertical-rl !important;
+                                transform: rotate(180deg) !important;
+                                white-space: nowrap !important;
+                                display: inline-block !important;
+                                line-height: 1 !important;
+                            }
+
+                            #pdf-table-wrap .t1a-lines {
+                                display: block !important;
+                            }
+
+                            #pdf-table-wrap .t1a-line {
+                                min-height: 8px !important;
+                                line-height: 1.04 !important;
+                                white-space: nowrap !important;
+                            }
+
+                            #pdf-table-wrap .t1a-sep-r {
+                                border-right: 1px solid #111827 !important;
+                            }
+
+                            #pdf-table-wrap .t1a-thick-bottom {
+                                border-bottom: 1px solid #111827 !important;
+                            }
+
+                            #pdf-table-wrap .t1a-thick-top {
+                                border-top: 1px solid #111827 !important;
+                            }
+                            
+                            /* PDF: HTML viewdagi rangli ustunlarni pastga davom ettirish */
+                            #pdf-table-wrap col:nth-child(4),
+                            #pdf-table-wrap col:nth-child(5) {
+                                background: #f7e6e6 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(11),
+                            #pdf-table-wrap col:nth-child(12) {
+                                background: #dff0d8 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(18),
+                            #pdf-table-wrap col:nth-child(19) {
+                                background: #d4ebd0 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(20) {
+                                background: #fff3c4 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(26),
+                            #pdf-table-wrap col:nth-child(27) {
+                                background: #dff4f9 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(33),
+                            #pdf-table-wrap col:nth-child(34) {
+                                background: #bfeef4 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(35) {
+                                background: #f2f2f2 !important;
+                            }
+                        `;
+
+                        document.head.appendChild(style);
+
+                            const box = document.querySelector("#pdf-fit-box");
+                            const pageBoxRect = document.querySelector("#pdf-page-box").getBoundingClientRect();
+
+                            const rect = box.getBoundingClientRect();
+
+                            const maxW = pageBoxRect.width;
+                            const maxH = pageBoxRect.height;
+
+                            // Ширину возвращаем как раньше:
+                            // подгоняем только под ширину листа.
+                            const scaleX = (maxW / rect.width) * 0.985;
+
+                            // Высоту тянем отдельно вниз,
+                            // но ширину уже НЕ меняем.
+                            const scaleY = (maxH / rect.height) * 0.978;
+
+                            // ВАЖНО:
+                            // X — старый нормальный масштаб,
+                            // Y — дотягиваем вниз.
+                            box.style.transform = `scale(${scaleX}, ${scaleY})`;
+
+                            box.style.width = `${rect.width}px`;
+                            box.style.height = `${rect.height}px`;
+
+                            document.body.style.width = "297mm";
+                            document.body.style.height = "210mm";
+                    }
+                """)
+
+                page.pdf(
+                    path=pdf_path,
+                    format="A4",
+                    landscape=True,
+                    print_background=True,
+                    prefer_css_page_size=True,
+                    margin={
+                        "top": "1mm",
+                        "right": "1mm",
+                        "bottom": "1mm",
+                        "left": "1mm",
+                    },
+                    scale=1,
+                    page_ranges="1",
+                )
+
+                page.close()
+
+            finally:
+                context.close()
+                browser.close()
+
+        with open(pdf_path, "rb") as f:
+            pdf_data = f.read()
+
+        response = HttpResponse(pdf_data, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'attachment; filename="table1_{date_str}.pdf"'
+        )
+        return response
+
+    finally:
+        if pdf_path and os.path.exists(pdf_path):
+            os.remove(pdf_path)
 
 # =========================
 # ADMIN: TABLE 2
