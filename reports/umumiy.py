@@ -18,6 +18,9 @@ from accounts.models import (
     StationProfile,
 )
 from reports.kvartalniy import DISPLAY_GROUPS, _safe_int
+import re
+from playwright.sync_api import sync_playwright
+from django.urls import reverse
 
 
 def _safe_date(date_str, fallback):
@@ -897,4 +900,373 @@ def kvartalniy_range_export_excel(request):
     filename = f"kvartalniy_range_{from_date}_{to_date}.xlsx"
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     wb.save(response)
+    return response
+
+
+def _safe_pdf_filename_part(value: str, default: str) -> str:
+    value = str(value or "").strip()
+
+    if not value:
+        return default
+
+    value = re.sub(r"[^0-9A-Za-z_\-\.]", "_", value)
+    return value[:40] or default
+
+
+def kvartalniy_range_export_pdf(request):
+    """
+    Kvartalniy umumiy/range hisobotini PDF qilib chiqaradi.
+
+    Bu variant:
+    - 1 sahifada qoladi;
+    - eski yaxshi ko'rinishni saqlaydi;
+    - jadvalni faqat vizual tarzda pastga cho'zadi;
+    - row height/padding bilan o'ynamaydi, shuning uchun 2-sahifaga o'tmaydi.
+    """
+
+    query_string = request.GET.urlencode()
+
+    report_url = request.build_absolute_uri(
+        reverse("kvartalniy_um") + (f"?{query_string}" if query_string else "")
+    )
+
+    from_date = _safe_pdf_filename_part(request.GET.get("from_date"), "from")
+    to_date = _safe_pdf_filename_part(request.GET.get("to_date"), "to")
+    filename = f"kvartalniy_{from_date}_{to_date}.pdf"
+
+    pdf_css = """
+      @page {
+        size: A4 landscape;
+        margin: 2mm;
+      }
+
+      html,
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 1900px !important;
+        min-width: 1900px !important;
+        max-width: 1900px !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+
+      header,
+      nav,
+      aside,
+      footer,
+      .sidebar,
+      .navbar,
+      .topbar,
+      .main-sidebar,
+      .app-sidebar,
+      .layout-sidebar,
+      .kv-mini-nav,
+      .kv-title-wrap,
+      .kv-actions,
+      .kv-status,
+      .kv-note,
+      .messages,
+      .alert,
+      button,
+      .kv-btn,
+      input,
+      label {
+        display: none !important;
+      }
+
+      form {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 1900px !important;
+        max-width: none !important;
+        min-width: 1900px !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+      }
+
+      main,
+      .content,
+      .content-wrapper,
+      .page-content,
+      .container,
+      .container-fluid,
+      .kv-page,
+      .kv-shell,
+      .kv-card,
+      .kv-wrap,
+      .kv-scroll {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 1900px !important;
+        max-width: none !important;
+        min-width: 1900px !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        border-radius: 0 !important;
+      }
+
+      .kv-card {
+        border: 0 !important;
+      }
+
+      .kv-wrap {
+        border: 2px solid #111827 !important;
+        overflow: visible !important;
+      }
+
+      .kv-table {
+        display: table !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 1900px !important;
+        min-width: 1900px !important;
+        max-width: 1900px !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: "Times New Roman", Times, serif !important;
+
+        transform: scaleY(2.20) !important;
+        transform-origin: top left !important;
+      }
+
+      .kv-table thead {
+        display: table-header-group !important;
+      }
+
+      .kv-table tbody {
+        display: table-row-group !important;
+      }
+
+      .kv-table tr {
+        display: table-row !important;
+      }
+
+      .kv-table th,
+      .kv-table td {
+        display: table-cell !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        border: 1px solid #3b3b3b !important;
+        padding: 1px 2px !important;
+        font-size: 6.2px !important;
+        line-height: 1.02 !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+        color: #000000 !important;
+        background: #ffffff !important;
+        font-weight: 700 !important;
+      }
+
+      .kv-table thead th {
+        background: #eef2f7 !important;
+        color: #000000 !important;
+        font-weight: 900 !important;
+      }
+
+      .kv-main-title,
+      .kv-super-title th {
+        font-size: 8px !important;
+        line-height: 1.08 !important;
+        padding: 3px 4px !important;
+        background: #f8fafc !important;
+        border-bottom: 2px solid #111827 !important;
+        font-weight: 900 !important;
+      }
+
+      .name-col,
+      .station-col,
+      .kv-station-col {
+        width: 150px !important;
+        min-width: 150px !important;
+        max-width: 150px !important;
+        text-align: left !important;
+        padding-left: 4px !important;
+      }
+
+      .regular-col,
+      .percent-col,
+      .kv-col-normal {
+        width: 64px !important;
+        min-width: 64px !important;
+        max-width: 64px !important;
+      }
+
+      .kv-col-mid {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+      }
+
+      .money-col,
+      .kv-col-income {
+        width: 105px !important;
+        min-width: 105px !important;
+        max-width: 105px !important;
+      }
+
+      .sep-l {
+        border-left: 2px solid #111827 !important;
+      }
+
+      .sep-r {
+        border-right: 2px solid #111827 !important;
+      }
+
+      .sep-b {
+        border-bottom: 2px solid #111827 !important;
+      }
+
+      .group-title-row td,
+      .kv-group {
+        background: #e9eef5 !important;
+        font-weight: 900 !important;
+      }
+
+      .subtotal-row td,
+      .grand-total-row td {
+        background: #fff4f4 !important;
+        font-weight: 900 !important;
+      }
+
+      .green,
+      .readonly-green {
+        color: #00945a !important;
+      }
+
+      .blue,
+      .readonly-blue {
+        color: #0047c7 !important;
+      }
+
+      .red,
+      .readonly-red {
+        color: #ff0000 !important;
+      }
+
+      .purple {
+        color: #4f46e5 !important;
+      }
+
+      tr,
+      td,
+      th {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+    """
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],
+        )
+
+        context = browser.new_context(
+            viewport={
+                "width": 1900,
+                "height": 1200,
+            },
+            device_scale_factor=1,
+        )
+
+        base_url = request.build_absolute_uri("/")
+
+        for name, value in request.COOKIES.items():
+            context.add_cookies([
+                {
+                    "name": name,
+                    "value": value,
+                    "url": base_url,
+                }
+            ])
+
+        page = context.new_page()
+
+        page.goto(
+            report_url,
+            wait_until="domcontentloaded",
+            timeout=60000,
+        )
+
+        page.wait_for_selector(
+            ".kv-table",
+            state="attached",
+            timeout=60000,
+        )
+
+        page.add_style_tag(content=pdf_css)
+
+        page.evaluate(
+            """
+            () => {
+              const table = document.querySelector(".kv-table");
+
+              if (!table) {
+                throw new Error("PDF export error: .kv-table not found");
+              }
+
+              let el = table;
+
+              while (el && el !== document.body) {
+                el.style.display = "";
+                el.style.visibility = "visible";
+                el.style.opacity = "1";
+                el.style.overflow = "visible";
+                el.style.maxHeight = "none";
+                el.style.height = "auto";
+                el = el.parentElement;
+              }
+
+              table.style.display = "table";
+              table.style.visibility = "visible";
+              table.style.opacity = "1";
+              table.style.transform = "scaleY(2.20)";
+              table.style.transformOrigin = "top left";
+            }
+            """
+        )
+
+        pdf_bytes = page.pdf(
+            format="A4",
+            landscape=True,
+            print_background=True,
+            prefer_css_page_size=True,
+            scale=0.58,
+            margin={
+                "top": "2mm",
+                "right": "2mm",
+                "bottom": "2mm",
+                "left": "2mm",
+            },
+        )
+
+        browser.close()
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
