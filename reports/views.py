@@ -1203,28 +1203,102 @@ def admin_table2_status_detail(request, date_str):
 
 
 
-def _apply_itogo_rules(data: dict, status=False) -> dict:
-    d = dict(data or {})
-    if status:
-        d['k_podache_so_st'] = 0
-    print(d['k_podache_so_st'])
-    blocks = [
-        ("vygr",      "ft", "cont", "kr", "pv", "proch"),
-        ("pod_vygr",  "ft", "cont", "kr", "pv", "proch"),
-        ("pogr",      "ft", "cont", "kr", "pv", "proch"),
-        ("pod_pogr",  "ft", "cont", "kr", "pv", "proch"),
-    ]
+# =========================
+# ADMIN: TABLE 1 DETAIL + PDF HELPERS
+# =========================
 
-    for prefix, k_ft, k_cont, k_kr, k_pv, k_proch in blocks:
-        ft = _int0(d.get(f"{prefix}_{k_ft}"))
-        kr = _int0(d.get(f"{prefix}_{k_kr}"))
-        pv = _int0(d.get(f"{prefix}_{k_pv}"))
-        proch = _int0(d.get(f"{prefix}_{k_proch}"))
-        cont = _int0(d.get(f"{prefix}_{k_cont}"))
+TABLE1_ADMIN_FIELDS = [
+    "podano_lc",
+    "k_podache_so_st",
+
+    "vygr_ft",
+    "vygr_cont",
+    "vygr_kr",
+    "vygr_pv",
+    "vygr_proch",
+    "vygr_itogo",
+    "vygr_itogo_kon",
+
+    "pod_vygr_ft",
+    "pod_vygr_cont",
+    "pod_vygr_kr",
+    "pod_vygr_pv",
+    "pod_vygr_proch",
+    "pod_vygr_itogo",
+    "pod_vygr_itogo_kon",
+
+    "uborka",
+
+    "pogr_ft",
+    "pogr_cont",
+    "pogr_kr",
+    "pogr_pv",
+    "pogr_proch",
+    "pogr_itogo",
+    "pogr_itogo_kon",
+
+    "pod_pogr_ft",
+    "pod_pogr_cont",
+    "pod_pogr_kr",
+    "pod_pogr_pv",
+    "pod_pogr_proch",
+    "pod_pogr_itogo",
+    "pod_pogr_itogo_kon",
+
+    "income_daily",
+]
+
+
+def _safe_int(v):
+    if v in (None, "", "—", "-", "–"):
+        return 0
+
+    if isinstance(v, str):
+        v = (
+            v.replace("\xa0", "")
+             .replace(" ", "")
+             .replace(",", "")
+             .strip()
+        )
+
+    try:
+        return int(float(v))
+    except Exception:
+        return 0
+
+
+def _format_pdf_num(v):
+    n = _safe_int(v)
+    if n == 0:
+        return "0"
+    return f"{n:,}".replace(",", " ")
+
+
+def _apply_itogo_rules(data: dict, status=False) -> dict:
+    """
+    Safely recalculates all itogo columns.
+    status=True is used for night rows: k_podache_so_st must be 0.
+    """
+    d = dict(data or {})
+
+    for k in TABLE1_ADMIN_FIELDS:
+        if k not in d:
+            d[k] = 0
+
+    if status:
+        d["k_podache_so_st"] = 0
+
+    for prefix in ("vygr", "pod_vygr", "pogr", "pod_pogr"):
+        ft = _safe_int(d.get(f"{prefix}_ft"))
+        kr = _safe_int(d.get(f"{prefix}_kr"))
+        pv = _safe_int(d.get(f"{prefix}_pv"))
+        proch = _safe_int(d.get(f"{prefix}_proch"))
+        cont = _safe_int(d.get(f"{prefix}_cont"))
 
         d[f"{prefix}_itogo"] = ft + kr + pv + proch
         d[f"{prefix}_itogo_kon"] = cont
 
+    d["income_daily"] = _safe_int(d.get("income_daily"))
     return d
 
 
@@ -1236,18 +1310,21 @@ def _table1_part_field_name():
 
     candidates = [
         "part", "table_part", "table_no", "table_num",
-        "table_index", "table_idx",
-        "block", "block_no", "group", "group_no",
-        "pack", "pack_no", "set_no", "form_no",
+        "table_index", "table_idx", "block", "block_no",
+        "group", "group_no", "pack", "pack_no",
+        "set_no", "form_no",
     ]
+
     for nm in candidates:
         if nm in field_names:
             return nm
+
     return None
 
 
 def _sum_dicts(dicts):
     out = {}
+
     if not dicts:
         return out
 
@@ -1256,7 +1333,7 @@ def _sum_dicts(dicts):
         keys |= set((d or {}).keys())
 
     for k in keys:
-        if k in ("k_podache_so_st", TERMINAL_NAME_KEY):
+        if k == TERMINAL_NAME_KEY:
             val = ""
             for d in dicts:
                 v = (d or {}).get(k, "")
@@ -1268,7 +1345,7 @@ def _sum_dicts(dicts):
 
         s = 0
         for d in dicts:
-            s += _int0((d or {}).get(k))
+            s += _safe_int((d or {}).get(k))
         out[k] = s
 
     return out
@@ -1276,7 +1353,12 @@ def _sum_dicts(dicts):
 
 def _get_table1_shift_data_for_admin(user, d, shift: str):
     part_field = _table1_part_field_name()
-    qs = StationDailyTable1.objects.filter(station_user=user, date=d, shift=shift)
+
+    qs = StationDailyTable1.objects.filter(
+        station_user=user,
+        date=d,
+        shift=shift,
+    )
 
     if part_field:
         objs = list(qs.order_by(part_field))
@@ -1297,6 +1379,7 @@ def _station_display_name(user):
         "station_name", "name", "title", "display_name", "short_name",
         "lc_name", "center_name", "department_name",
     ]
+
     for f in candidates:
         v = getattr(sp, f, None)
         if v:
@@ -1305,50 +1388,35 @@ def _station_display_name(user):
     for rel in ["station", "lc", "center", "department", "branch"]:
         obj = getattr(sp, rel, None)
         if obj:
-            for f in ["station_name", "title", "short_name"]:
+            for f in ["station_name", "title", "short_name", "name"]:
                 v = getattr(obj, f, None)
                 if v:
                     return str(v)
             return str(obj)
 
-    return getattr(user, "profilestation", str(user.profilestation.station_name))
+    return getattr(user, "username", str(user))
 
 
-@staff_required
-def admin_table1_report_view(request, date_str):
-    d = _parse_date(date_str)
+def _sum_into(dst: dict, src: dict):
+    src = src or {}
+    for k in TABLE1_ADMIN_FIELDS:
+        dst[k] = _safe_int(dst.get(k)) + _safe_int(src.get(k))
 
+
+def _build_admin_table1_context(d):
+    """
+    One source of truth for admin Table 1 page and PDF export.
+    The HTML page still receives terminals/day/night/jami.
+    PDF also receives station.total_data for compact one-row-per-station output.
+    """
     User = get_user_model()
+
     users = (
         User.objects
         .exclude(is_staff=True)
         .exclude(is_superuser=True)
         .order_by("username")
     )
-
-    FIELDS = [
-        "podano_lc", "k_podache_so_st",
-        "vygr_ft", "vygr_cont", "vygr_kr", "vygr_pv", "vygr_proch", "vygr_itogo", "vygr_itogo_kon",
-        "pod_vygr_ft", "pod_vygr_cont", "pod_vygr_kr", "pod_vygr_pv", "pod_vygr_proch", "pod_vygr_itogo", "pod_vygr_itogo_kon",
-        "uborka",
-        "pogr_ft", "pogr_cont", "pogr_kr", "pogr_pv", "pogr_proch", "pogr_itogo_kon",
-        "pod_pogr_ft", "pod_pogr_cont", "pod_pogr_kr", "pod_pogr_pv", "pod_pogr_proch", "pod_pogr_itogo_kon",
-        "income_daily",
-    ]
-
-    def _to_int(v):
-        if v in (None, "", "—", "-", "–"):
-            return 0
-        if isinstance(v, str):
-            v = v.replace("\xa0", "").replace(" ", "").replace(",", "")
-        try:
-            return int(float(v))
-        except Exception:
-            return 0
-
-    def _sum_into(dst: dict, src: dict):
-        for k in FIELDS:
-            dst[k] = dst.get(k, 0) + _to_int(src.get(k, 0))
 
     station_list = []
 
@@ -1365,33 +1433,61 @@ def admin_table1_report_view(request, date_str):
             date=d,
             submitted_at__isnull=False,
         ).exists()
+
         if not sent:
             continue
 
         blocks = _terminal_blocks_for_station_date(u, d, force_new=False)
-
         terminals = []
+
         for b in blocks:
-            day_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="day", block=b).first()
-            night_obj = StationDailyTable1.objects.filter(station_user=u, date=d, shift="night", block=b).first()
+            day_obj = StationDailyTable1.objects.filter(
+                station_user=u,
+                date=d,
+                shift="day",
+                block=b,
+            ).first()
+
+            night_obj = StationDailyTable1.objects.filter(
+                station_user=u,
+                date=d,
+                shift="night",
+                block=b,
+            ).first()
+
+            total_obj = StationDailyTable1.objects.filter(
+                station_user=u,
+                date=d,
+                shift="total",
+                block=b,
+            ).first()
 
             day_raw = (day_obj.data or {}) if day_obj else {}
             night_raw = (night_obj.data or {}) if (night_obj and has_night) else {}
-            night_data = _apply_itogo_rules(night_raw, status=True) if has_night else {}
-   
-            day_data = _apply_itogo_rules(day_raw )
-            
+            total_raw = (total_obj.data or {}) if total_obj else {}
 
-            total_data = {}
-            if has_night:
-                total_data = {k: 0 for k in FIELDS}
+            day_data = _apply_itogo_rules(day_raw)
+            night_data = _apply_itogo_rules(night_raw, status=True) if has_night else {}
+            total_data = _apply_itogo_rules(total_raw)
+
+            if not total_obj:
+                total_data = {k: 0 for k in TABLE1_ADMIN_FIELDS}
                 _sum_into(total_data, day_data)
-                _sum_into(total_data, night_data)
+                if has_night:
+                    _sum_into(total_data, night_data)
                 total_data = _apply_itogo_rules(total_data)
+
+            total_income = _safe_int(total_data.get("income_daily"))
+            if total_income == 0:
+                total_income = _safe_int(day_data.get("income_daily"))
+                if has_night:
+                    total_income += _safe_int(night_data.get("income_daily"))
+                total_data["income_daily"] = total_income
 
             term_name = (
                 (day_raw or {}).get(TERMINAL_NAME_KEY)
                 or (night_raw or {}).get(TERMINAL_NAME_KEY)
+                or (total_raw or {}).get(TERMINAL_NAME_KEY)
                 or ""
             )
 
@@ -1403,19 +1499,24 @@ def admin_table1_report_view(request, date_str):
                 "total_data": total_data,
             })
 
-        sum_total = {k: 0 for k in FIELDS}
+        sum_total = {k: 0 for k in TABLE1_ADMIN_FIELDS}
         for t in terminals:
-            _sum_into(sum_total, t["day_data"])
-            if has_night:
-                _sum_into(sum_total, t["night_data"])
+            _sum_into(sum_total, t["total_data"])
+
         sum_total = _apply_itogo_rules(sum_total)
 
         blocks_url = ""
         if has_night:
-            blocks_url = reverse(
-                "admin_table1_station_blocks",
-                kwargs={"date_str": d.strftime("%Y-%m-%d"), "user_id": u.id},
-            )
+            try:
+                blocks_url = reverse(
+                    "admin_table1_station_blocks",
+                    kwargs={
+                        "date_str": d.strftime("%Y-%m-%d"),
+                        "user_id": u.id,
+                    },
+                )
+            except Exception:
+                blocks_url = ""
 
         station_list.append({
             "name": _station_display_name(u),
@@ -1425,23 +1526,562 @@ def admin_table1_report_view(request, date_str):
             "blocks_url": blocks_url,
             "terminals": terminals,
             "sum_total": sum_total,
+            "total_data": sum_total,
         })
 
-    station_list.sort(key=lambda x: (x["name"] or "").lower())
-    grand_total = {k: 0 for k in FIELDS}
+    station_list.sort(key=_table1_station_sort_key)
 
+    grand_total = {k: 0 for k in TABLE1_ADMIN_FIELDS}
     for st in station_list:
         _sum_into(grand_total, st.get("sum_total") or {})
 
     grand_total = _apply_itogo_rules(grand_total)
 
-    return render(request, "admin_table1_report_view.html", {
+
+    PDF_COLUMNS_ALL = [
+        ("podano_lc", "LM", "pink"),
+        ("k_podache_so_st", "St", "pink"),
+
+        ("vygr_ft", "ft", "green"),
+        ("vygr_cont", "kon", "green"),
+        ("vygr_kr", "kr", "green"),
+        ("vygr_pv", "pv", "green"),
+        ("vygr_proch", "b", "green"),
+        ("vygr_itogo", "j", "green"),
+        ("vygr_itogo_kon", "jk", "green"),
+
+        ("pod_vygr_ft", "ft", "green2"),
+        ("pod_vygr_cont", "kon", "green2"),
+        ("pod_vygr_kr", "kr", "green2"),
+        ("pod_vygr_pv", "pv", "green2"),
+        ("pod_vygr_proch", "b", "green2"),
+        ("pod_vygr_itogo", "j", "green2"),
+        ("pod_vygr_itogo_kon", "jk", "green2"),
+
+        ("uborka", "Yig.", "yellow"),
+
+        ("pogr_ft", "ft", "blue"),
+        ("pogr_cont", "kon", "blue"),
+        ("pogr_kr", "kr", "blue"),
+        ("pogr_pv", "pv", "blue"),
+        ("pogr_proch", "b", "blue"),
+        ("pogr_itogo", "j", "blue"),
+        ("pogr_itogo_kon", "jk", "blue"),
+
+        ("pod_pogr_ft", "ft", "blue2"),
+        ("pod_pogr_cont", "kon", "blue2"),
+        ("pod_pogr_kr", "kr", "blue2"),
+        ("pod_pogr_pv", "pv", "blue2"),
+        ("pod_pogr_proch", "b", "blue2"),
+        ("pod_pogr_itogo", "j", "blue2"),
+        ("pod_pogr_itogo_kon", "jk", "blue2"),
+
+        ("income_daily", "Daromad", "gray"),
+    ]
+
+    always_show = {
+        "podano_lc",
+        "k_podache_so_st",
+        "vygr_itogo",
+        "vygr_itogo_kon",
+        "pod_vygr_itogo",
+        "pod_vygr_itogo_kon",
+        "uborka",
+        "pogr_itogo",
+        "pogr_itogo_kon",
+        "pod_pogr_itogo",
+        "pod_pogr_itogo_kon",
+        "income_daily",
+    }
+
+    pdf_columns = []
+
+    for key, label, group in PDF_COLUMNS_ALL:
+        total_value = _safe_int(grand_total.get(key))
+
+        if key in always_show or total_value != 0:
+            pdf_columns.append({
+                "key": key,
+                "label": label,
+                "group": group,
+            })
+
+    return {
         "date": d,
         "stations": station_list,
         "fields": TABLE1_FIELDS,
         "grand_total": grand_total,
-    })
+        "pdf_columns": pdf_columns,
+    }
 
+TABLE1_STATION_ORDER = [
+    "Chuqursoy LM",
+    "Toshkent LM",
+    "Sergeli LM",
+    "Ulug'bek LM",
+    "Marokand LM",
+    "Jaloir LM",
+    "Ohangaron LM",
+    "Nazarbek LM",
+    "Urtavul LM",
+    "Sirdaryo LM",
+    "Jizzax LM",
+    "Ablik LM",
+    "To'ytepa",
+    "Qo'qon LM",
+    "Rovuston LM",
+    "Marg'ilon LM",
+    "Axtachi LM",
+    "Asaka LM",
+    "Buxoro LM",
+    "Tinchlik LM",
+    "Karmana LM",
+    "Yangi-Zarafshon LM",
+    "Qarshi LM",
+    "Dehqonobod LM",
+    "Termiz LM",
+    "Nukus LM",
+    "Kirkkiz LM",
+    "Urganch LM",
+    "Pitnyak LM",
+]
+
+
+def _norm_lm_name(value):
+    s = str(value or "").strip().lower()
+
+    replacements = {
+        "‘": "'",
+        "’": "'",
+        "`": "'",
+        "ʼ": "'",
+        "ʻ": "'",
+        "ё": "е",
+        "–": "-",
+        "—": "-",
+    }
+
+    for old, new in replacements.items():
+        s = s.replace(old, new)
+
+    return " ".join(s.split())
+
+
+def _table1_station_sort_key(station_row):
+    name = _norm_lm_name(station_row.get("name"))
+
+    order_map = {
+        _norm_lm_name(st_name): idx
+        for idx, st_name in enumerate(TABLE1_STATION_ORDER)
+    }
+
+    if name in order_map:
+        return (0, order_map[name])
+
+    return (1, name)
+
+
+@staff_required
+def admin_table1_report_view(request, date_str):
+    d = _parse_date(date_str)
+    context = _build_admin_table1_context(d)
+    return render(request, "admin_table1_report_view.html", context)
+
+
+@staff_required
+def admin_table1_report_pdf(request, date_str):
+    """
+    PDF 1:1 как текущая HTML admin table.
+    Открывает настоящую admin_table1_report_view страницу,
+    берёт таблицу #t1admin и растягивает её на весь A4 landscape.
+    """
+    from django.http import HttpResponse
+    from django.urls import reverse
+    from playwright.sync_api import sync_playwright
+    from urllib.parse import urlparse
+    import tempfile
+    import os
+
+    pdf_path = None
+
+    try:
+        page_url = request.build_absolute_uri(
+            reverse("admin_table1_report_view", kwargs={"date_str": date_str})
+        )
+    except Exception:
+        page_url = request.build_absolute_uri(f"/admin/table1/{date_str}/")
+
+    parsed = urlparse(page_url)
+    cookie_domain = parsed.hostname
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            pdf_path = tmp.name
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                ],
+            )
+
+            context = browser.new_context(
+                viewport={
+                    "width": 2400,
+                    "height": 1400,
+                },
+                device_scale_factor=1,
+            )
+
+            try:
+                cookies = []
+
+                for name, value in request.COOKIES.items():
+                    cookies.append({
+                        "name": name,
+                        "value": value,
+                        "domain": cookie_domain,
+                        "path": "/",
+                        "httpOnly": False,
+                        "secure": parsed.scheme == "https",
+                        "sameSite": "Lax",
+                    })
+
+                if cookies:
+                    context.add_cookies(cookies)
+
+                page = context.new_page()
+
+                page.goto(
+                    page_url,
+                    wait_until="networkidle",
+                    timeout=60000,
+                )
+
+                page.evaluate("""
+                    () => {
+                        const table = document.querySelector("#t1admin");
+
+                        if (!table) {
+                            throw new Error("PDF export: table #t1admin not found");
+                        }
+
+                        const title =
+                            document.querySelector(".t1a-hdr") ||
+                            document.querySelector(".t1a-titlebox h2");
+
+                        document.querySelectorAll("*").forEach(el => {
+                            const st = window.getComputedStyle(el);
+
+                            if (st.position === "sticky") {
+                                el.style.position = "static";
+                                el.style.left = "auto";
+                                el.style.right = "auto";
+                                el.style.top = "auto";
+                                el.style.zIndex = "auto";
+                            }
+                        });
+
+                        const titleClone = title ? title.cloneNode(true) : null;
+                        const tableClone = table.cloneNode(true);
+                        
+                        // PDF uchun colgroup ranglarini majburan saqlaymiz.
+                        // HTML viewdagi kabi rangli ustunlar pastga davom etadi.
+                        const colColors = {
+                            4:  "#f7e6e6", // LMga berildi
+                            5:  "#f7e6e6", // St’dan berishga
+
+                            11: "#dff0d8", // Tushirish jami
+                            12: "#dff0d8", // Tushirish jami kont
+
+                            18: "#d4ebd0", // Tushirishda jami
+                            19: "#d4ebd0", // Tushirishda jami kont
+
+                            20: "#fff3c4", // Yig‘ishtirish
+
+                            26: "#dff4f9", // Ortish jami
+                            27: "#dff4f9", // Ortish jami kont
+
+                            33: "#bfeef4", // Ortishda jami
+                            34: "#bfeef4", // Ortishda jami kont
+
+                            35: "#f2f2f2"  // sutkalik daromad
+                        };
+
+                        const cols = tableClone.querySelectorAll("colgroup col");
+
+                        cols.forEach((col, index) => {
+                            const colNo = index + 1;
+                            if (colColors[colNo]) {
+                                col.style.backgroundColor = colColors[colNo];
+                            }
+                        });
+
+                        document.body.innerHTML = "";
+
+                        const pageBox = document.createElement("div");
+                        pageBox.id = "pdf-page-box";
+
+                        const fitBox = document.createElement("div");
+                        fitBox.id = "pdf-fit-box";
+
+                        if (titleClone) {
+                            titleClone.id = "pdf-title";
+                            fitBox.appendChild(titleClone);
+                        }
+
+                        const tableWrap = document.createElement("div");
+                        tableWrap.id = "pdf-table-wrap";
+                        tableWrap.appendChild(tableClone);
+                        fitBox.appendChild(tableWrap);
+
+                        pageBox.appendChild(fitBox);
+                        document.body.appendChild(pageBox);
+
+                        const style = document.createElement("style");
+
+                        style.textContent = `
+                            @page {
+                                size: A4 landscape;
+                                margin: 1mm;
+                            }
+
+                            html,
+                            body {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 100% !important;
+                                height: 100% !important;
+                                overflow: hidden !important;
+                                background: white !important;
+                            }
+
+                            * {
+                                box-sizing: border-box !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+
+                            #pdf-page-box {
+                                width: 297mm;
+                                height: 210mm;
+                                overflow: hidden;
+                                background: white;
+                                position: relative;
+                            }
+
+                            #pdf-fit-box {
+                                transform-origin: top left;
+                                display: inline-block;
+                                background: white;
+                            }
+
+                            #pdf-title,
+                            .t1a-hdr {
+                                text-align: center !important;
+                                font-weight: 800 !important;
+                                font-size: 8px !important;
+                                line-height: 1.05 !important;
+                                margin: 0 0 2px 0 !important;
+                                padding: 0 !important;
+                                white-space: nowrap !important;
+                                color: #111827 !important;
+                                background: white !important;
+                                border: none !important;
+                            }
+
+                            #pdf-table-wrap {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                overflow: visible !important;
+                            }
+
+                            table#t1admin,
+                            #pdf-table-wrap table {
+                                border-collapse: collapse !important;
+                                table-layout: fixed !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: auto !important;
+                                min-width: 0 !important;
+                                max-width: none !important;
+                                background: white !important;
+                            }
+
+                            #pdf-table-wrap th,
+                            #pdf-table-wrap td {
+                                border: 0.45px solid #7b8794 !important;
+                                padding: 1px 2px !important;
+                                vertical-align: middle !important;
+                                overflow: hidden !important;
+                                color: #111827 !important;
+                                font-size: 6.2px !important;
+                                line-height: 1.04 !important;
+                            }
+
+                            #pdf-table-wrap th {
+                                font-weight: 800 !important;
+                                text-align: center !important;
+                            }
+
+                            #pdf-table-wrap td {
+                                text-align: right !important;
+                                font-weight: 500 !important;
+                            }
+
+                            #pdf-table-wrap td.t1a-name,
+                            #pdf-table-wrap th.t1a-name {
+                                text-align: left !important;
+                                font-weight: 800 !important;
+                                white-space: nowrap !important;
+                            }
+
+                            #pdf-table-wrap td.t1a-shift,
+                            #pdf-table-wrap th.t1a-shift,
+                            #pdf-table-wrap td.t1a-term,
+                            #pdf-table-wrap th.t1a-term {
+                                text-align: center !important;
+                                white-space: nowrap !important;
+                            }
+
+                            #pdf-table-wrap a {
+                                color: #111827 !important;
+                                text-decoration: none !important;
+                            }
+
+                            #pdf-table-wrap .t1a-vtxt {
+                                writing-mode: vertical-rl !important;
+                                transform: rotate(180deg) !important;
+                                white-space: nowrap !important;
+                                display: inline-block !important;
+                                line-height: 1 !important;
+                            }
+
+                            #pdf-table-wrap .t1a-lines {
+                                display: block !important;
+                            }
+
+                            #pdf-table-wrap .t1a-line {
+                                min-height: 8px !important;
+                                line-height: 1.04 !important;
+                                white-space: nowrap !important;
+                            }
+
+                            #pdf-table-wrap .t1a-sep-r {
+                                border-right: 1px solid #111827 !important;
+                            }
+
+                            #pdf-table-wrap .t1a-thick-bottom {
+                                border-bottom: 1px solid #111827 !important;
+                            }
+
+                            #pdf-table-wrap .t1a-thick-top {
+                                border-top: 1px solid #111827 !important;
+                            }
+                            
+                            /* PDF: HTML viewdagi rangli ustunlarni pastga davom ettirish */
+                            #pdf-table-wrap col:nth-child(4),
+                            #pdf-table-wrap col:nth-child(5) {
+                                background: #f7e6e6 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(11),
+                            #pdf-table-wrap col:nth-child(12) {
+                                background: #dff0d8 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(18),
+                            #pdf-table-wrap col:nth-child(19) {
+                                background: #d4ebd0 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(20) {
+                                background: #fff3c4 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(26),
+                            #pdf-table-wrap col:nth-child(27) {
+                                background: #dff4f9 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(33),
+                            #pdf-table-wrap col:nth-child(34) {
+                                background: #bfeef4 !important;
+                            }
+
+                            #pdf-table-wrap col:nth-child(35) {
+                                background: #f2f2f2 !important;
+                            }
+                        `;
+
+                        document.head.appendChild(style);
+
+                            const box = document.querySelector("#pdf-fit-box");
+                            const pageBoxRect = document.querySelector("#pdf-page-box").getBoundingClientRect();
+
+                            const rect = box.getBoundingClientRect();
+
+                            const maxW = pageBoxRect.width;
+                            const maxH = pageBoxRect.height;
+
+                            // Ширину возвращаем как раньше:
+                            // подгоняем только под ширину листа.
+                            const scaleX = (maxW / rect.width) * 0.985;
+
+                            // Высоту тянем отдельно вниз,
+                            // но ширину уже НЕ меняем.
+                            const scaleY = (maxH / rect.height) * 0.978;
+
+                            // ВАЖНО:
+                            // X — старый нормальный масштаб,
+                            // Y — дотягиваем вниз.
+                            box.style.transform = `scale(${scaleX}, ${scaleY})`;
+
+                            box.style.width = `${rect.width}px`;
+                            box.style.height = `${rect.height}px`;
+
+                            document.body.style.width = "297mm";
+                            document.body.style.height = "210mm";
+                    }
+                """)
+
+                page.pdf(
+                    path=pdf_path,
+                    format="A4",
+                    landscape=True,
+                    print_background=True,
+                    prefer_css_page_size=True,
+                    margin={
+                        "top": "1mm",
+                        "right": "1mm",
+                        "bottom": "1mm",
+                        "left": "1mm",
+                    },
+                    scale=1,
+                    page_ranges="1",
+                )
+
+                page.close()
+
+            finally:
+                context.close()
+                browser.close()
+
+        with open(pdf_path, "rb") as f:
+            pdf_data = f.read()
+
+        response = HttpResponse(pdf_data, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'attachment; filename="table1_{date_str}.pdf"'
+        )
+        return response
+
+    finally:
+        if pdf_path and os.path.exists(pdf_path):
+            os.remove(pdf_path)
 
 # =========================
 # ADMIN: TABLE 2
@@ -1693,6 +2333,124 @@ def admin_table2_graph(request, date_str):
     })
 
 
+
+# =========================
+# ADMIN: TABLE 2 LAYOUT GROUPS
+# =========================
+
+DISPLAY_GROUPS = [
+    {
+        "title": "1",
+        "stations": [
+            "Chuqursoy LM",
+            "Toshkent LM",
+            "Sergeli LM",
+            "Jaloir LM",
+            "Ohangaron LM",
+            "Nazarbek LM",
+            "Urtavul LM",
+            "Sirdaryo LM",
+            "Jizzax LM",
+            "Ablik LM",
+            "To'ytepa",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "2",
+        "stations": [
+            "Qo'qon LM",
+            "Rovuston LM",
+            "Marg'ilon LM",
+            "Axtachi LM",
+            "Asaka LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "3",
+        "stations": [
+            "Buxoro LM",
+            "Tinchlik LM",
+            "Karmana LM",
+            "Yangi-Zarafshon LM",
+            "Ulug'bek LM",
+            "Marokand LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "4",
+        "stations": [
+            "Qarshi LM",
+            "Dehqonobod LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "5",
+        "stations": [
+            "Termiz LM",
+        ],
+        "has_veshoz": True,
+    },
+    {
+        "title": "6",
+        "stations": [
+            "Nukus LM",
+            "Kirkkiz LM",
+            "Urganch LM",
+            "Pitnyak LM",
+        ],
+        "has_veshoz": True,
+    },
+]
+
+
+def _normalize_station_name(value):
+    """
+    Station nomlarini solishtirish uchun normal holatga keltiradi.
+    Masalan: Qo'qon / Qo‘qon, bo'sh joylar, katta-kichik harflar farq qilmaydi.
+    """
+    s = str(value or "").strip().lower()
+
+    replacements = {
+        "‘": "'",
+        "’": "'",
+        "`": "'",
+        "ʼ": "'",
+        "ʻ": "'",
+        "ё": "е",
+        "–": "-",
+        "—": "-",
+    }
+
+    for old, new in replacements.items():
+        s = s.replace(old, new)
+
+    s = " ".join(s.split())
+    return s
+
+
+def _find_display_group_for_station(station_name):
+    """
+    Station nomi qaysi DISPLAY_GROUPS ichida bo'lsa, shu group qaytadi.
+    Topilmasa None qaytadi.
+    """
+    station_norm = _normalize_station_name(station_name)
+
+    for idx, group in enumerate(DISPLAY_GROUPS, start=1):
+        for st_name in group.get("stations", []):
+            if _normalize_station_name(st_name) == station_norm:
+                return {
+                    "key": f"group{idx}",
+                    "title": group.get("title") or f"group{idx}",
+                    "has_veshoz": bool(group.get("has_veshoz", False)),
+                }
+
+    return None
+
+
 @staff_required
 def admin_table2_layout(request, date_str):
     d = _parse_date(date_str)
@@ -1721,34 +2479,230 @@ def admin_table2_layout(request, date_str):
 
     KEY = {
         "arr_total": "r01_total",
-        "work_total": "r24_total", "work_ktk": "r24_ktk",
-        "pogr_total": "r12_total", "pogr_ktk": "r12_ktk",
-        "vygr_total": "r23_total", "vygr_ktk": "r23_ktk",
-        "site_total": "r25_total", "site_ktk": "r25_ktk",
-        "to_export_total": "r29_total", "to_export_ktk": "r29_ktk",
-        "ready_total": "r28_total", "ready_ktk": "r28_ktk",
-        "empty_total": "r30_total", "empty_ktk": "r30_ktk",
-        "sort_total": "r27_total", "sort_ktk": "r27_ktk",
+
+        "work_total": "r24_total",
+        "work_ktk": "r24_ktk",
+
+        "pogr_total": "r12_total",
+        "pogr_ktk": "r12_ktk",
+
+        "vygr_total": "r23_total",
+        "vygr_ktk": "r23_ktk",
+
+        "site_total": "r25_total",
+        "site_ktk": "r25_ktk",
+
+        "to_export_total": "r29_total",
+        "to_export_ktk": "r29_ktk",
+
+        "ready_total": "r28_total",
+        "ready_ktk": "r28_ktk",
+
+        "empty_total": "r30_total",
+        "empty_ktk": "r30_ktk",
+
+        "sort_total": "r27_total",
+        "sort_ktk": "r27_ktk",
     }
 
     def add_pair(bucket, data, total_key, ktk_key, out_total, out_ktk):
         bucket[out_total] += _dget(data, total_key, 0)
-        bucket[out_ktk]   += _dget(data, ktk_key, 0)
+        bucket[out_ktk] += _dget(data, ktk_key, 0)
+
+    # Oldin station bo‘yicha edi.
+    # Endi faqat 6 ta group bo‘yicha chiqadi.
+    cols = []
+    buckets = {}
+
+    for idx, group in enumerate(DISPLAY_GROUPS, start=1):
+        group_key = f"group{idx}"
+        group_title = group.get("title") or group_key
+
+        cols.append({
+            "key": group_key,
+            "title": group_title,
+        })
+
+        buckets[group_key] = empty_bucket()
+
+    # Agar station DISPLAY_GROUPS ichida topilmasa,
+    # xatolik bo‘lmasin deb alohida bucketga yig‘amiz.
+    other_key = "other"
+    other_has_data = False
+    buckets[other_key] = empty_bucket()
+
+    for o in objs:
+        u = o.station_user
+
+        try:
+            station_profile = StationProfile.objects.get(user=u)
+            station_name = station_profile.station_name or getattr(u, "username", "")
+        except StationProfile.DoesNotExist:
+            station_name = getattr(u, "username", "")
+
+        group_info = _find_display_group_for_station(station_name)
+
+        if group_info:
+            bucket_key = group_info["key"]
+        else:
+            bucket_key = other_key
+            other_has_data = True
+
+        data = o.data or {}
+        b = buckets[bucket_key]
+
+        add_pair(b, data, KEY["work_total"], KEY["work_ktk"], "work_cont", "work_kr")
+        add_pair(b, data, KEY["pogr_total"], KEY["pogr_ktk"], "pogr_cont", "pogr_kr")
+        add_pair(b, data, KEY["vygr_total"], KEY["vygr_ktk"], "vygr_cont", "vygr_kr")
+        add_pair(b, data, KEY["site_total"], KEY["site_ktk"], "site_cont", "site_kr")
+        add_pair(b, data, KEY["to_export_total"], KEY["to_export_ktk"], "to_export_cont", "to_export_kr")
+        add_pair(b, data, KEY["ready_total"], KEY["ready_ktk"], "ready_cont", "ready_kr")
+        add_pair(b, data, KEY["empty_total"], KEY["empty_ktk"], "empty_cont", "empty_kr")
+        add_pair(b, data, KEY["sort_total"], KEY["sort_ktk"], "sort_cont", "sort_kr")
+
+        # TUK tushirish / kelgan umumiy qiymat.
+        # Oldingi kodda bu alohida for orqali Дорога ga qo‘shilgan edi.
+        # Endi har bir groupga ham qo‘shamiz.
+        b["vygr_tuk"] += _dget(data, KEY["arr_total"], 0)
+
+    if other_has_data:
+        cols.append({
+            "key": other_key,
+            "title": "Boshqa",
+        })
+    else:
+        buckets.pop(other_key, None)
+
+    # Umumiy Дорога
+    road_key = "road"
+    buckets[road_key] = empty_bucket()
+
+    road_sum_keys = (
+        "work_cont", "work_kr",
+        "pogr_cont", "pogr_kr",
+        "vygr_cont", "vygr_kr",
+        "vygr_tuk",
+        "site_cont", "site_kr",
+        "to_export_cont", "to_export_kr",
+        "ready_cont", "ready_kr",
+        "empty_cont", "empty_kr",
+        "sort_cont", "sort_kr",
+    )
+
+    for c in cols:
+        b = buckets.get(c["key"]) or {}
+        road = buckets[road_key]
+
+        for k in road_sum_keys:
+            road[k] += int(b.get(k, 0) or 0)
+
+    cols.append({
+        "key": road_key,
+        "title": "Дорога",
+    })
+
+    return render(request, "admin_table2_layout.html", {
+        "date": d,
+        "cols": cols,
+        "buckets": buckets,
+    })
+
+
+@staff_required
+def admin_table2_layout_export_excel(request, date_str):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+    from openpyxl.utils import get_column_letter
+    from django.http import HttpResponse
+
+    d = _parse_date(date_str)
+
+    objs = (
+        StationDailyTable2.objects
+        .filter(date=d, submitted_at__isnull=False)
+        .select_related("station_user")
+        .exclude(station_user__is_staff=True)
+        .exclude(station_user__is_superuser=True)
+        .order_by("station_user__username")
+    )
+
+    def empty_bucket():
+        return {
+            "work_cont": 0, "work_kr": 0,
+            "pogr_cont": 0, "pogr_kr": 0,
+            "vygr_cont": 0, "vygr_kr": 0,
+            "vygr_tuk": 0,
+            "site_cont": 0, "site_kr": 0,
+            "to_export_cont": 0, "to_export_kr": 0,
+            "ready_cont": 0, "ready_kr": 0,
+            "empty_cont": 0, "empty_kr": 0,
+            "sort_cont": 0, "sort_kr": 0,
+        }
+
+    KEY = {
+        "arr_total": "r01_total",
+
+        "work_total": "r24_total",
+        "work_ktk": "r24_ktk",
+
+        "pogr_total": "r12_total",
+        "pogr_ktk": "r12_ktk",
+
+        "vygr_total": "r23_total",
+        "vygr_ktk": "r23_ktk",
+
+        "site_total": "r25_total",
+        "site_ktk": "r25_ktk",
+
+        "to_export_total": "r29_total",
+        "to_export_ktk": "r29_ktk",
+
+        "ready_total": "r28_total",
+        "ready_ktk": "r28_ktk",
+
+        "empty_total": "r30_total",
+        "empty_ktk": "r30_ktk",
+
+        "sort_total": "r27_total",
+        "sort_ktk": "r27_ktk",
+    }
+
+    def add_pair(bucket, data, total_key, ktk_key, out_total, out_ktk):
+        bucket[out_total] += _dget(data, total_key, 0)
+        bucket[out_ktk] += _dget(data, ktk_key, 0)
 
     cols = []
     buckets = {}
 
+    for idx, group in enumerate(DISPLAY_GROUPS, start=1):
+        group_key = f"group{idx}"
+        cols.append({
+            "key": group_key,
+            "title": str(idx),
+        })
+        buckets[group_key] = empty_bucket()
+
+    road_tuk_total = 0
+
     for o in objs:
         u = o.station_user
-        col_key = f"u{u.id}"
-        col_title =get_object_or_404(StationProfile, user__username=_station_name(u)).station_name 
 
-        if col_key not in buckets:
-            cols.append({"key": col_key, "title": col_title})
-            buckets[col_key] = empty_bucket()
+        try:
+            station_profile = StationProfile.objects.get(user=u)
+            station_name = station_profile.station_name or getattr(u, "username", "")
+        except StationProfile.DoesNotExist:
+            station_name = getattr(u, "username", "")
 
+        group_info = _find_display_group_for_station(station_name)
         data = o.data or {}
-        b = buckets[col_key]
+
+        road_tuk_total += _dget(data, KEY["arr_total"], 0)
+
+        if not group_info:
+            continue
+
+        bucket_key = group_info["key"]
+        b = buckets[bucket_key]
 
         add_pair(b, data, KEY["work_total"], KEY["work_ktk"], "work_cont", "work_kr")
         add_pair(b, data, KEY["pogr_total"], KEY["pogr_ktk"], "pogr_cont", "pogr_kr")
@@ -1762,32 +2716,252 @@ def admin_table2_layout(request, date_str):
     road_key = "road"
     buckets[road_key] = empty_bucket()
 
+    road_sum_keys = (
+        "work_cont", "work_kr",
+        "pogr_cont", "pogr_kr",
+        "vygr_cont", "vygr_kr",
+        "site_cont", "site_kr",
+        "to_export_cont", "to_export_kr",
+        "ready_cont", "ready_kr",
+        "empty_cont", "empty_kr",
+        "sort_cont", "sort_kr",
+    )
+
     for c in cols:
-        b = buckets[c["key"]]
-        road = buckets[road_key]
-        for k in (
-            "work_cont","work_kr",
-            "pogr_cont","pogr_kr",
-            "vygr_cont","vygr_kr",
-            "site_cont","site_kr",
-            "to_export_cont","to_export_kr",
-            "ready_cont","ready_kr",
-            "empty_cont","empty_kr",
-            "sort_cont","sort_kr",
-        ):
-            road[k] += int(b.get(k, 0) or 0)
+        b = buckets.get(c["key"]) or {}
+        for k in road_sum_keys:
+            buckets[road_key][k] += int(b.get(k, 0) or 0)
 
-    for o in objs:
-        data = o.data or {}
-        buckets[road_key]["vygr_tuk"] += _dget(data, KEY["arr_total"], 0)
+    buckets[road_key]["vygr_tuk"] = road_tuk_total
 
-    cols.append({"key": road_key, "title": "Дорога"})
-
-    return render(request, "admin_table2_layout.html", {
-        "date": d,
-        "cols": cols,
-        "buckets": buckets,
+    cols.append({
+        "key": road_key,
+        "title": "Дорога",
     })
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Макет"
+
+    thin = Side(style="thin", color="000000")
+    medium = Side(style="medium", color="000000")
+
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    border_medium = Border(left=medium, right=medium, top=medium, bottom=medium)
+
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+    font_title = Font(name="Times New Roman", size=14, bold=True)
+    font_header = Font(name="Times New Roman", size=12, bold=True)
+    font_body = Font(name="Times New Roman", size=11)
+    font_body_bold = Font(name="Times New Roman", size=11, bold=True)
+    font_road = Font(name="Times New Roman", size=11, bold=True)
+
+    fill_header = PatternFill("solid", fgColor="FFFFFF")
+    fill_body = PatternFill("solid", fgColor="FFFFFF")
+
+    last_col = 2 + len(cols)
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=2, end_column=last_col)
+    c = ws.cell(row=1, column=1)
+    c.value = "Работа с контейнерами\n(по оперативным данным)"
+    c.font = font_title
+    c.alignment = center
+
+    ws.merge_cells(start_row=4, start_column=1, end_row=4, end_column=last_col)
+    c = ws.cell(row=4, column=1)
+    c.value = "Код дороги"
+    c.font = font_header
+    c.alignment = center
+    c.border = border_medium
+
+    ws.merge_cells(start_row=5, start_column=1, end_row=5, end_column=last_col)
+    c = ws.cell(row=5, column=1)
+    c.value = f"Дата {d.strftime('%d.%m.%Y')} г."
+    c.font = font_header
+    c.alignment = center
+    c.border = border_medium
+
+    ws.merge_cells(start_row=6, start_column=1, end_row=6, end_column=last_col)
+    c = ws.cell(row=6, column=1)
+    c.value = "Отделения"
+    c.font = font_header
+    c.alignment = center
+    c.border = border_medium
+
+    header_row = 7
+
+    ws.merge_cells(start_row=header_row, start_column=1, end_row=header_row, end_column=2)
+    c = ws.cell(row=header_row, column=1)
+    c.value = "Показатели"
+    c.font = font_header
+    c.alignment = center
+    c.border = border
+
+    for idx, col in enumerate(cols, start=3):
+        cell = ws.cell(row=header_row, column=idx)
+        cell.value = col["title"]
+        cell.font = font_header
+        cell.alignment = center
+        cell.border = border
+        cell.fill = fill_header
+
+    rows = [
+        {
+            "label": "Рабочий парк",
+            "items": [
+                ("Конт  1", "work_cont"),
+                ("КР    2", "work_kr"),
+            ],
+        },
+        {
+            "label": "Погрузка\nконтейнеров",
+            "items": [
+                ("Конт  3", "pogr_cont"),
+                ("КР    4", "pogr_kr"),
+            ],
+        },
+        {
+            "label": "Выгрузка\nконтейнеров",
+            "items": [
+                ("Конт  5", "vygr_cont"),
+                ("КР    6", "vygr_kr"),
+            ],
+        },
+        {
+            "label": "Выгрузка ТУК",
+            "items": [
+                ("7", "vygr_tuk"),
+            ],
+            "tuk": True,
+        },
+        {
+            "label": "Парк на\nплощадке",
+            "items": [
+                ("Конт  8", "site_cont"),
+                ("КР    9", "site_kr"),
+            ],
+        },
+        {
+            "label": "К вывозу",
+            "items": [
+                ("Конт 10", "to_export_cont"),
+                ("КР   11", "to_export_kr"),
+            ],
+        },
+        {
+            "label": "Готовые к\nотправлению",
+            "items": [
+                ("Конт 12", "ready_cont"),
+                ("КР   13", "ready_kr"),
+            ],
+        },
+        {
+            "label": "Порожние",
+            "items": [
+                ("Конт 14", "empty_cont"),
+                ("КР   15", "empty_kr"),
+            ],
+        },
+        {
+            "label": "Под сортировку",
+            "items": [
+                ("Конт 16", "sort_cont"),
+                ("КР   17", "sort_kr"),
+            ],
+        },
+    ]
+
+    r = header_row + 1
+
+    for block in rows:
+        label = block["label"]
+        items = block["items"]
+        is_tuk = bool(block.get("tuk"))
+
+        start_r = r
+        end_r = r + len(items) - 1
+
+        if len(items) > 1:
+            ws.merge_cells(start_row=start_r, start_column=1, end_row=end_r, end_column=1)
+
+        label_cell = ws.cell(row=start_r, column=1)
+        label_cell.value = label
+        label_cell.font = font_body_bold
+        label_cell.alignment = center
+        label_cell.border = border
+        label_cell.fill = fill_body
+
+        for item_label, key in items:
+            item_cell = ws.cell(row=r, column=2)
+            item_cell.value = item_label
+            item_cell.font = font_body_bold
+            item_cell.alignment = center
+            item_cell.border = border
+            item_cell.fill = fill_body
+
+            for col_idx, col in enumerate(cols, start=3):
+                cell = ws.cell(row=r, column=col_idx)
+
+                if is_tuk and col["key"] != "road":
+                    cell.value = ""
+                else:
+                    cell.value = int((buckets.get(col["key"]) or {}).get(key, 0) or 0)
+
+                cell.font = font_road if col["key"] == "road" else font_body
+                cell.alignment = center
+                cell.border = border
+                cell.fill = fill_body
+
+            r += 1
+
+        for rr in range(start_r, end_r + 1):
+            ws.cell(row=rr, column=1).border = border
+
+    for row in ws.iter_rows(min_row=4, max_row=r - 1, min_col=1, max_col=last_col):
+        for cell in row:
+            cell.border = border
+            cell.alignment = center
+
+    for col in range(1, last_col + 1):
+        ws.cell(row=header_row, column=col).font = font_header
+        ws.cell(row=header_row, column=col).border = border_medium
+
+    for row in range(4, r):
+        ws.row_dimensions[row].height = 24
+
+    ws.row_dimensions[1].height = 36
+    ws.row_dimensions[6].height = 24
+    ws.row_dimensions[7].height = 24
+
+    ws.column_dimensions["A"].width = 22
+    ws.column_dimensions["B"].width = 10
+
+    for col in range(3, last_col + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 11
+
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 1
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_margins.left = 0.25
+    ws.page_margins.right = 0.25
+    ws.page_margins.top = 0.35
+    ws.page_margins.bottom = 0.35
+
+    ws.freeze_panes = "C8"
+
+    filename = f"maket_table2_{d.strftime('%Y_%m_%d')}.xlsx"
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+    return response
 
 @login_required(login_url='login')
 def admin_table2_station_pick(request, date_str):

@@ -29,6 +29,11 @@
       <a class="t1a-back" href="{% url 'admin_table1_report_excel_view' date|date:'Y-m-d' %}">
         📥 Excel
       </a>
+
+      <a class="t1a-back t1a-pdf-btn"
+        href="{% url 'admin_table1_report_pdf_view' date|date:'Y-m-d' %}">
+        📄 PDF
+      </a>
     </div>
   </div>
 
@@ -735,5 +740,10 @@
 
   })();
 </script>
+
+
+
 {{ block.super }}
 {% endblock %}
+
+

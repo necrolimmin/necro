@@ -2,7 +2,7 @@ from django.urls import path
 
 from reports.excel_view import admin_table1_report_excel_view
 from reports.kvartalniy import kvartalniy
-from reports.umumiy import kvartalniy_range, kvartalniy_range_export_excel
+from reports.umumiy import kvartalniy_range, kvartalniy_range_export_excel, kvartalniy_range_export_pdf
 from reports.user_kvartalniy import kvartalniy_station_detail
 from .views import *
 from .views import notifications_latest, notifications_ack, notifications_send
@@ -28,6 +28,7 @@ urlpatterns = [
     path("admin-panel/table-1/", admin_table1_reports, name="admin_table1_reports"),
     path("admin-panel/table-1/json/", admin_table1_reports_json, name="admin_table1_reports_json"),
     path("admin-panel/table-1/<str:date_str>/", admin_table1_report_view, name="admin_table1_report_view"),
+    path("admin/table1/<str:date_str>/pdf/",admin_table1_report_pdf,name="admin_table1_report_pdf_view",),
     path("admin/table1/status/<str:date_str>/", admin_table1_status_detail, name="admin_table1_status_detail"),
     path('admin/table2/status/<str:date_str>/', admin_table2_status_detail, name='admin_table2_status_detail'),
 
@@ -37,6 +38,7 @@ urlpatterns = [
     path("admin-panel/table-2/<str:date_str>/view/", admin_table2_view, name="admin_table2_view"),
     path("admin-panel/table-2/<str:date_str>/graph/", admin_table2_graph, name="admin_table2_graph"),
     path("admin-panel/table-2/<str:date_str>/layout/", admin_table2_layout, name="admin_table2_layout"),
+    path("admin/table2/<str:date_str>/layout/export-excel/", admin_table2_layout_export_excel ,name="admin_table2_layout_export_excel"),
     path("admin/table2/<str:date_str>/stations/", admin_table2_station_pick, name="admin_table2_station_pick"),
     path("admin/table2/<str:date_str>/stations/<int:user_id>/", admin_table2_station_view, name="admin_table2_station_view"),
 
@@ -62,6 +64,7 @@ urlpatterns = [
 
     path("kvartalniy/u/", kvartalniy_range, name="kvartalniy_um"),
     path("kvartalniy/range/export/", kvartalniy_range_export_excel, name="kvartalniy_range_export_excel"),
+    path("kvartalniy/range/pdf/", kvartalniy_range_export_pdf, name="kvartalniy_range_export_pdf"),
 
     path("kvartalniy/station/", kvartalniy_station_detail, name="kvartalniy_station_detail"),
     path("kvartalniy/monthly/list/", kvartalniy_monthly_list, name="kvartalniy_monthly_list"),
