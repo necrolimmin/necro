@@ -462,45 +462,27 @@ def station_table_1_edit(request, date_str):
             #
             # This prevents old reports from becoming 0 after opening/saving.
 
-            income_auto = 0
+            # ==========================================================
+            # SAFE BACKEND LOGIC FOR "sutkalik daromad" / income_daily
+            # ==========================================================
+            # Daromad hech qachon boshqa ustunlardan hisoblanmasin.
+            # Faqat user kiritgan day/night income_daily asosida saqlanadi.
+            # Agar total income eski hisobotdan kelgan bo‘lsa va day/night bo‘sh bo‘lsa,
+            # eski total qiymat saqlab qolinadi.
+            # Agar hammasi bo‘sh bo‘lsa — 0 saqlanadi.
 
-            for key, _label in TABLE1_FIELDS:
-                if key in ("income_daily", "k_podache_so_st"):
-                    continue
-
-                try:
-                    income_auto += int(total_data.get(key, 0) or 0)
-                except (TypeError, ValueError):
-                    income_auto += 0
-
-            income_manual_raw = (
-                request.POST.get(f"b{b}__total__income_daily") or ""
+            income_day_raw = (
+            request.POST.get(f"b{b}__day__income_daily") or ""
             ).strip()
 
-            income_manual = (
-                _read_int(income_manual_raw)
-                if income_manual_raw != ""
-                else None
-            )
+            income_night_raw = (
+                request.POST.get(f"b{b}__night__income_daily") or ""
+            ).strip()
 
-            day_income = _read_int(
-                request.POST.get(f"b{b}__day__income_daily")
-            )
+            day_income = _read_int(income_day_raw)
+            night_income = _read_int(income_night_raw) if has_night else 0
 
-            night_income = (
-                _read_int(request.POST.get(f"b{b}__night__income_daily"))
-                if has_night
-                else 0
-            )
-
-            shift_income_sum = day_income + night_income
-
-            if shift_income_sum > 0:
-                total_data["income_daily"] = shift_income_sum
-            elif income_manual is not None and income_manual > 0:
-                total_data["income_daily"] = income_manual
-            else:
-                total_data["income_daily"] = income_auto
+            total_data["income_daily"] = day_income + night_income
 
             StationDailyTable1.objects.update_or_create(
                 station_user=request.user,

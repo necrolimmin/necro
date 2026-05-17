@@ -1,319 +1,388 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Hisobot №1{% endblock %}
 
 {% block content %}
-<style>
-  /* ===== Header ===== */
-  .pagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
-  .pagehead h2{margin:0;font-size:20px;line-height:1.15;letter-spacing:-.02em}
-  .subtext{margin:6px 0 0;color:var(--muted,#64748b);font-size:14px}
+<link rel="stylesheet" href="{% static 'css/user_hisobot1.css' %}">
 
-  /* ===== CTA button ===== */
-  .btn-cta{
-    display:inline-flex;align-items:center;gap:10px;
-    padding:6px 15px;border-radius:999px;
-    font-weight:700;text-decoration:none;color:#fff;
-    background:linear-gradient(135deg,#4f46e5,#22c55e);
-    box-shadow:0 14px 30px rgba(79,70,229,.28);
-    transition:.22s ease;
-    position:relative;overflow:hidden;
-    white-space:nowrap;
-  }
-  .btn-cta svg{width:18px;height:18px;stroke:#fff}
-  .btn-cta::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(120deg,transparent,rgba(255,255,255,.35),transparent);
-    transform:translateX(-120%);transition:.65s ease;
-  }
-  .btn-cta:hover{transform:translateY(-2px);box-shadow:0 22px 42px rgba(79,70,229,.36)}
-  .btn-cta:hover::after{transform:translateX(120%)}
 
-  /* ===== Controls ===== */
-  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
-  .search{
-    flex:1;min-width:220px;
-    display:flex;align-items:center;gap:10px;
-    padding:10px 12px;border-radius:14px;
-    border:1px solid rgba(15,23,42,.12);
-    /* background:rgba(255,255,255,.72); */
-    backdrop-filter: blur(10px);
-  }
-  .search .ico{font-weight:900;color:var(--muted,#64748b)}
-  .search input{
-    width:100%;border:0;outline:0;background:transparent;
-    font-size:14px;color:inherit;
-  }
-  .chip{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:10px 12px;border-radius:14px;
-    border:1px solid rgba(15,23,42,.12);
-    /* background:rgba(255,255,255,.72); */
-    backdrop-filter: blur(10px);
-    font-size:13px;color:var(--muted,#64748b);
-    white-space:nowrap;
-  }
-
-  .tblwrap{
-    margin-top:14px;
-    border:1px solid rgba(15,23,42,.12);
-    border-radius:16px;
-    overflow:hidden;
-    /* background:rgba(255,255,255,.78); */
-    backdrop-filter: blur(10px);
-  }
-  table.tbl2{width:100%;border-collapse:separate;border-spacing:0}
-  .tbl2 thead th{
-    text-align:left;
-    font-size:12px;letter-spacing:.2px;
-    color:var(--muted,#64748b);
-    padding:12px 12px;
-    background:rgba(248,250,252,.9);
-    border-bottom:1px solid rgba(15,23,42,.10);
-    position:sticky;top:0;z-index:2;
-  }
-  .tbl2 thead th:last-child{text-align:right}
-  .tbl2 tbody td{
-    padding:12px 12px;
-    border-bottom:1px solid rgba(15,23,42,.08);
-    vertical-align:middle;
-    font-size:14px;
-  }
-  .tbl2 tbody tr:hover{background:rgba(99,102,241,.06)}
-  .dateCell b{font-size:14px}
-  .mutedCell{color:var(--muted,#64748b);font-size:13px}
-
-  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-  .btn-soft{
-    display:inline-flex;align-items:center;justify-content:center;
-    height:38px;padding:0 12px;border-radius:12px;
-    border:1px solid rgba(15,23,42,.12);
-    
-    text-decoration:none;color:inherit;
-    font-weight:800;
-    transition:.15s ease;
-    cursor: pointer;
-  }
-  .btn-soft:hover{transform:translateY(-1px);box-shadow:0 10px 18px rgba(15,23,42,.08)}
-  .btn-danger{
-    height:38px;padding:0 12px;border-radius:12px;
-    border:1px solid rgba(220,38,38,.30);
-    background:rgba(254,226,226,.9);
-    color:#991b1b;font-weight:900;
-    cursor:pointer;
-    transition:.15s ease;
-  }
-  .btn-danger:hover{filter:brightness(.98);transform:translateY(-1px)}
-
-  /* ===== Server Pager ===== */
-  .pager{
-    display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-    padding:12px;
-    border-top:1px solid rgba(15,23,42,.10);
-    background:rgba(248,250,252,.75);
-  }
-  .pager .info{color:var(--muted,#64748b);font-size:13px}
-  .pager a, .pager button{
-    height:36px;padding:0 12px;border-radius:12px;
-    border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.9);
-    font-weight:900;cursor:pointer;
-    text-decoration:none;color:inherit;
-    display:inline-flex;align-items:center;justify-content:center;
-  }
-  .pager .disabled{opacity:.5;pointer-events:none}
-  .pager .pnums{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
-  .pager .pnum.active{
-    border-color: rgba(99,102,241,.45);
-    box-shadow: 0 10px 18px rgba(99,102,241,.18);
-  }
-  .pager .pp{
-    display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;
-  }
-  .pager select{
-    height:36px;border-radius:12px;
-    border:1px solid rgba(15,23,42,.12);
-    background:rgba(255,255,255,.9);
-    padding:0 10px;font-weight:800;
-  }
-
-  /* ===== Mobile ===== */
-  @media (max-width: 820px){
-    .tbl2 thead{display:none}
-    .tbl2, .tbl2 tbody, .tbl2 tr, .tbl2 td{display:block;width:100%}
-    .tbl2 tbody tr{border-bottom:1px solid rgba(15,23,42,.10);padding:10px 10px 12px}
-    .tbl2 tbody td{border-bottom:0;padding:6px 8px}
-    .rowgrid{
-      display:grid;grid-template-columns:1fr;gap:6px;
-      background:rgba(255,255,255,.85);
-      border:1px solid rgba(15,23,42,.10);
-      border-radius:16px;
-      padding:10px;
-    }
-    .kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted,#64748b)}
-    .kv b{color:inherit;font-weight:900}
-    .actions{justify-content:flex-start;margin-top:8px}
-  }
-
-  /* ===== Dark mode ===== */
-  html[data-theme="dark"] .search,
-  html[data-theme="dark"] .chip,
-  html[data-theme="dark"] .tblwrap{
-    background:rgba(15,23,42,.55);
-    border-color: rgba(148,163,184,.18);
-  }
-  html[data-theme="dark"] .tbl2 thead th{
-    background:rgba(15,23,42,.65);
-    border-bottom-color: rgba(148,163,184,.16);
-    color: rgba(226,232,240,.75);
-  }
-  html[data-theme="dark"] .tbl2 tbody td{border-bottom-color: rgba(148,163,184,.14)}
-  html[data-theme="dark"] .tbl2 tbody tr:hover{background:rgba(99,102,241,.10)}
-  html[data-theme="dark"] .btn-soft,
-  html[data-theme="dark"] .pager a,
-  html[data-theme="dark"] .pager select{
-    background:rgba(15,23,42,.75);
-    border-color: rgba(148,163,184,.18);
-    color: rgba(226,232,240,.92);
-  }
-  html[data-theme="dark"] .pager{
-    background:rgba(15,23,42,.45);
-    border-top-color: rgba(148,163,184,.16);
-  }
-</style>
-
-<div class="card">
-  <div class="pagehead">
-    <div>
-      <h2 data-i18n="t1_reports_title">Hisobot №1</h2>
-      <div class="subtext" data-i18n="t1_reports_sub">
-        Sana bo‘yicha hisobotlar ro‘yxati. Qidiruv orqali tez topishingiz mumkin.
-      </div>
-    </div>
-
-    <a class="btn-cta" href="{% url 'station_table_1_edit' today %}?new=1" data-i18n="create_report">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
-      Hisobot yaratish
-    </a>
-  </div>
-
-  <div class="controls">
-    
-
-    <form method="get" class="chip" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <input type="date" name="from_date" value="{{ from_date }}" style="height:36px;border-radius:10px;border:1px solid rgba(15,23,42,.12);padding:0 10px;background:transparent;">
-      <input type="date" name="to_date" value="{{ to_date }}" style="height:36px;border-radius:10px;border:1px solid rgba(15,23,42,.12);padding:0 10px;background:transparent;">
-      <input type="hidden" name="per_page" value="{{ per_page }}">
-      <button type="submit" class="btn-soft">Filtr</button>
-      <a href="{% url 'station_table_1_list' %}" class="btn-soft">Tozalash</a>
-    </form>
-
-    <div class="chip">
-      <span data-i18n="shown">Ko‘rsatilmoqda</span>:
-      <b id="shownCount">{{ rows|length }}</b>
-    </div>
-
-    <div class="chip">
-      <span data-i18n="total">Jami</span>:
-      <b id="totalCount">{{ paginator.count }}</b>
-    </div>
-  </div>
-
-  <div class="tblwrap">
-    <table class="tbl2" id="t1table">
-      <thead>
-        <tr>
-          <th style="width:180px" data-i18n="col_date">Sana</th>
-          <th style="width:90px" data-i18n="col_year">Yil</th>
-          <th style="width:190px" data-i18n="col_sent">Jo'natilgan</th>
-          <th style="width:360px;text-align:right" data-i18n="col_actions">Amallar</th>
-        </tr>
-      </thead>
-
-      <tbody id="t1body">
-        {% for r in rows %}
-        <tr class="t1row"
-            data-search="{{ r.date|date:'d.m.Y' }} {{ r.date|date:'Y-m-d' }} {{ r.year }} {% if r.submitted_at %}{{ r.submitted_at|date:'d.m.Y H:i' }}{% endif %}">
-          <td class="dateCell"><b>{{ r.date|date:"d.m.Y" }}</b></td>
-          <td>{{ r.year }}</td>
-          <td class="mutedCell">
-            {% if r.submitted_at %}{{ r.submitted_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}
-          </td>
-          <td>
-            <div class="actions">
-              <a class="btn-soft" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">Ko'rish</a>
-              <a class="btn-soft" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">Tahrirlash</a>
-
-              <form method="post"
-                    action="/station/table-1/delete/{{ r.date|date:'Y-m-d' }}/"
-                    style="display:inline;"
-                    onsubmit="return confirm(window.__t?.confirm_delete || 'Удалить отчёт?');">
-                {% csrf_token %}
-                <button class="btn-danger" type="submit" data-i18n="delete">O'chirish</button>
-              </form>
+<div class="u1-page">
+  <div class="u1-grid">
+    <div class="glowFrame">
+      <div class="mainPanel">
+        <div class="pagehead">
+          <div class="titleBlock">
+            <div class="titleIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 3h7l5 5v13H7z"></path>
+                <path d="M14 3v6h5"></path>
+                <path d="M9 14h6"></path>
+                <path d="M9 18h4"></path>
+              </svg>
             </div>
+            <div>
+              <h2 data-i18n="t1_reports_title">Hisobot №1</h2>
+              <div class="subtext" data-i18n="t1_reports_sub">
+                Sana bo‘yicha hisobotlar ro‘yxati. Qidiring, filtrlang va tez topishingiz mumkin.
+              </div>
+            </div>
+          </div>
 
-            
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="4" style="padding:16px;color:var(--muted,#64748b)">
-            <span data-i18n="empty">Пока нет отчётов. Нажми “Создать отчёт”.</span>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    {% if paginator.num_pages > 1 %}
-    <div class="pager">
-      <div class="info">
-        {{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ paginator.count }}
-      </div>
-
-      <div class="pp">
-        {# per_page selector keeps page=1 #}
-        <form method="get" style="display:inline-flex;gap:8px;align-items:center">
-          <input type="hidden" name="page" value="1">
-          <select name="per_page" onchange="this.form.submit()">
-            <option value="5"  {% if per_page == 5 %}selected{% endif %}>5</option>
-            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-            <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
-            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-          </select>
-        </form>
-
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">‹</a>
-        {% else %}
-          <a class="disabled">‹</a>
-        {% endif %}
-
-        <div class="pnums">
-          {% for n in page_obj.paginator.page_range %}
-            {% if n >= page_obj.number|add:-3 and n <= page_obj.number|add:3 %}
-              <a class="pnum {% if n == page_obj.number %}active{% endif %}"
-                 href="?page={{ n }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">{{ n }}</a>
-            {% endif %}
-          {% endfor %}
+          <a class="btn-cta" href="{% url 'station_table_1_edit' today %}?new=1" data-i18n="create_report">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Hisobot yaratish
+          </a>
         </div>
 
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">›</a>
-        {% else %}
-          <a class="disabled">›</a>
-        {% endif %}
+        <div class="toolbar">
+          <form method="get" class="filterForm">
+            <div class="dateRange">
+              <input class="dateInput" type="date" name="from_date" value="{{ from_date }}" aria-label="Boshlanish sanasi">
+              <span class="dashSep">—</span>
+              <input class="dateInput" type="date" name="to_date" value="{{ to_date }}" aria-label="Tugash sanasi">
+              <input type="hidden" name="per_page" value="{{ per_page }}">
+              <button type="submit" class="btn-soft">
+                <span>▽</span>
+                Filtr
+              </button>
+              <a href="{% url 'station_table_1_list' %}" class="btn-soft">
+                <span>↻</span>
+                Tozalash
+              </a>
+            </div>
+          </form>
+
+          <div class="statChips">
+            <div class="chip">
+              <span class="chipIcon">◉</span>
+              <span data-i18n="shown">Ko‘rsatilmoqda</span>:
+              <b id="shownCount">{{ rows|length }}</b>
+            </div>
+
+            <div class="chip">
+              <span class="chipIcon">▦</span>
+              <span data-i18n="total">Jami</span>:
+              <b id="totalCount">{{ paginator.count }}</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="tblwrap">
+          <table class="tbl2" id="t1table">
+            <thead>
+              <tr>
+                <th style="width:180px" data-i18n="col_date">Sana</th>
+                <th style="width:90px" data-i18n="col_year">Yil</th>
+                <th style="width:190px" data-i18n="col_sent">Jo‘natilgan</th>
+                <th style="width:360px;text-align:right" data-i18n="col_actions">Amallar</th>
+              </tr>
+            </thead>
+
+            <tbody id="t1body">
+              {% for r in rows %}
+              <tr class="t1row"
+                  data-search="{{ r.date|date:'d.m.Y' }} {{ r.date|date:'Y-m-d' }} {{ r.year }} {% if r.submitted_at %}{{ r.submitted_at|date:'d.m.Y H:i' }}{% endif %}">
+                <td class="dateCell"><b>{{ r.date|date:"d.m.Y" }}</b></td>
+                <td>{{ r.year }}</td>
+                <td class="mutedCell">
+                  {% if r.submitted_at %}{{ r.submitted_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}
+                </td>
+                <td>
+                  <div class="actions">
+                    <a class="actionBtn actionView" href="/station/table-1/view/{{ r.date|date:'Y-m-d' }}/" data-i18n="view">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      Ko‘rish
+                    </a>
+
+                    <a class="actionBtn actionEdit" href="/station/table-1/edit/{{ r.date|date:'Y-m-d' }}/" data-i18n="edit">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path>
+                      </svg>
+                      Tahrirlash
+                    </a>
+
+                    <form method="post"
+                          action="/station/table-1/delete/{{ r.date|date:'Y-m-d' }}/"
+                          style="display:inline;"
+                          onsubmit="return confirm(window.__t?.confirm_delete || 'Удалить отчёт?');">
+                      {% csrf_token %}
+                      <button class="actionBtn actionDelete" type="submit" data-i18n="delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 6h18"></path>
+                          <path d="M8 6V4h8v2"></path>
+                          <path d="M19 6l-1 14H6L5 6"></path>
+                          <path d="M10 11v6"></path>
+                          <path d="M14 11v6"></path>
+                        </svg>
+                        O‘chirish
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" style="padding:16px;color:var(--u1-muted)">
+                  <span data-i18n="empty">Hali hisobotlar yo‘q. “Hisobot yaratish” tugmasini bosing.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% if paginator.num_pages > 1 %}
+          <div class="pager">
+            <div class="info">
+              {{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ paginator.count }} ta
+            </div>
+
+            <div class="pp">
+              <form method="get" style="display:inline-flex;gap:8px;align-items:center">
+                <input type="hidden" name="page" value="1">
+                <input type="hidden" name="from_date" value="{{ from_date }}">
+                <input type="hidden" name="to_date" value="{{ to_date }}">
+                <select name="per_page" onchange="this.form.submit()">
+                  <option value="5"  {% if per_page == 5 %}selected{% endif %}>5</option>
+                  <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                  <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                  <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                </select>
+              </form>
+
+              {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">‹</a>
+              {% else %}
+                <a class="disabled">‹</a>
+              {% endif %}
+
+              <div class="pnums">
+                {% for n in page_obj.paginator.page_range %}
+                  {% if n >= page_obj.number|add:-3 and n <= page_obj.number|add:3 %}
+                    <a class="pnum {% if n == page_obj.number %}active{% endif %}"
+                       href="?page={{ n }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">{{ n }}</a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&from_date={{ from_date }}&to_date={{ to_date }}">›</a>
+              {% else %}
+                <a class="disabled">›</a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
-    {% endif %}
+
+    <aside class="sideGlowFrame" aria-label="Tezkor nazorat">
+      <div class="sideCardInner">
+        <div class="sideHero">
+          <div class="heroLight">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <div class="heroTitle">
+            <h3>Tezkor nazorat</h3>
+          </div>
+
+          <div class="heroVisual">
+            <div class="heroMetric">
+              <div class="heroPercent" id="overviewPercent">0%</div>
+              <div class="heroCount" id="overviewCount">0 / 0</div>
+              <div class="heroFilial">hisobot topshirilgan</div>
+            </div>
+
+            <div class="paperScene" aria-hidden="true">
+              <div class="paperOrbit"></div>
+              <div class="paperOrbit orbit2"></div>
+              <div class="paper">
+                <div class="paperLine"></div>
+                <div class="paperLine small"></div>
+                <div class="paperChart">
+                  <i></i><i></i><i></i><i></i>
+                </div>
+              </div>
+              <div class="heroCheck">✓</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sideBody">
+          <div class="statusStrip">
+            <div class="statusIcon" id="overviewStatusIcon">✓</div>
+            <b id="overviewStatusTitle">Barcha hisobotlar joyida</b>
+          </div>
+
+          <div class="kpiGrid">
+            <div class="kpi">
+              <div class="kpiIcon ok">▤</div>
+              <div>
+                <div class="kpiLabel">Jami hisobotlar</div>
+                <div class="kpiValue" id="kpiTotal">{{ paginator.count }}</div>
+                <div class="kpiSub" id="kpiTotalPct">100%</div>
+              </div>
+            </div>
+
+            <div class="kpi">
+              <div class="kpiIcon wait">⌛</div>
+              <div>
+                <div class="kpiLabel">Kutilayotgan</div>
+                <div class="kpiValue" id="kpiPending">0</div>
+                <div class="kpiSub" id="kpiPendingPct">0%</div>
+              </div>
+            </div>
+
+            <div class="kpi">
+              <div class="kpiIcon date">◷</div>
+              <div>
+                <div class="kpiLabel">Oxirgi yangilanish</div>
+                <div class="kpiValue" id="kpiLastDate">—</div>
+                <div class="kpiSub" id="kpiLastTime">—</div>
+              </div>
+            </div>
+
+            <div class="kpi">
+              <div class="kpiIcon active">♧</div>
+              <div>
+                <div class="kpiLabel">Faol hisobotlar</div>
+                <div class="kpiValue" id="kpiActive">{{ paginator.count }}</div>
+                <div class="kpiSub" id="kpiActivePct">100%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chartCard">
+            <div class="chartHead">
+              <b>Haftalik topshirish dinamikasi</b>
+              <span>So‘nggi 7 kunlik ko‘rsatkich</span>
+            </div>
+
+            <div class="chartArea">
+              <svg class="waveSvg" viewBox="0 0 420 70" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <filter id="waveGlowU1" x="-40%" y="-80%" width="180%" height="260%">
+                    <feGaussianBlur stdDeviation="3.2" result="coloredBlur"></feGaussianBlur>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"></feMergeNode>
+                      <feMergeNode in="SourceGraphic"></feMergeNode>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path class="wave2" d="M0,35 C35,12 70,58 105,35 C140,12 175,58 210,35 C245,12 280,58 315,35 C350,12 385,58 420,35"></path>
+                <path class="wave1" d="M0,38 C35,14 70,62 105,38 C140,14 175,62 210,38 C245,14 280,62 315,38 C350,14 385,62 420,38"></path>
+              </svg>
+
+              <div class="bars" id="overviewBars">
+                <div class="emptyBox" style="grid-column:1/-1;padding:12px 0;">Yuklanmoqda...</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="sideCta" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            Batafsil ko‘rish <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
 
 <script>
 (function(){
-  // mobile card switch
+  const rows = Array.from(document.querySelectorAll(".t1row"));
+  const shownCount = document.getElementById("shownCount");
+  const totalCount = document.getElementById("totalCount");
+
+  const overviewPercent = document.getElementById("overviewPercent");
+  const overviewCount = document.getElementById("overviewCount");
+  const overviewStatusIcon = document.getElementById("overviewStatusIcon");
+  const overviewStatusTitle = document.getElementById("overviewStatusTitle");
+  const kpiTotal = document.getElementById("kpiTotal");
+  const kpiPending = document.getElementById("kpiPending");
+  const kpiLastDate = document.getElementById("kpiLastDate");
+  const kpiLastTime = document.getElementById("kpiLastTime");
+  const kpiActive = document.getElementById("kpiActive");
+  const overviewBars = document.getElementById("overviewBars");
+
+  function safeNumber(value){
+    const n = Number(String(value || "0").replace(/\D/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function getSubmittedText(row){
+    const td = row.querySelector("td:nth-child(3)");
+    return (td ? td.textContent : "").trim();
+  }
+
+  function splitDateTime(value){
+    const text = String(value || "").trim();
+    if(!text || text === "—"){
+      return {date:"—", time:"—"};
+    }
+
+    const parts = text.split(/\s+/);
+    return {
+      date: parts[0] || "—",
+      time: parts.slice(1).join(" ") || "—"
+    };
+  }
+
+  function renderOverview(){
+    const visibleOnPage = rows.length;
+    const total = safeNumber(totalCount ? totalCount.textContent : visibleOnPage);
+    const active = total;
+    const pending = 0;
+    const percent = total ? 100 : 0;
+
+    overviewPercent.textContent = `${percent}%`;
+    overviewCount.textContent = `${active} / ${total}`;
+
+    overviewStatusIcon.textContent = total ? "✓" : "!";
+    overviewStatusTitle.textContent = total ? "Barcha hisobotlar joyida" : "Hali hisobot mavjud emas";
+
+    if(kpiTotal) kpiTotal.textContent = String(total);
+    if(kpiPending) kpiPending.textContent = String(pending);
+    if(kpiActive) kpiActive.textContent = String(active);
+
+    const firstSubmitted = rows.length ? getSubmittedText(rows[0]) : "";
+    const last = splitDateTime(firstSubmitted);
+
+    kpiLastDate.textContent = last.date;
+    kpiLastTime.textContent = last.time;
+
+    const trendRows = rows.slice(0, 7).reverse();
+
+    if(!trendRows.length){
+      overviewBars.innerHTML = `<div class="emptyBox" style="grid-column:1/-1;padding:12px 0;">Ma’lumot yo‘q</div>`;
+      return;
+    }
+
+    overviewBars.innerHTML = trendRows.map(row => {
+      const dateText = (row.querySelector(".dateCell b")?.textContent || "").trim();
+      const label = dateText ? dateText.slice(0, 5) : "—";
+
+      return `
+        <div class="barItem">
+          <div class="barPct">100%</div>
+          <div class="barTrack">
+            <div class="barFill" style="height:100%;"></div>
+          </div>
+          <div class="barDate">${label}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
   function syncMobileRows(){
     const isMobile = window.matchMedia("(max-width: 820px)").matches;
     document.querySelectorAll(".t1row").forEach(tr=>{
@@ -321,28 +390,13 @@
       if(rowgrid) rowgrid.style.display = isMobile ? "grid" : "none";
     });
   }
+
   window.addEventListener("resize", syncMobileRows);
   syncMobileRows();
-
-  // quick filter (filters current page only)
-  const q = document.getElementById("q");
-  const rows = Array.from(document.querySelectorAll(".t1row"));
-  const shownCount = document.getElementById("shownCount");
-
-  function applyFilter(){
-    const term = (q.value || "").trim().toLowerCase();
-    let shown = 0;
-    rows.forEach(r=>{
-      const ok = !term || (r.dataset.search || "").toLowerCase().includes(term);
-      r.style.display = ok ? "" : "none";
-      if(ok) shown++;
-    });
-    shownCount.textContent = String(shown);
-  }
-
-  q && q.addEventListener("input", applyFilter);
+  renderOverview();
 })();
 </script>
+
 <script>
 setInterval(()=>fetch("/heartbeat/", {credentials:"same-origin"}), 30000);
 </script>
